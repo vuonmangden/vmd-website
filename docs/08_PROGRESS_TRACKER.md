@@ -40,7 +40,7 @@
 
 | Task ID | Nội dung | Trạng thái | Dependency | Branch/PR | Migration | Tests | Security | Ghi chú |
 |---|---|---|---|---|---|---|---|---|
-| FND-001 | Khởi tạo monorepo | Review | Không | `chore/fnd-001-initialize-monorepo` (commit ghi bên dưới) | N/A | Node 24.14.0; pnpm 11.9.0; frozen install đạt; lint/typecheck/test/build 12/12 đạt với Turbo cache bypass; web/admin HTTP 200, API port 3002, worker duy trì tiến trình | Node 22.14.0 bị runtime gate từ chối; local secret/client-env/ignore checks đạt | Chờ human review; còn 3 deprecated transitive dependencies (`glob@10.5.0`, `glob@7.2.3`, `inflight@1.0.6`) |
+| FND-001 | Khởi tạo monorepo | Review | Không | `chore/fnd-001-initialize-monorepo` / `3c5036a` | N/A | Node 24.14.0; pnpm 11.9.0; frozen install đạt; lint/typecheck/test/build 12/12 đạt với Turbo cache bypass; web/admin HTTP 200, API port 3002, worker duy trì tiến trình | Node 22.14.0 bị runtime gate từ chối; local secret/client-env/ignore checks đạt | Chờ human review; còn 3 deprecated transitive dependencies (`glob@10.5.0`, `glob@7.2.3`, `inflight@1.0.6`) |
 | FND-002 | Local development | Backlog | FND-001 |  | Có thể có |  |  | PostgreSQL, Redis, Mailpit, mock providers |
 | FND-003 | CI | Backlog | FND-001 |  | N/A |  |  | Scan secret/dependency |
 | FND-004 | API foundation | Backlog | FND-001, FND-002 |  | N/A |  |  | Error, correlation, logger, validation, OpenAPI |
