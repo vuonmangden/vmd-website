@@ -1,0 +1,11 @@
+packages:
+  - apps/*
+  - packages/*
+
+engineStrict: true
+nodeVersion: 24.14.0
+runtimeOnFail: error
+
+allowBuilds:
+  sharp: true
+  unrs-resolver: true

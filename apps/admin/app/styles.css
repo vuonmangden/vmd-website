@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+:root { color-scheme: light; font-family: system-ui, sans-serif; --vmd-color-surface: #ffffff; --vmd-color-text: #17211b; }
+body { margin: 0; }
+main { margin: 4rem auto; max-width: 48rem; padding: 1.5rem; background: var(--vmd-color-surface); color: var(--vmd-color-text); }
