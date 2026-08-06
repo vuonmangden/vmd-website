@@ -4,7 +4,9 @@
 
 - **Executed at:** 2026-08-06 18:06:30 +07:00
 - **Branch:** `chore/fnd-002-local-development`
-- **Baseline commit tested with review working tree:** `eb74fe9`
+- **Baseline trước bản sửa review:** `eb74fe9`
+- **Working tree dùng khi chạy kiểm thử, sau đó được commit thành:** `10ef3cb`
+- **Commit kỹ thuật cuối được human review:** `10ef3cb`
 - **Node.js:** `v24.14.0`
 - **pnpm:** `11.9.0`
 - **Docker CLI/Engine:** `29.6.2`

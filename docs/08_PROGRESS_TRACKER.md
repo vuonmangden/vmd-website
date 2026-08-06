@@ -16,8 +16,8 @@
 | Phase | Phase 1 — MVP |
 | Trạng thái tổng thể | Foundation đang triển khai |
 | Milestone hiện tại | Milestone 1 |
-| Task đang thực hiện | FND-002 — Review |
-| Task hoàn thành | 1 |
+| Task đang thực hiện | FND-003 — Chuẩn bị |
+| Task hoàn thành | 2 |
 | Blocker mở | Xem Milestone 0 và Open Decisions |
 | Cập nhật gần nhất | 2026-08-06 |
 
@@ -41,7 +41,7 @@
 | Task ID | Nội dung | Trạng thái | Dependency | Branch/PR | Migration | Tests | Security | Ghi chú |
 |---|---|---|---|---|---|---|---|---|
 | FND-001 | Khởi tạo monorepo | Done | Không | `chore/fnd-001-initialize-monorepo` / `3c5036a`, `8913286` | N/A | Node 24.14.0; pnpm 11.9.0; frozen install đạt; lint/typecheck/test/build 12/12 đạt với Turbo cache bypass; web/admin HTTP 200, API port 3002, worker duy trì tiến trình | Node 22.14.0 bị runtime gate từ chối; local secret/client-env/ignore checks đạt | Human review đã duyệt; còn 3 deprecated transitive dependencies (`glob@10.5.0`, `glob@7.2.3`, `inflight@1.0.6`) |
-| FND-002 | Local development | Review | FND-001 | `chore/fnd-002-local-development` / `01ce62e`, review fix `fix(fnd-002): close local environment review findings` | Không | Node 24.14.0; pnpm 11.9.0 frozen install đạt; lint/typecheck/test/build 12/12 đạt, cache bypass; 7/7 unit test FND-002 đạt; Compose config và 6/6 service healthy | Loopback-only ports; pinned images; không latest/privileged/socket/secret; `.env` fallback, env boundary và ignore checks đạt | Read-only MinIO check; marker giữ nguyên timestamp/ETag sau restart; down giữ 4 named volumes; evidence: `docs/evidence/FND-002-LOCAL-ENVIRONMENT.md` |
+| FND-002 | Local development | Done | FND-001 | `chore/fnd-002-local-development` / `01ce62e`, `eb74fe9`, `10ef3cb` | Không | Node 24.14.0; pnpm 11.9.0 frozen install đạt; lint/typecheck/test/build 12/12 đạt, cache bypass; 7/7 unit test FND-002 đạt; Compose config và 6/6 service healthy | Loopback-only ports; pinned images; không latest/privileged/socket/secret; `.env` fallback, env boundary và ignore checks đạt | Human review đã duyệt; read-only MinIO check; marker giữ nguyên timestamp/ETag sau restart; down giữ 4 named volumes; evidence: `docs/evidence/FND-002-LOCAL-ENVIRONMENT.md` |
 | FND-003 | CI | Backlog | FND-001 |  | N/A |  |  | Scan secret/dependency |
 | FND-004 | API foundation | Backlog | FND-001, FND-002 |  | N/A |  |  | Error, correlation, logger, validation, OpenAPI |
 | FND-005 | Database foundation | Backlog | FND-002, FND-004 |  | Bắt buộc |  |  | Idempotency, outbox, audit, settings |
@@ -231,3 +231,4 @@ Người cập nhật:
 | 2026-08-06 | Codex | Chủ dự án duyệt FND-001; chuyển task sang Done với hai commit `3c5036a` và `8913286`, bắt đầu chuẩn bị FND-002 |
 | 2026-08-06 | Codex | Triển khai FND-002 local environment; toàn bộ quality gate, service health, provider mock, volume persistence và restart test đạt; chuyển task sang Review |
 | 2026-08-06 | Codex | Xử lý review FND-002: env fallback đa nền tảng, read-only MinIO marker check, root lint/test coverage và bằng chứng Docker/persistence thực tế; giữ trạng thái Review |
+| 2026-08-06 | Codex | Chủ dự án duyệt và đóng FND-002 sau khi xác minh code, unit test, Docker, Compose và persistence; chuyển sang Done, FND-003 vẫn Backlog và chỉ ở bước chuẩn bị |
