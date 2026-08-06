@@ -30,7 +30,7 @@ docker info
 docker compose version
 ```
 
-If `docker info` reports that the daemon is unavailable, open Docker Desktop and wait for **Engine running**. From the repository root, start every local service with one command:
+If `docker info` reports that the daemon is unavailable, open Docker Desktop and wait for **Engine running**. Copy the safe local template before the first start (`copy .env.example .env` on Windows Command Prompt, `cp .env.example .env` on macOS/Linux, or use your file manager). The scripts use `.env` when it exists and fall back to `.env.example` otherwise. From the repository root, start every local service with one command:
 
 ```text
 pnpm infra:up
@@ -71,7 +71,7 @@ Invoke-WebRequest -Method Post http://127.0.0.1:4011/error -SkipHttpErrorCheck
 
 PostgreSQL, Redis, Mailpit and MinIO use named Docker volumes. `pnpm infra:down` preserves them, so data remains after a normal stop and restart. There is intentionally no routine reset/delete command.
 
-If startup reports that a port is already allocated, stop the conflicting program or override that host port for the current PowerShell session before running the command, for example `$env:POSTGRES_PORT=55432`. Keep the container-side ports unchanged. The root scripts use `.env.example` as deterministic defaults, while shell environment variables take precedence for local overrides.
+If startup reports that a port is already allocated, edit the copied `.env` without changing source files. Choose an unused host port and keep related values consistent. For example, changing `POSTGRES_PORT` to `55432` also requires changing the port inside `DATABASE_URL` to `55432`; the infrastructure script rejects mismatches with a clear error. All five infrastructure commands select the same env file on Windows, macOS and Linux.
 
 > The documented users/passwords and mock responses are fake, local-only values. Never use this Compose file, its credentials, Mailpit, MinIO, or either mock provider in production.
 

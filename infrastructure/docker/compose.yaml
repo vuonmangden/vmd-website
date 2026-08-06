@@ -87,7 +87,30 @@ services:
       - |
         mc alias set local http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD"
         mc mb --ignore-existing "local/$$MINIO_BUCKET"
-        mc stat "local/$$MINIO_BUCKET"
+        if ! mc stat "local/$$MINIO_BUCKET/.vmd-infrastructure-marker" >/dev/null 2>&1; then
+          printf 'vmd-local-infrastructure-marker-v1\n' > /tmp/vmd-infrastructure-marker
+          mc cp /tmp/vmd-infrastructure-marker "local/$$MINIO_BUCKET/.vmd-infrastructure-marker"
+        fi
+        mc stat "local/$$MINIO_BUCKET/.vmd-infrastructure-marker"
+
+  minio-check:
+    image: minio/mc:RELEASE.2025-08-13T08-35-41Z
+    restart: "no"
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?MINIO_ROOT_USER is required}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD is required}
+      MINIO_BUCKET: ${MINIO_BUCKET:?MINIO_BUCKET is required}
+    entrypoint:
+      - /bin/sh
+      - -ec
+      - |
+        mc alias set local http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD" >/dev/null
+        mc stat "local/$$MINIO_BUCKET" >/dev/null
+        mc stat --json "local/$$MINIO_BUCKET/.vmd-infrastructure-marker"
+        mc cat "local/$$MINIO_BUCKET/.vmd-infrastructure-marker"
 
   mock-sepay:
     image: vmd/local-provider-mock:1.0.0

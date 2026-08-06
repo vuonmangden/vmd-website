@@ -10,15 +10,16 @@
   "scripts": {
     "preinstall": "node scripts/require-node-24.mjs",
     "dev": "turbo run dev",
-    "lint": "turbo run lint",
+    "lint": "turbo run lint && eslint scripts/*.mjs infrastructure/docker/mocks/*.mjs",
+    "lint:infra": "eslint scripts/*.mjs infrastructure/docker/mocks/*.mjs",
     "typecheck": "turbo run typecheck",
-    "test": "turbo run test",
+    "test": "turbo run test && node --test scripts/*.test.mjs infrastructure/docker/mocks/*.test.mjs",
     "build": "turbo run build",
-    "infra:up": "docker compose --env-file .env.example -f infrastructure/docker/compose.yaml up --detach --build --wait postgres redis mailpit minio mock-sepay mock-zalo && docker compose --env-file .env.example -f infrastructure/docker/compose.yaml run --rm minio-init",
-    "infra:down": "docker compose --env-file .env.example -f infrastructure/docker/compose.yaml down",
-    "infra:status": "docker compose --env-file .env.example -f infrastructure/docker/compose.yaml ps",
-    "infra:logs": "docker compose --env-file .env.example -f infrastructure/docker/compose.yaml logs --follow --tail 200",
-    "infra:check": "node --env-file=.env.example scripts/infra-check.mjs"
+    "infra:up": "node scripts/infra.mjs up",
+    "infra:down": "node scripts/infra.mjs down",
+    "infra:status": "node scripts/infra.mjs status",
+    "infra:logs": "node scripts/infra.mjs logs",
+    "infra:check": "node scripts/infra.mjs check"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
