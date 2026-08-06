@@ -21,6 +21,60 @@ pnpm test
 pnpm build
 ```
 
+## Local development infrastructure
+
+Install and start Docker Desktop before continuing. In PowerShell, verify it is ready:
+
+```text
+docker info
+docker compose version
+```
+
+If `docker info` reports that the daemon is unavailable, open Docker Desktop and wait for **Engine running**. From the repository root, start every local service with one command:
+
+```text
+pnpm infra:up
+```
+
+The first run downloads pinned images and can take several minutes. Useful commands:
+
+```text
+pnpm infra:status  # show container and health status
+pnpm infra:check   # test every service and mock endpoint
+pnpm infra:logs    # follow logs; press Ctrl+C to stop following
+pnpm infra:down    # stop safely without deleting local volumes
+```
+
+All exposed ports bind to `127.0.0.1` and are accessible only from this computer by default.
+
+| Local service | Address | Purpose |
+|---|---|---|
+| PostgreSQL 16 | `127.0.0.1:5432` | Local relational database; no business schema or seed |
+| Redis | `127.0.0.1:6379` | Local cache/queue dependency |
+| Mailpit SMTP | `127.0.0.1:1025` | Captures development email |
+| Mailpit Web UI | `http://127.0.0.1:8025` | Shows captured email |
+| MinIO S3 API | `http://127.0.0.1:9000` | Local S3-compatible API |
+| MinIO Console | `http://127.0.0.1:9001` | Storage UI; use the fake local credentials in `.env.example` |
+| Mock SePay | `http://127.0.0.1:4010` | Non-production deterministic provider mock |
+| Mock Zalo | `http://127.0.0.1:4011` | Non-production deterministic provider mock |
+
+Test a mock in PowerShell:
+
+```text
+Invoke-RestMethod http://127.0.0.1:4010/health
+Invoke-RestMethod -Method Post http://127.0.0.1:4010/success
+Invoke-WebRequest -Method Post http://127.0.0.1:4010/error -SkipHttpErrorCheck
+Invoke-RestMethod http://127.0.0.1:4011/health
+Invoke-RestMethod -Method Post http://127.0.0.1:4011/success
+Invoke-WebRequest -Method Post http://127.0.0.1:4011/error -SkipHttpErrorCheck
+```
+
+PostgreSQL, Redis, Mailpit and MinIO use named Docker volumes. `pnpm infra:down` preserves them, so data remains after a normal stop and restart. There is intentionally no routine reset/delete command.
+
+If startup reports that a port is already allocated, stop the conflicting program or override that host port for the current PowerShell session before running the command, for example `$env:POSTGRES_PORT=55432`. Keep the container-side ports unchanged. The root scripts use `.env.example` as deterministic defaults, while shell environment variables take precedence for local overrides.
+
+> The documented users/passwords and mock responses are fake, local-only values. Never use this Compose file, its credentials, Mailpit, MinIO, or either mock provider in production.
+
 Run one shell with `pnpm --filter @vmd/web dev`, `pnpm --filter @vmd/admin dev`, `pnpm --filter @vmd/api dev`, or `pnpm --filter @vmd/worker dev`. Default local ports are 3000, 3001, and 3002 for web, admin, and API. The worker is a long-running Nest application context with no queue, timer, or provider connection.
 
 ## Workspace boundaries

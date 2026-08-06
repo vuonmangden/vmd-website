@@ -13,7 +13,12 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "build": "turbo run build"
+    "build": "turbo run build",
+    "infra:up": "docker compose --env-file .env.example -f infrastructure/docker/compose.yaml up --detach --build --wait postgres redis mailpit minio mock-sepay mock-zalo && docker compose --env-file .env.example -f infrastructure/docker/compose.yaml run --rm minio-init",
+    "infra:down": "docker compose --env-file .env.example -f infrastructure/docker/compose.yaml down",
+    "infra:status": "docker compose --env-file .env.example -f infrastructure/docker/compose.yaml ps",
+    "infra:logs": "docker compose --env-file .env.example -f infrastructure/docker/compose.yaml logs --follow --tail 200",
+    "infra:check": "node --env-file=.env.example scripts/infra-check.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
