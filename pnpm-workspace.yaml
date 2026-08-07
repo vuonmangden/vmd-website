@@ -7,5 +7,6 @@ nodeVersion: 24.14.0
 runtimeOnFail: error
 
 allowBuilds:
+  '@scarf/scarf': set this to true or false
   sharp: true
   unrs-resolver: true

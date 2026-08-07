@@ -16,10 +16,10 @@
 | Phase | Phase 1 — MVP |
 | Trạng thái tổng thể | Foundation đang triển khai |
 | Milestone hiện tại | Milestone 1 |
-| Task đang thực hiện | FND-003 — Chuẩn bị |
-| Task hoàn thành | 2 |
+| Task đang thực hiện | FND-005 — Backlog |
+| Task hoàn thành | 3 |
 | Blocker mở | Xem Milestone 0 và Open Decisions |
-| Cập nhật gần nhất | 2026-08-06 |
+| Cập nhật gần nhất | 2026-08-07 |
 
 ## 3. Milestone 0 — Chốt đầu vào
 
@@ -43,7 +43,7 @@
 | FND-001 | Khởi tạo monorepo | Done | Không | `chore/fnd-001-initialize-monorepo` / `3c5036a`, `8913286` | N/A | Node 24.14.0; pnpm 11.9.0; frozen install đạt; lint/typecheck/test/build 12/12 đạt với Turbo cache bypass; web/admin HTTP 200, API port 3002, worker duy trì tiến trình | Node 22.14.0 bị runtime gate từ chối; local secret/client-env/ignore checks đạt | Human review đã duyệt; còn 3 deprecated transitive dependencies (`glob@10.5.0`, `glob@7.2.3`, `inflight@1.0.6`) |
 | FND-002 | Local development | Done | FND-001 | `chore/fnd-002-local-development` / `01ce62e`, `eb74fe9`, `10ef3cb` | Không | Node 24.14.0; pnpm 11.9.0 frozen install đạt; lint/typecheck/test/build 12/12 đạt, cache bypass; 7/7 unit test FND-002 đạt; Compose config và 6/6 service healthy | Loopback-only ports; pinned images; không latest/privileged/socket/secret; `.env` fallback, env boundary và ignore checks đạt | Human review đã duyệt; read-only MinIO check; marker giữ nguyên timestamp/ETag sau restart; down giữ 4 named volumes; evidence: `docs/evidence/FND-002-LOCAL-ENVIRONMENT.md` |
 | FND-003 | CI | Backlog | FND-001 |  | N/A |  |  | Scan secret/dependency |
-| FND-004 | API foundation | Backlog | FND-001, FND-002 |  | N/A |  |  | Error, correlation, logger, validation, OpenAPI |
+| FND-004 | API foundation | Done | FND-001, FND-002 | `chore/fnd-004-api-foundation` | N/A | lint/typecheck/test/build 12/12 đạt; 11 API tests (correlation-id 4, exception-filter 3, health 3, app-module 1) đạt; 4 app shells build thành công | Không stack trace trong response; không secret/PII trong log; correlation ID validate UUID | Error format §25.3, correlation ID §40, validation pipe, global exception filter, Swagger `/api/docs`, health endpoints `/health/{live,ready,dependencies}`, structured logger `@vmd/logging` |
 | FND-005 | Database foundation | Backlog | FND-002, FND-004 |  | Bắt buộc |  |  | Idempotency, outbox, audit, settings |
 
 **Gate:** CI xanh; local chạy được; migration và seed chạy được từ database trắng.
@@ -232,3 +232,5 @@ Người cập nhật:
 | 2026-08-06 | Codex | Triển khai FND-002 local environment; toàn bộ quality gate, service health, provider mock, volume persistence và restart test đạt; chuyển task sang Review |
 | 2026-08-06 | Codex | Xử lý review FND-002: env fallback đa nền tảng, read-only MinIO marker check, root lint/test coverage và bằng chứng Docker/persistence thực tế; giữ trạng thái Review |
 | 2026-08-06 | Codex | Chủ dự án duyệt và đóng FND-002 sau khi xác minh code, unit test, Docker, Compose và persistence; chuyển sang Done, FND-003 vẫn Backlog và chỉ ở bước chuẩn bị |
+| 2026-08-07 | Claude | Triển khai FND-004 API foundation: error format §25.3, correlation ID, validation pipe, global exception filter, Swagger, health endpoints, structured logger; 11 API tests đạt, lint/typecheck/test/build 12/12 đạt; chuyển sang Review |
+| 2026-08-07 | Claude | Chủ dự án duyệt FND-004; chuyển sang Done; commit trên branch `chore/fnd-004-api-foundation` |
