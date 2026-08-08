@@ -1,3 +1,10 @@
-# CI routing placeholder
+# GitHub Actions Workflows
 
-GitHub Actions, automated secret scanning, and dependency scanning belong to FND-003.
+## ci.yml
+
+PR and main branch CI pipeline:
+
+- **ci job:** Install → Lint → Typecheck → Test → Prisma Validate → Build
+- **security job:** Secret scan (gitleaks) + Dependency audit (pnpm audit)
+
+Triggers on push and pull_request to `main`.

@@ -16,8 +16,8 @@
 | Phase | Phase 1 — MVP |
 | Trạng thái tổng thể | Foundation đang triển khai |
 | Milestone hiện tại | Milestone 1 |
-| Task đang thực hiện | Không (Foundation hoàn tất) |
-| Task hoàn thành | 4 |
+| Task đang thực hiện | Không (Foundation hoàn tất, CI thiết lập xong) |
+| Task hoàn thành | 5 |
 | Blocker mở | Xem Milestone 0 và Open Decisions |
 | Cập nhật gần nhất | 2026-08-08 |
 
@@ -42,7 +42,7 @@
 |---|---|---|---|---|---|---|---|---|
 | FND-001 | Khởi tạo monorepo | Done | Không | `chore/fnd-001-initialize-monorepo` / `3c5036a`, `8913286` | N/A | Node 24.14.0; pnpm 11.9.0; frozen install đạt; lint/typecheck/test/build 12/12 đạt với Turbo cache bypass; web/admin HTTP 200, API port 3002, worker duy trì tiến trình | Node 22.14.0 bị runtime gate từ chối; local secret/client-env/ignore checks đạt | Human review đã duyệt; còn 3 deprecated transitive dependencies (`glob@10.5.0`, `glob@7.2.3`, `inflight@1.0.6`) |
 | FND-002 | Local development | Done | FND-001 | `chore/fnd-002-local-development` / `01ce62e`, `eb74fe9`, `10ef3cb` | Không | Node 24.14.0; pnpm 11.9.0 frozen install đạt; lint/typecheck/test/build 12/12 đạt, cache bypass; 7/7 unit test FND-002 đạt; Compose config và 6/6 service healthy | Loopback-only ports; pinned images; không latest/privileged/socket/secret; `.env` fallback, env boundary và ignore checks đạt | Human review đã duyệt; read-only MinIO check; marker giữ nguyên timestamp/ETag sau restart; down giữ 4 named volumes; evidence: `docs/evidence/FND-002-LOCAL-ENVIRONMENT.md` |
-| FND-003 | CI | Backlog | FND-001 |  | N/A |  |  | Scan secret/dependency |
+| FND-003 | CI | Done | FND-001 | `chore/fnd-003-ci` | N/A | lint/typecheck/test/build 12/12 đạt; prisma validate đạt; CI workflow syntax hợp lệ | gitleaks secret scan; pnpm audit dependency scan; GITHUB_TOKEN only; no long-lived credentials | GitHub Actions CI: 2 jobs (ci + security); ADR-002 đóng DEC-002 |
 | FND-004 | API foundation | Done | FND-001, FND-002 | `chore/fnd-004-api-foundation` | N/A | lint/typecheck/test/build 12/12 đạt; 11 API tests (correlation-id 4, exception-filter 3, health 3, app-module 1) đạt; 4 app shells build thành công | Không stack trace trong response; không secret/PII trong log; correlation ID validate UUID | Error format §25.3, correlation ID §40, validation pipe, global exception filter, Swagger `/api/docs`, health endpoints `/health/{live,ready,dependencies}`, structured logger `@vmd/logging` |
 | FND-005 | Database foundation | Done | FND-002, FND-004 | `chore/fnd-005-database-foundation` | `20260807000000_initial_foundation` — 4 tables, 3 extensions, 2 indexes | lint/typecheck/test/build 12/12 đạt; 16 API tests (prisma-service 3, prisma-module 1, health 4, correlation-id 4, exception-filter 3, app-module 1) đạt | DATABASE_URL server-only; connection string không log; audit_logs immutable; app_settings secret reference only | Prisma 7.7.0 + @prisma/adapter-pg; audit_logs, idempotency_keys, outbox_events, app_settings; pgcrypto, btree_gist, citext; PrismaModule global; health/dependencies check DB |
 
@@ -192,7 +192,7 @@
 | ID | Câu hỏi cần quyết định | Task bị ảnh hưởng | Owner | Hạn | Trạng thái | ADR |
 |---|---|---|---|---|---|---|
 | DEC-001 | Xác nhận toolchain, test runner, package scope và secret scanning | FND-001 | Chủ dự án | 2026-08-05 | Closed | `docs/decisions/ADR-001-FOUNDATION-TOOLCHAIN.md` |
-| DEC-002 | Xác nhận lệnh chuẩn và toolchain CI | FND-003 | TBD | Trước FND-003 | Open |  |
+| DEC-002 | Xác nhận lệnh chuẩn và toolchain CI | FND-003 | Claude | 2026-08-08 | Closed | `docs/decisions/ADR-002-CI-TOOLCHAIN.md` |
 | DEC-003 | Xác nhận dữ liệu và chính sách Milestone 0 | RMS/BKG/PAY/BBQ | TBD | Trước module tương ứng | Open |  |
 
 ## 17. Defect summary
@@ -235,3 +235,4 @@ Người cập nhật:
 | 2026-08-07 | Claude | Triển khai FND-004 API foundation: error format §25.3, correlation ID, validation pipe, global exception filter, Swagger, health endpoints, structured logger; 11 API tests đạt, lint/typecheck/test/build 12/12 đạt; chuyển sang Review |
 | 2026-08-07 | Claude | Chủ dự án duyệt FND-004; chuyển sang Done; commit trên branch `chore/fnd-004-api-foundation` |
 | 2026-08-08 | Claude | Triển khai FND-005 database foundation: Prisma 7.7.0 với @prisma/adapter-pg, migration initial_foundation (4 tables: audit_logs, idempotency_keys, outbox_events, app_settings; 3 extensions: pgcrypto, btree_gist, citext; 2 indexes), PrismaService/PrismaModule, health/dependencies DB check, seed script; 16 API tests đạt, lint/typecheck/test/build 12/12 đạt; chuyển sang Done |
+| 2026-08-08 | Claude | Triển khai FND-003 CI pipeline: GitHub Actions workflow với 2 jobs song song (ci: install/lint/typecheck/test/prisma-validate/build, security: gitleaks secret scan + pnpm audit dependency scan); ADR-002 đóng DEC-002; lint/typecheck/test/build 12/12 đạt local; prisma validate đạt; chuyển sang Done |
