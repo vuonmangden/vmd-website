@@ -52,6 +52,27 @@ model OutboxEvent {
   @@map("outbox_events")
 }
 
+model Customer {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customerCode      String    @unique @map("customer_code") @db.VarChar(30)
+  fullName          String    @map("full_name") @db.VarChar(150)
+  phoneNormalized   String?   @map("phone_normalized") @db.VarChar(20)
+  emailNormalized   String?   @map("email_normalized") @db.Citext
+  source            String    @default("DIRECT") @db.VarChar(50)
+  marketingConsent  Boolean   @default(false) @map("marketing_consent")
+  privacyConsentAt  DateTime? @map("privacy_consent_at") @db.Timestamptz()
+  notes             String?   @db.Text
+  firstBookingAt    DateTime? @map("first_booking_at") @db.Timestamptz()
+  lastBookingAt     DateTime? @map("last_booking_at") @db.Timestamptz()
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt         DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+  deletedAt         DateTime? @map("deleted_at") @db.Timestamptz()
+
+  @@index([phoneNormalized])
+  @@index([emailNormalized])
+  @@map("customers")
+}
+
 model AppSetting {
   key               String   @id @db.VarChar(150)
   value             Json     @db.JsonB

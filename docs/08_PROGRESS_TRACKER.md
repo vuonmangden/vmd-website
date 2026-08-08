@@ -17,7 +17,7 @@
 | Trạng thái tổng thể | Foundation đang triển khai |
 | Milestone hiện tại | Milestone 1 |
 | Task đang thực hiện | Không (Foundation hoàn tất, CI thiết lập xong) |
-| Task hoàn thành | 5 |
+| Task hoàn thành | 6 |
 | Blocker mở | Xem Milestone 0 và Open Decisions |
 | Cập nhật gần nhất | 2026-08-08 |
 
@@ -92,7 +92,7 @@
 
 | Task ID | Nội dung | Trạng thái | Dependency | Branch/PR | Tests | Ghi chú |
 |---|---|---|---|---|---|---|
-| BKG-001 | Customer Core | Backlog | FND-005 |  |  | Consent/PII |
+| BKG-001 | Customer Core | Done | FND-005 | `chore/fnd-005-database-foundation` | lint/typecheck/test/build 12/12 đạt; 31 API tests (customers 15, health 4, correlation-id 4, exception-filter 3, prisma 4, app-module 1) đạt | Migration `20260808000000_add_customers`; Prisma Customer model; CustomersService (normalize phone/email, findDuplicates, findOrCreate, softDelete); outbox event `customer.created`; consent tracking |
 | BKG-002 | Occupancy Model | Backlog | RMS-002 |  |  | Unique `(room_id, stay_date)` |
 | BKG-003 | Resource Hold | Backlog | BKG-002 |  |  | TTL/expiry/retry |
 | BKG-004 | Booking Creation | Backlog | BKG-001, BKG-003, RMS-005 |  |  | Idempotency bắt buộc |
@@ -236,3 +236,4 @@ Người cập nhật:
 | 2026-08-07 | Claude | Chủ dự án duyệt FND-004; chuyển sang Done; commit trên branch `chore/fnd-004-api-foundation` |
 | 2026-08-08 | Claude | Triển khai FND-005 database foundation: Prisma 7.7.0 với @prisma/adapter-pg, migration initial_foundation (4 tables: audit_logs, idempotency_keys, outbox_events, app_settings; 3 extensions: pgcrypto, btree_gist, citext; 2 indexes), PrismaService/PrismaModule, health/dependencies DB check, seed script; 16 API tests đạt, lint/typecheck/test/build 12/12 đạt; chuyển sang Done |
 | 2026-08-08 | Claude | Triển khai FND-003 CI pipeline: GitHub Actions workflow với 2 jobs song song (ci: install/lint/typecheck/test/prisma-validate/build, security: gitleaks secret scan + pnpm audit dependency scan); ADR-002 đóng DEC-002; lint/typecheck/test/build 12/12 đạt local; prisma validate đạt; chuyển sang Done |
+| 2026-08-08 | Claude | Triển khai BKG-001 Customer Core: migration add_customers (17 cột, 2 indexes), Prisma Customer model, CustomersService (normalize phone E.164, normalize email, findDuplicates, findOrCreate, softDelete, generateCode VMD-*), outbox event customer.created, CreateCustomerDto/UpdateCustomerDto, CustomersModule; 31 API tests (15 customer tests mới) đạt, lint/typecheck/test/build 12/12 đạt; chuyển sang Done |
