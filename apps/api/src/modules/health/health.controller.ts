@@ -1,9 +1,13 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import { PrismaService } from '../../prisma/prisma.service';
 
 @ApiTags('Health')
 @Controller('health')
 export class HealthController {
+  constructor(private readonly prisma: PrismaService) {}
+
   @Get('live')
   @ApiOperation({ summary: 'Liveness probe' })
   live(): { status: string } {
@@ -17,12 +21,22 @@ export class HealthController {
   }
 
   @Get('dependencies')
-  @ApiOperation({ summary: 'Dependency status (protected intent)' })
-  dependencies(): { status: string; dependencies: Record<string, unknown> } {
+  @ApiOperation({ summary: 'Dependency health check' })
+  async dependencies(): Promise<{
+    status: string;
+    dependencies: Record<string, unknown>;
+  }> {
+    let dbStatus = 'healthy';
+    try {
+      await this.prisma.$queryRawUnsafe('SELECT 1');
+    } catch {
+      dbStatus = 'unhealthy';
+    }
+
     return {
-      status: 'ok',
+      status: dbStatus === 'healthy' ? 'ok' : 'degraded',
       dependencies: {
-        database: 'not_configured',
+        database: dbStatus,
         redis: 'not_configured',
       },
     };

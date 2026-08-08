@@ -3,9 +3,16 @@
   "version": "0.0.0",
   "private": true,
   "packageManager": "pnpm@11.9.0",
-  "engines": { "node": ">=24.0.0 <25", "pnpm": "11.9.0" },
+  "engines": {
+    "node": ">=24.0.0 <25",
+    "pnpm": "11.9.0"
+  },
   "devEngines": {
-    "runtime": { "name": "node", "version": "24.14.0", "onFail": "error" }
+    "runtime": {
+      "name": "node",
+      "version": "24.14.0",
+      "onFail": "error"
+    }
   },
   "scripts": {
     "preinstall": "node scripts/require-node-24.mjs",
@@ -19,12 +26,20 @@
     "infra:down": "node scripts/infra.mjs down",
     "infra:status": "node scripts/infra.mjs status",
     "infra:logs": "node scripts/infra.mjs logs",
-    "infra:check": "node scripts/infra.mjs check"
+    "infra:check": "node scripts/infra.mjs check",
+    "db:generate": "prisma generate --schema prisma/schema.prisma",
+    "db:migrate": "prisma migrate dev --schema prisma/schema.prisma",
+    "db:migrate:deploy": "prisma migrate deploy --schema prisma/schema.prisma",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:studio": "prisma studio --schema prisma/schema.prisma"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
+    "@prisma/client": "7.7.0",
     "@types/node": "24.13.3",
     "eslint": "10.8.0",
+    "prisma": "7.7.0",
+    "tsx": "4.19.4",
     "turbo": "2.10.8",
     "typescript": "6.0.3",
     "typescript-eslint": "8.66.0",
