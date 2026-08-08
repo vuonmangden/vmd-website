@@ -73,6 +73,45 @@ model Customer {
   @@map("customers")
 }
 
+model NotificationJob {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  templateCode         String    @map("template_code") @db.VarChar(80)
+  recipientType        String    @map("recipient_type") @db.VarChar(30)
+  recipientReferenceId String    @map("recipient_reference_id") @db.Uuid
+  email                String?   @db.Citext
+  phone                String?   @db.VarChar(20)
+  payload              Json      @db.JsonB
+  scheduledAt          DateTime  @map("scheduled_at") @db.Timestamptz()
+  status               String    @default("pending") @db.VarChar(30)
+  deduplicationKey     String    @unique @map("deduplication_key") @db.VarChar(180)
+  attemptCount         Int       @default(0) @map("attempt_count")
+  lastError            String?   @map("last_error") @db.Text
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  completedAt          DateTime? @map("completed_at") @db.Timestamptz()
+
+  deliveries NotificationDelivery[]
+
+  @@index([status, scheduledAt])
+  @@map("notification_jobs")
+}
+
+model NotificationDelivery {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  jobId             String    @map("job_id") @db.Uuid
+  channel           String    @db.VarChar(30)
+  provider          String    @db.VarChar(50)
+  providerMessageId String?   @map("provider_message_id") @db.VarChar(150)
+  status            String    @default("pending") @db.VarChar(30)
+  responseData      Json?     @map("response_data") @db.JsonB
+  sentAt            DateTime? @map("sent_at") @db.Timestamptz()
+  deliveredAt       DateTime? @map("delivered_at") @db.Timestamptz()
+  failedAt          DateTime? @map("failed_at") @db.Timestamptz()
+
+  job NotificationJob @relation(fields: [jobId], references: [id])
+
+  @@map("notification_deliveries")
+}
+
 model AppSetting {
   key               String   @id @db.VarChar(150)
   value             Json     @db.JsonB

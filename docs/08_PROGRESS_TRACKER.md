@@ -17,7 +17,7 @@
 | Trạng thái tổng thể | Foundation đang triển khai |
 | Milestone hiện tại | Milestone 1 |
 | Task đang thực hiện | Không (Foundation hoàn tất, CI thiết lập xong) |
-| Task hoàn thành | 6 |
+| Task hoàn thành | 7 |
 | Blocker mở | Xem Milestone 0 và Open Decisions |
 | Cập nhật gần nhất | 2026-08-08 |
 
@@ -134,7 +134,7 @@
 
 | Task ID | Nội dung | Trạng thái | Dependency | Branch/PR | Tests | Ghi chú |
 |---|---|---|---|---|---|---|
-| NTF-001 | Queue và Outbox | Backlog | FND-005 |  |  | Retry/dedup/dead-letter |
+| NTF-001 | Queue và Outbox | Done | FND-005 | `chore/fnd-005-database-foundation` | lint/typecheck/test/build 12/12 đạt; 31 API tests + 7 worker tests + 7 script tests đạt | BullMQ 6.0.9 + @nestjs/bullmq 11.0.5; 9 queues §42; OutboxProcessor poll/dispatch/retry/fail; notification_jobs + notification_deliveries migration; QueueModule shared |
 | NTF-002 | Email Adapter | Backlog | NTF-001, PRE-007 |  |  | Mailpit/sandbox |
 | NTF-003 | Zalo Adapter | Backlog | NTF-001, PRE-007 |  |  | Template được duyệt |
 | NTF-004 | Booking Notifications | Backlog | NTF-002, NTF-003, BKG-005, PAY-003 |  |  |  |
@@ -237,3 +237,4 @@ Người cập nhật:
 | 2026-08-08 | Claude | Triển khai FND-005 database foundation: Prisma 7.7.0 với @prisma/adapter-pg, migration initial_foundation (4 tables: audit_logs, idempotency_keys, outbox_events, app_settings; 3 extensions: pgcrypto, btree_gist, citext; 2 indexes), PrismaService/PrismaModule, health/dependencies DB check, seed script; 16 API tests đạt, lint/typecheck/test/build 12/12 đạt; chuyển sang Done |
 | 2026-08-08 | Claude | Triển khai FND-003 CI pipeline: GitHub Actions workflow với 2 jobs song song (ci: install/lint/typecheck/test/prisma-validate/build, security: gitleaks secret scan + pnpm audit dependency scan); ADR-002 đóng DEC-002; lint/typecheck/test/build 12/12 đạt local; prisma validate đạt; chuyển sang Done |
 | 2026-08-08 | Claude | Triển khai BKG-001 Customer Core: migration add_customers (17 cột, 2 indexes), Prisma Customer model, CustomersService (normalize phone E.164, normalize email, findDuplicates, findOrCreate, softDelete, generateCode VMD-*), outbox event customer.created, CreateCustomerDto/UpdateCustomerDto, CustomersModule; 31 API tests (15 customer tests mới) đạt, lint/typecheck/test/build 12/12 đạt; chuyển sang Done |
+| 2026-08-08 | Claude | Triển khai NTF-001 Queue và Outbox: BullMQ 6.0.9 + @nestjs/bullmq 11.0.5 cho API và Worker; 9 queues theo §42; OutboxProcessor (poll pending → dispatch → mark published, retry max 5 → mark failed); QueueModule shared; PrismaModule cho Worker; migration notification_jobs + notification_deliveries theo §10.37-38; 31 API tests + 7 worker tests + 7 script tests đạt; chuyển sang Done |

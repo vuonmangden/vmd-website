@@ -1,0 +1,99 @@
+import { Injectable, Logger } from '@nestjs/common';
+import type { OnModuleInit } from '@nestjs/common';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import { PrismaService } from '../prisma/prisma.service';
+import type { Queue } from 'bullmq';
+
+const POLL_INTERVAL_MS = 5_000;
+const BATCH_SIZE = 50;
+
+const EVENT_QUEUE_MAP: Record<string, string> = {
+  'customer.created': 'notification-send',
+  'booking.created': 'notification-send',
+  'booking.confirmed': 'notification-send',
+  'booking.cancelled': 'notification-send',
+  'payment.confirmed': 'notification-send',
+  'payment.failed': 'notification-send',
+};
+
+@Injectable()
+export class OutboxProcessor implements OnModuleInit {
+  private readonly logger = new Logger(OutboxProcessor.name);
+  private timer: ReturnType<typeof setInterval> | null = null;
+  private readonly queues = new Map<string, Queue>();
+
+  constructor(private readonly prisma: PrismaService) {}
+
+  registerQueue(name: string, queue: Queue): void {
+    this.queues.set(name, queue);
+  }
+
+  onModuleInit(): void {
+    this.timer = setInterval(() => {
+      void this.pollAndPublish();
+    }, POLL_INTERVAL_MS);
+    this.logger.log('Outbox processor started');
+  }
+
+  onModuleDestroy(): void {
+    if (this.timer) clearInterval(this.timer);
+  }
+
+  async pollAndPublish(): Promise<number> {
+    const events = await this.prisma.outboxEvent.findMany({
+      where: { status: 'pending' },
+      orderBy: { createdAt: 'asc' },
+      take: BATCH_SIZE,
+    });
+
+    if (events.length === 0) return 0;
+
+    let published = 0;
+    for (const event of events) {
+      try {
+        const queueName =
+          EVENT_QUEUE_MAP[event.eventType] ?? 'outbox-publish';
+        const queue = this.queues.get(queueName);
+
+        if (queue) {
+          await queue.add(event.eventType, {
+            eventId: event.id,
+            aggregateType: event.aggregateType,
+            aggregateId: event.aggregateId,
+            eventType: event.eventType,
+            payload: event.payload,
+          });
+        }
+
+        await this.prisma.outboxEvent.update({
+          where: { id: event.id },
+          data: {
+            status: 'published',
+            publishedAt: new Date(),
+            attemptCount: event.attemptCount + 1,
+          },
+        });
+
+        published++;
+      } catch (error) {
+        this.logger.error(
+          `Failed to publish outbox event ${event.id}: ${error instanceof Error ? error.message : String(error)}`,
+        );
+
+        await this.prisma.outboxEvent.update({
+          where: { id: event.id },
+          data: {
+            status: event.attemptCount >= 4 ? 'failed' : 'pending',
+            attemptCount: event.attemptCount + 1,
+          },
+        });
+      }
+    }
+
+    if (published > 0) {
+      this.logger.log(`Published ${published}/${events.length} outbox events`);
+    }
+
+    return published;
+  }
+}

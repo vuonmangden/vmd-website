@@ -10,6 +10,11 @@ allowBuilds:
   '@prisma/engines': true
   '@scarf/scarf': set this to true or false
   esbuild: true
+  msgpackr-extract: true
   prisma: true
   sharp: true
   unrs-resolver: true
+
+minimumReleaseAgeExclude:
+  - '@nestjs/bull-shared@11.0.5'
+  - '@nestjs/bullmq@11.0.5'

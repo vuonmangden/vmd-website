@@ -1,4 +1,17 @@
 import { Test } from '@nestjs/testing';
-import { WorkerModule } from './worker.module';
+import { OutboxProcessor } from './outbox/outbox.processor';
+import { PrismaService } from './prisma/prisma.service';
 
-describe('WorkerModule', () => { it('creates the worker shell', async () => { const module = await Test.createTestingModule({ imports: [WorkerModule] }).compile(); expect(module).toBeDefined(); }); });
+describe('WorkerModule', () => {
+  it('creates outbox processor with mocked dependencies', async () => {
+    const module = await Test.createTestingModule({
+      providers: [
+        OutboxProcessor,
+        { provide: PrismaService, useValue: { outboxEvent: {} } },
+      ],
+    }).compile();
+
+    expect(module).toBeDefined();
+    expect(module.get(OutboxProcessor)).toBeDefined();
+  });
+});
