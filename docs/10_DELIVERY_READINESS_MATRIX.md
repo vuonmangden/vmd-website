@@ -70,3 +70,10 @@ Nếu hai task cần cùng file shared/config, task bắt đầu sau phải ch�
 3. Song song thu thập dữ liệu thật PRE-006/PRE-007 và PRE-008; đây là công việc owner, không phải synthetic implementation.
 4. Sau khi từng PRE đạt, mở tối đa ba lane IAM-001, CMS-005, NTF-002 theo ownership ở trên.
 5. Không mở RMS/Booking/Payment/BBQ trước các gate tương ứng.
+
+## 9. Planning handoff
+
+- `IAM-001`: contract, PRE checklist và ownership tại `docs/tasks/IAM-001.md`.
+- `CMS-005`: layout/accessibility/asset gate tại `docs/tasks/CMS-005.md`.
+- `NTF-002`: provider/Mailpit/security contract tại `docs/tasks/NTF-002.md`.
+- Ba spec trên không thay đổi quyền `PLANNING_ONLY`; chỉ mở branch implementation sau khi PRE tương ứng được duyệt và matrix được cập nhật.
