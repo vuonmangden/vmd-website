@@ -1,0 +1,1711 @@
+diff --git a/.dockerignore b/.dockerignore
+new file mode 100644
+index 0000000..99b9b31
+--- /dev/null
++++ b/.dockerignore
+@@ -0,0 +1,12 @@
++node_modules
++**/node_modules
++**/dist
++**/.next
++**/.turbo
++.git
++.env
++.env.*
++!.env.example
++docs
++*.md
++!pnpm-workspace.yaml
+diff --git a/.husky/pre-commit b/.husky/pre-commit
+new file mode 100644
+index 0000000..2312dc5
+--- /dev/null
++++ b/.husky/pre-commit
+@@ -0,0 +1 @@
++npx lint-staged
+diff --git a/apps/api/package.json b/apps/api/package.json
+index b26646a..62dc399 100644
+--- a/apps/api/package.json
++++ b/apps/api/package.json
+@@ -1 +1 @@
+-{"name":"@vmd/api","version":"0.0.0","private":true,"prisma":{"schema":"../../prisma/schema.prisma","seed":"npx tsx ../../prisma/seed.ts"},"scripts":{"dev":"nest start --watch","start":"node dist/main.js","lint":"eslint .","typecheck":"tsc --noEmit","test":"jest --runInBand","build":"nest build"},"dependencies":{"@nestjs/bullmq":"11.0.5","@nestjs/common":"11.1.28","@nestjs/core":"11.1.28","@nestjs/platform-express":"11.1.28","@nestjs/swagger":"11.4.6","@nestjs/terminus":"11.1.1","@prisma/adapter-pg":"7.7.0","@prisma/client":"7.7.0","bullmq":"6.0.9","class-transformer":"0.5.1","class-validator":"0.15.1","pg":"8.16.3","reflect-metadata":"0.2.2","rxjs":"7.8.2"},"devDependencies":{"@nestjs/cli":"11.0.24","@nestjs/testing":"11.1.28","@types/express":"5.0.3","@types/jest":"30.0.0","@types/node":"24.13.3","jest":"30.4.2","prisma":"7.7.0","ts-jest":"29.4.12","typescript":"6.0.3"}}
++{"name":"@vmd/api","version":"0.0.0","private":true,"prisma":{"schema":"../../prisma/schema.prisma","seed":"npx tsx ../../prisma/seed.ts"},"scripts":{"dev":"nest start --watch","start":"node dist/main.js","lint":"eslint .","typecheck":"tsc --noEmit","test":"jest --runInBand","build":"nest build"},"dependencies":{"@nestjs/bullmq":"11.0.5","@nestjs/common":"11.1.28","@nestjs/core":"11.1.28","@nestjs/platform-express":"11.1.28","@nestjs/swagger":"11.4.6","@nestjs/terminus":"11.1.1","@nestjs/throttler":"6.4.0","@prisma/adapter-pg":"7.7.0","@prisma/client":"7.7.0","bullmq":"6.0.9","class-transformer":"0.5.1","class-validator":"0.15.1","pg":"8.16.3","reflect-metadata":"0.2.2","rxjs":"7.8.2"},"devDependencies":{"@nestjs/cli":"11.0.24","@nestjs/testing":"11.1.28","@types/express":"5.0.3","@types/jest":"30.0.0","@types/node":"24.13.3","jest":"30.4.2","prisma":"7.7.0","ts-jest":"29.4.12","typescript":"6.0.3"}}
+diff --git a/apps/api/src/app.module.spec.ts b/apps/api/src/app.module.spec.ts
+index d9b25b6..d3ed3a7 100644
+--- a/apps/api/src/app.module.spec.ts
++++ b/apps/api/src/app.module.spec.ts
+@@ -1,5 +1,5 @@
+ import { Test } from '@nestjs/testing';
+-import { BullModule } from '@nestjs/bullmq';
++import { ThrottlerModule } from '@nestjs/throttler';
+ import { PrismaModule } from './prisma/prisma.module';
+ import { HealthModule } from './modules/health/health.module';
+ import { CustomersModule } from './modules/customers/customers.module';
+@@ -7,7 +7,12 @@ import { CustomersModule } from './modules/customers/customers.module';
+ describe('AppModule', () => {
+   it('creates the API shell', async () => {
+     const module = await Test.createTestingModule({
+-      imports: [PrismaModule, HealthModule, CustomersModule],
++      imports: [
++        PrismaModule,
++        ThrottlerModule.forRoot([]),
++        HealthModule,
++        CustomersModule,
++      ],
+     })
+       .overrideProvider('BullQueue_outbox-publish')
+       .useValue({})
+diff --git a/apps/api/src/app.module.ts b/apps/api/src/app.module.ts
+index 603513c..2211753 100644
+--- a/apps/api/src/app.module.ts
++++ b/apps/api/src/app.module.ts
+@@ -1,10 +1,17 @@
+ import { Module } from '@nestjs/common';
+ import { PrismaModule } from './prisma/prisma.module';
+ import { QueueModule } from './common/queues/queue.module';
++import { ThrottleModule } from './common/throttle/throttle.module';
+ import { HealthModule } from './modules/health/health.module';
+ import { CustomersModule } from './modules/customers/customers.module';
+ 
+ @Module({
+-  imports: [PrismaModule, QueueModule, HealthModule, CustomersModule],
++  imports: [
++    PrismaModule,
++    QueueModule,
++    ThrottleModule,
++    HealthModule,
++    CustomersModule,
++  ],
+ })
+ export class AppModule {}
+diff --git a/apps/api/src/common/throttle/throttle.module.ts b/apps/api/src/common/throttle/throttle.module.ts
+new file mode 100644
+index 0000000..f75c8a6
+--- /dev/null
++++ b/apps/api/src/common/throttle/throttle.module.ts
+@@ -0,0 +1,32 @@
++import { Module } from '@nestjs/common';
++import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
++import { APP_GUARD } from '@nestjs/core';
++
++@Module({
++  imports: [
++    ThrottlerModule.forRoot([
++      {
++        name: 'short',
++        ttl: 1_000,
++        limit: 10,
++      },
++      {
++        name: 'medium',
++        ttl: 60_000,
++        limit: 60,
++      },
++      {
++        name: 'long',
++        ttl: 600_000,
++        limit: 300,
++      },
++    ]),
++  ],
++  providers: [
++    {
++      provide: APP_GUARD,
++      useClass: ThrottlerGuard,
++    },
++  ],
++})
++export class ThrottleModule {}
+diff --git a/docs/08_PROGRESS_TRACKER.md b/docs/08_PROGRESS_TRACKER.md
+index 9cca097..bc33d3e 100644
+--- a/docs/08_PROGRESS_TRACKER.md
++++ b/docs/08_PROGRESS_TRACKER.md
+@@ -14,10 +14,10 @@
+ | Chỉ số | Giá trị hiện tại |
+ |---|---|
+ | Phase | Phase 1 — MVP |
+-| Trạng thái tổng thể | Foundation đang triển khai |
+-| Milestone hiện tại | Milestone 1 |
+-| Task đang thực hiện | Không (Foundation hoàn tất, CI thiết lập xong) |
+-| Task hoàn thành | 7 |
++| Trạng thái tổng thể | Foundation hoàn tất, chuẩn bị staging infrastructure |
++| Milestone hiện tại | Milestone 1 (Done), chờ PRE-007 để mở Milestone 2 |
++| Task đang thực hiện | Không — chờ Milestone 0 data |
++| Task hoàn thành | 7 + 6 prep tasks |
+ | Blocker mở | Xem Milestone 0 và Open Decisions |
+ | Cập nhật gần nhất | 2026-08-08 |
+ 
+@@ -181,6 +181,19 @@
+ | LIVE-003 | Handover | Backlog | LIVE-002 | TBD |  | Runbook/training |
+ | LIVE-004 | Phase 1 closure | Backlog | LIVE-003 | TBD |  | Known issues/Phase 2 backlog |
+ 
++## 14b. Prep Tasks (không thuộc task ID chính)
++
++| # | Nội dung | Trạng thái | File tạo/thay đổi | Ghi chú |
++|---|---|---|---|---|
++| PREP-001 | Dockerfile staging (API + Worker) | Done | `infrastructure/docker/Dockerfile.api`, `Dockerfile.worker`, `compose.staging.yaml`, `.dockerignore` | Multi-stage build, non-root user, Node 24.14.0, pnpm 11.9.0 |
++| PREP-002 | Prisma seed script mở rộng | Done | `prisma/seed.ts` | 8 app_settings (timezone, currency, locale, booking, notification) + 2 sample customers; upsert idempotent |
++| PREP-003 | E2E test infrastructure | Done | `e2e/playwright.config.ts`, `e2e/health.e2e.ts`, `package.json` | Playwright 1.52.0; chromium + mobile-chrome projects; health smoke tests; webServer auto-start |
++| PREP-004 | Git hooks (husky + lint-staged) | Done | `.husky/pre-commit`, `package.json` | husky 9.1.7 + lint-staged 16.1.0; pre-commit chạy `eslint --fix` trên staged TS/JS files |
++| PREP-005 | Shared types & state machines | Done | `packages/types/src/booking-status.ts`, `bbq-status.ts`, `payment-status.ts`, `notification-status.ts`, `index.ts` | BookingStatus (13 values + transitions), BbqStatus (11 values + transitions), PaymentStatus (11 values), NotificationJobStatus, NotificationDeliveryStatus, OutboxEventStatus — tất cả theo Tech Spec §12-14 |
++| PREP-006 | API rate limiting foundation | Done | `apps/api/src/common/throttle/throttle.module.ts`, `app.module.ts`, `app.module.spec.ts` | @nestjs/throttler 6.4.0; 3 tiers (short 10/s, medium 60/min, long 300/10min); global guard; theo Security Baseline §35.2 |
++
++**Lưu ý:** Các prep task không block bởi PRE-* và có thể chạy ngay. Tất cả task chính còn lại đều chờ Milestone 0 (PRE-007 ưu tiên cao nhất → mở khóa IAM chain).
++
+ ## 15. Blocker log
+ 
+ | ID | Ngày mở | Liên quan | Mô tả | Ảnh hưởng | Owner | Trạng thái | Quyết định/Ngày đóng |
+@@ -238,3 +251,5 @@ Người cập nhật:
+ | 2026-08-08 | Claude | Triển khai FND-003 CI pipeline: GitHub Actions workflow với 2 jobs song song (ci: install/lint/typecheck/test/prisma-validate/build, security: gitleaks secret scan + pnpm audit dependency scan); ADR-002 đóng DEC-002; lint/typecheck/test/build 12/12 đạt local; prisma validate đạt; chuyển sang Done |
+ | 2026-08-08 | Claude | Triển khai BKG-001 Customer Core: migration add_customers (17 cột, 2 indexes), Prisma Customer model, CustomersService (normalize phone E.164, normalize email, findDuplicates, findOrCreate, softDelete, generateCode VMD-*), outbox event customer.created, CreateCustomerDto/UpdateCustomerDto, CustomersModule; 31 API tests (15 customer tests mới) đạt, lint/typecheck/test/build 12/12 đạt; chuyển sang Done |
+ | 2026-08-08 | Claude | Triển khai NTF-001 Queue và Outbox: BullMQ 6.0.9 + @nestjs/bullmq 11.0.5 cho API và Worker; 9 queues theo §42; OutboxProcessor (poll pending → dispatch → mark published, retry max 5 → mark failed); QueueModule shared; PrismaModule cho Worker; migration notification_jobs + notification_deliveries theo §10.37-38; 31 API tests + 7 worker tests + 7 script tests đạt; chuyển sang Done |
++| 2026-08-08 | Claude | Triển khai 3 prep tasks trong khi chờ PRE-007: (1) Dockerfile staging multi-stage cho API + Worker với compose.staging.yaml và .dockerignore; (2) Mở rộng prisma/seed.ts — 8 app_settings + 2 sample customers; (3) E2E test infra — Playwright 1.52.0, config chromium + mobile-chrome, health smoke tests. Lint/typecheck/test/build 12/12 đạt. Sửa lint error unused BullModule import trong app.module.spec.ts |
++| 2026-08-08 | Claude | Triển khai 3 prep tasks bổ sung: (4) Git hooks — husky 9.1.7 + lint-staged 16.1.0, pre-commit chạy eslint --fix trên staged files; (5) Shared types @vmd/types — BookingStatus 13 values + state machine transitions (§12), BbqStatus 11 values + transitions (§13), PaymentStatus 11 values (§14), NotificationJobStatus, NotificationDeliveryStatus, OutboxEventStatus; (6) API rate limiting — @nestjs/throttler 6.4.0, 3 tiers (short/medium/long), global ThrottlerGuard theo Security Baseline §35.2. Lint/typecheck/test/build 12/12 đạt |
+diff --git a/e2e/health.e2e.ts b/e2e/health.e2e.ts
+new file mode 100644
+index 0000000..fc658e8
+--- /dev/null
++++ b/e2e/health.e2e.ts
+@@ -0,0 +1,14 @@
++import { test, expect } from '@playwright/test';
++
++test.describe('Health checks', () => {
++  test('web app loads homepage', async ({ page }) => {
++    await page.goto('/');
++    await expect(page).toHaveTitle(/.+/);
++  });
++
++  test('API health endpoint returns ok', async ({ request }) => {
++    const apiBase = process.env['API_BASE_URL'] ?? 'http://localhost:3002';
++    const response = await request.get(`${apiBase}/health/live`);
++    expect(response.ok()).toBeTruthy();
++  });
++});
+diff --git a/e2e/playwright.config.ts b/e2e/playwright.config.ts
+new file mode 100644
+index 0000000..68c1ef5
+--- /dev/null
++++ b/e2e/playwright.config.ts
+@@ -0,0 +1,39 @@
++import { defineConfig, devices } from '@playwright/test';
++
++export default defineConfig({
++  testDir: '.',
++  testMatch: '**/*.e2e.ts',
++  fullyParallel: true,
++  forbidOnly: !!process.env['CI'],
++  retries: process.env['CI'] ? 2 : 0,
++  workers: process.env['CI'] ? 1 : undefined,
++  reporter: process.env['CI'] ? 'github' : 'html',
++  timeout: 30_000,
++
++  use: {
++    baseURL: process.env['BASE_URL'] ?? 'http://localhost:3000',
++    trace: 'on-first-retry',
++    screenshot: 'only-on-failure',
++  },
++
++  projects: [
++    {
++      name: 'chromium',
++      use: { ...devices['Desktop Chrome'] },
++    },
++    {
++      name: 'mobile-chrome',
++      use: { ...devices['Pixel 7'] },
++    },
++  ],
++
++  webServer: process.env['CI']
++    ? undefined
++    : {
++        command: 'pnpm --filter @vmd/web run dev',
++        port: 3000,
++        reuseExistingServer: true,
++        cwd: '..',
++        timeout: 30_000,
++      },
++});
+diff --git a/infrastructure/docker/Dockerfile.api b/infrastructure/docker/Dockerfile.api
+new file mode 100644
+index 0000000..63df9b9
+--- /dev/null
++++ b/infrastructure/docker/Dockerfile.api
+@@ -0,0 +1,42 @@
++# --- Stage 1: Base ---
++FROM node:24.14.0-alpine3.23 AS base
++RUN corepack enable && corepack prepare pnpm@11.9.0 --activate
++WORKDIR /app
++
++# --- Stage 2: Dependencies ---
++FROM base AS deps
++COPY pnpm-lock.yaml pnpm-workspace.yaml package.json tsconfig.base.json ./
++COPY apps/api/package.json apps/api/
++COPY packages/ packages/
++COPY prisma/ prisma/
++RUN pnpm install --frozen-lockfile --prod=false
++
++# --- Stage 3: Build ---
++FROM deps AS build
++COPY apps/api/ apps/api/
++RUN pnpm --filter @vmd/api run build
++
++# --- Stage 4: Production dependencies ---
++FROM base AS prod-deps
++COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
++COPY apps/api/package.json apps/api/
++COPY packages/ packages/
++COPY prisma/ prisma/
++RUN pnpm install --frozen-lockfile --prod
++
++# --- Stage 5: Runner ---
++FROM node:24.14.0-alpine3.23 AS runner
++RUN addgroup -g 1001 -S vmd && adduser -S vmd -u 1001 -G vmd
++WORKDIR /app
++
++COPY --from=prod-deps /app/node_modules ./node_modules
++COPY --from=prod-deps /app/apps/api/node_modules ./apps/api/node_modules
++COPY --from=build /app/apps/api/dist ./apps/api/dist
++COPY --from=build /app/apps/api/package.json ./apps/api/
++COPY prisma/ prisma/
++
++ENV NODE_ENV=production
++USER vmd
++EXPOSE 3002
++
++CMD ["node", "apps/api/dist/main.js"]
+diff --git a/infrastructure/docker/Dockerfile.worker b/infrastructure/docker/Dockerfile.worker
+new file mode 100644
+index 0000000..9cc0cc7
+--- /dev/null
++++ b/infrastructure/docker/Dockerfile.worker
+@@ -0,0 +1,42 @@
++# --- Stage 1: Base ---
++FROM node:24.14.0-alpine3.23 AS base
++RUN corepack enable && corepack prepare pnpm@11.9.0 --activate
++WORKDIR /app
++
++# --- Stage 2: Dependencies ---
++FROM base AS deps
++COPY pnpm-lock.yaml pnpm-workspace.yaml package.json tsconfig.base.json ./
++COPY apps/worker/package.json apps/worker/
++COPY packages/ packages/
++COPY prisma/ prisma/
++RUN pnpm install --frozen-lockfile --prod=false
++
++# --- Stage 3: Build ---
++FROM deps AS build
++COPY apps/worker/ apps/worker/
++RUN pnpm --filter @vmd/worker run build
++
++# --- Stage 4: Production dependencies ---
++FROM base AS prod-deps
++COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
++COPY apps/worker/package.json apps/worker/
++COPY packages/ packages/
++COPY prisma/ prisma/
++RUN pnpm install --frozen-lockfile --prod
++
++# --- Stage 5: Runner ---
++FROM node:24.14.0-alpine3.23 AS runner
++RUN addgroup -g 1001 -S vmd && adduser -S vmd -u 1001 -G vmd
++WORKDIR /app
++
++COPY --from=prod-deps /app/node_modules ./node_modules
++COPY --from=prod-deps /app/apps/worker/node_modules ./apps/worker/node_modules
++COPY --from=build /app/apps/worker/dist ./apps/worker/dist
++COPY --from=build /app/apps/worker/package.json ./apps/worker/
++COPY prisma/ prisma/
++
++ENV NODE_ENV=production
++USER vmd
++EXPOSE 3003
++
++CMD ["node", "apps/worker/dist/main.js"]
+diff --git a/infrastructure/docker/compose.staging.yaml b/infrastructure/docker/compose.staging.yaml
+new file mode 100644
+index 0000000..2871483
+--- /dev/null
++++ b/infrastructure/docker/compose.staging.yaml
+@@ -0,0 +1,39 @@
++name: vmd-staging
++
++services:
++  api:
++    build:
++      context: ../..
++      dockerfile: infrastructure/docker/Dockerfile.api
++    restart: unless-stopped
++    environment:
++      NODE_ENV: production
++      API_PORT: "3002"
++      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
++      REDIS_HOST: ${REDIS_HOST:?REDIS_HOST is required}
++      REDIS_PORT: ${REDIS_PORT:-6379}
++    ports:
++      - "127.0.0.1:3002:3002"
++    healthcheck:
++      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3002/health/live').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
++      interval: 10s
++      timeout: 5s
++      retries: 5
++      start_period: 15s
++
++  worker:
++    build:
++      context: ../..
++      dockerfile: infrastructure/docker/Dockerfile.worker
++    restart: unless-stopped
++    environment:
++      NODE_ENV: production
++      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
++      REDIS_HOST: ${REDIS_HOST:?REDIS_HOST is required}
++      REDIS_PORT: ${REDIS_PORT:-6379}
++    healthcheck:
++      test: ["CMD", "node", "-e", "process.exit(0)"]
++      interval: 30s
++      timeout: 5s
++      retries: 3
++      start_period: 10s
+diff --git a/package.json b/package.json
+index be71241..ab4b906 100644
+--- a/package.json
++++ b/package.json
+@@ -31,10 +31,21 @@
+     "db:migrate": "prisma migrate dev --schema prisma/schema.prisma",
+     "db:migrate:deploy": "prisma migrate deploy --schema prisma/schema.prisma",
+     "db:seed": "tsx prisma/seed.ts",
+-    "db:studio": "prisma studio --schema prisma/schema.prisma"
++    "db:studio": "prisma studio --schema prisma/schema.prisma",
++    "test:e2e": "playwright test --config e2e/playwright.config.ts",
++    "test:e2e:install": "playwright install chromium",
++    "prepare": "husky"
++  },
++  "lint-staged": {
++    "*.{ts,tsx,js,mjs}": [
++      "eslint --fix"
++    ]
+   },
+   "devDependencies": {
+     "@eslint/js": "10.0.1",
++    "husky": "9.1.7",
++    "lint-staged": "16.1.0",
++    "@playwright/test": "1.52.0",
+     "@prisma/client": "7.7.0",
+     "@types/node": "24.13.3",
+     "eslint": "10.8.0",
+diff --git a/packages/types/src/bbq-status.ts b/packages/types/src/bbq-status.ts
+new file mode 100644
+index 0000000..99c90fb
+--- /dev/null
++++ b/packages/types/src/bbq-status.ts
+@@ -0,0 +1,31 @@
++export const BbqStatus = {
++  DRAFT: 'DRAFT',
++  PENDING_PAYMENT: 'PENDING_PAYMENT',
++  DEPOSIT_PAID: 'DEPOSIT_PAID',
++  CONFIRMED: 'CONFIRMED',
++  ARRIVED: 'ARRIVED',
++  COMPLETED: 'COMPLETED',
++  CANCELLED: 'CANCELLED',
++  NO_SHOW: 'NO_SHOW',
++  REFUND_PENDING: 'REFUND_PENDING',
++  REFUNDED: 'REFUNDED',
++  EXPIRED: 'EXPIRED',
++} as const;
++
++export type BbqStatus = (typeof BbqStatus)[keyof typeof BbqStatus];
++
++export const BBQ_TRANSITIONS: ReadonlyMap<BbqStatus, readonly BbqStatus[]> =
++  new Map([
++    [BbqStatus.DRAFT, [BbqStatus.PENDING_PAYMENT]],
++    [BbqStatus.PENDING_PAYMENT, [BbqStatus.DEPOSIT_PAID, BbqStatus.EXPIRED]],
++    [BbqStatus.DEPOSIT_PAID, [BbqStatus.CONFIRMED]],
++    [BbqStatus.CONFIRMED, [BbqStatus.ARRIVED, BbqStatus.CANCELLED, BbqStatus.NO_SHOW]],
++    [BbqStatus.ARRIVED, [BbqStatus.COMPLETED]],
++    [BbqStatus.CANCELLED, [BbqStatus.REFUND_PENDING]],
++    [BbqStatus.REFUND_PENDING, [BbqStatus.REFUNDED]],
++  ]);
++
++export function isValidBbqTransition(from: BbqStatus, to: BbqStatus): boolean {
++  const allowed = BBQ_TRANSITIONS.get(from);
++  return allowed !== undefined && allowed.includes(to);
++}
+diff --git a/packages/types/src/booking-status.ts b/packages/types/src/booking-status.ts
+new file mode 100644
+index 0000000..b89f36c
+--- /dev/null
++++ b/packages/types/src/booking-status.ts
+@@ -0,0 +1,36 @@
++export const BookingStatus = {
++  DRAFT: 'DRAFT',
++  PENDING_PAYMENT: 'PENDING_PAYMENT',
++  PARTIALLY_PAID: 'PARTIALLY_PAID',
++  PAID: 'PAID',
++  CONFIRMED: 'CONFIRMED',
++  MODIFIED: 'MODIFIED',
++  CANCELLED: 'CANCELLED',
++  REFUND_PENDING: 'REFUND_PENDING',
++  REFUNDED: 'REFUNDED',
++  CHECKED_IN: 'CHECKED_IN',
++  CHECKED_OUT: 'CHECKED_OUT',
++  NO_SHOW: 'NO_SHOW',
++  EXPIRED: 'EXPIRED',
++} as const;
++
++export type BookingStatus =
++  (typeof BookingStatus)[keyof typeof BookingStatus];
++
++export const BOOKING_TRANSITIONS: ReadonlyMap<BookingStatus, readonly BookingStatus[]> =
++  new Map([
++    [BookingStatus.DRAFT, [BookingStatus.PENDING_PAYMENT]],
++    [BookingStatus.PENDING_PAYMENT, [BookingStatus.PARTIALLY_PAID, BookingStatus.PAID, BookingStatus.EXPIRED]],
++    [BookingStatus.PARTIALLY_PAID, [BookingStatus.CONFIRMED]],
++    [BookingStatus.PAID, [BookingStatus.CONFIRMED]],
++    [BookingStatus.CONFIRMED, [BookingStatus.MODIFIED, BookingStatus.CANCELLED, BookingStatus.CHECKED_IN, BookingStatus.NO_SHOW]],
++    [BookingStatus.MODIFIED, [BookingStatus.CONFIRMED]],
++    [BookingStatus.CHECKED_IN, [BookingStatus.CHECKED_OUT]],
++    [BookingStatus.CANCELLED, [BookingStatus.REFUND_PENDING]],
++    [BookingStatus.REFUND_PENDING, [BookingStatus.REFUNDED]],
++  ]);
++
++export function isValidBookingTransition(from: BookingStatus, to: BookingStatus): boolean {
++  const allowed = BOOKING_TRANSITIONS.get(from);
++  return allowed !== undefined && allowed.includes(to);
++}
+diff --git a/packages/types/src/index.ts b/packages/types/src/index.ts
+index 3ca4c39..71e49d2 100644
+--- a/packages/types/src/index.ts
++++ b/packages/types/src/index.ts
+@@ -1 +1,21 @@
+ export type ApplicationName = 'web' | 'admin' | 'api' | 'worker';
++
++export {
++  BookingStatus,
++  BOOKING_TRANSITIONS,
++  isValidBookingTransition,
++} from './booking-status.js';
++
++export {
++  BbqStatus,
++  BBQ_TRANSITIONS,
++  isValidBbqTransition,
++} from './bbq-status.js';
++
++export { PaymentStatus } from './payment-status.js';
++
++export {
++  NotificationJobStatus,
++  NotificationDeliveryStatus,
++  OutboxEventStatus,
++} from './notification-status.js';
+diff --git a/packages/types/src/notification-status.ts b/packages/types/src/notification-status.ts
+new file mode 100644
+index 0000000..2b2358c
+--- /dev/null
++++ b/packages/types/src/notification-status.ts
+@@ -0,0 +1,29 @@
++export const NotificationJobStatus = {
++  PENDING: 'pending',
++  PROCESSING: 'processing',
++  SENT: 'sent',
++  FAILED: 'failed',
++  CANCELLED: 'cancelled',
++} as const;
++
++export type NotificationJobStatus =
++  (typeof NotificationJobStatus)[keyof typeof NotificationJobStatus];
++
++export const NotificationDeliveryStatus = {
++  PENDING: 'pending',
++  SENT: 'sent',
++  DELIVERED: 'delivered',
++  FAILED: 'failed',
++} as const;
++
++export type NotificationDeliveryStatus =
++  (typeof NotificationDeliveryStatus)[keyof typeof NotificationDeliveryStatus];
++
++export const OutboxEventStatus = {
++  PENDING: 'pending',
++  PUBLISHED: 'published',
++  FAILED: 'failed',
++} as const;
++
++export type OutboxEventStatus =
++  (typeof OutboxEventStatus)[keyof typeof OutboxEventStatus];
+diff --git a/packages/types/src/payment-status.ts b/packages/types/src/payment-status.ts
+new file mode 100644
+index 0000000..2e7d009
+--- /dev/null
++++ b/packages/types/src/payment-status.ts
+@@ -0,0 +1,16 @@
++export const PaymentStatus = {
++  CREATED: 'CREATED',
++  WAITING: 'WAITING',
++  MATCHED: 'MATCHED',
++  PARTIALLY_PAID: 'PARTIALLY_PAID',
++  PAID: 'PAID',
++  EXPIRED: 'EXPIRED',
++  RECONCILIATION_REQUIRED: 'RECONCILIATION_REQUIRED',
++  REFUND_PENDING: 'REFUND_PENDING',
++  PARTIALLY_REFUNDED: 'PARTIALLY_REFUNDED',
++  REFUNDED: 'REFUNDED',
++  FAILED: 'FAILED',
++} as const;
++
++export type PaymentStatus =
++  (typeof PaymentStatus)[keyof typeof PaymentStatus];
+diff --git a/pnpm-lock.yaml b/pnpm-lock.yaml
+index 726b458..69769b6 100644
+--- a/pnpm-lock.yaml
++++ b/pnpm-lock.yaml
+@@ -11,6 +11,9 @@ importers:
+       '@eslint/js':
+         specifier: 10.0.1
+         version: 10.0.1(eslint@10.8.0(jiti@2.7.0))
++      '@playwright/test':
++        specifier: 1.52.0
++        version: 1.52.0
+       '@prisma/client':
+         specifier: 7.7.0
+         version: 7.7.0(prisma@7.7.0(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@6.0.3))(typescript@6.0.3)
+@@ -20,6 +23,12 @@ importers:
+       eslint:
+         specifier: 10.8.0
+         version: 10.8.0(jiti@2.7.0)
++      husky:
++        specifier: 9.1.7
++        version: 9.1.7
++      lint-staged:
++        specifier: 16.1.0
++        version: 16.1.0
+       prisma:
+         specifier: 7.7.0
+         version: 7.7.0(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@6.0.3)
+@@ -37,13 +46,13 @@ importers:
+         version: 8.66.0(eslint@10.8.0(jiti@2.7.0))(typescript@6.0.3)
+       vitest:
+         specifier: 4.1.10
+-        version: 4.1.10(@types/node@24.13.3)(vite@8.2.0(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4))
++        version: 4.1.10(@types/node@24.13.3)(vite@8.2.0(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4)(yaml@2.9.0))
+ 
+   apps/admin:
+     dependencies:
+       next:
+         specifier: 16.2.12
+-        version: 16.2.12(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
++        version: 16.2.12(@playwright/test@1.52.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+       react:
+         specifier: 19.2.8
+         version: 19.2.8
+@@ -74,7 +83,7 @@ importers:
+         version: 6.0.3
+       vitest:
+         specifier: 4.1.10
+-        version: 4.1.10(@types/node@24.13.3)(vite@8.2.0(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4))
++        version: 4.1.10(@types/node@24.13.3)(vite@8.2.0(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4)(yaml@2.9.0))
+ 
+   apps/api:
+     dependencies:
+@@ -96,6 +105,9 @@ importers:
+       '@nestjs/terminus':
+         specifier: 11.1.1
+         version: 11.1.1(@nestjs/common@11.1.28(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.28)(@prisma/client@7.7.0(prisma@7.7.0(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@6.0.3))(typescript@6.0.3))(reflect-metadata@0.2.2)(rxjs@7.8.2)
++      '@nestjs/throttler':
++        specifier: 6.4.0
++        version: 6.4.0(@nestjs/common@11.1.28(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.28)(reflect-metadata@0.2.2)
+       '@prisma/adapter-pg':
+         specifier: 7.7.0
+         version: 7.7.0
+@@ -153,7 +165,7 @@ importers:
+     dependencies:
+       next:
+         specifier: 16.2.12
+-        version: 16.2.12(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
++        version: 16.2.12(@playwright/test@1.52.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+       react:
+         specifier: 19.2.8
+         version: 19.2.8
+@@ -184,7 +196,7 @@ importers:
+         version: 6.0.3
+       vitest:
+         specifier: 4.1.10
+-        version: 4.1.10(@types/node@24.13.3)(vite@8.2.0(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4))
++        version: 4.1.10(@types/node@24.13.3)(vite@8.2.0(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4)(yaml@2.9.0))
+ 
+   apps/worker:
+     dependencies:
+@@ -245,7 +257,7 @@ importers:
+         version: 6.0.3
+       vitest:
+         specifier: 4.1.10
+-        version: 4.1.10(@types/node@26.1.2)(vite@8.2.0(@types/node@26.1.2)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4))
++        version: 4.1.10(@types/node@26.1.2)(vite@8.2.0(@types/node@26.1.2)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4)(yaml@2.9.0))
+ 
+   packages/auth:
+     devDependencies:
+@@ -254,7 +266,7 @@ importers:
+         version: 6.0.3
+       vitest:
+         specifier: 4.1.10
+-        version: 4.1.10(@types/node@26.1.2)(vite@8.2.0(@types/node@26.1.2)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4))
++        version: 4.1.10(@types/node@26.1.2)(vite@8.2.0(@types/node@26.1.2)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4)(yaml@2.9.0))
+ 
+   packages/config:
+     devDependencies:
+@@ -263,7 +275,7 @@ importers:
+         version: 6.0.3
+       vitest:
+         specifier: 4.1.10
+-        version: 4.1.10(@types/node@26.1.2)(vite@8.2.0(@types/node@26.1.2)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4))
++        version: 4.1.10(@types/node@26.1.2)(vite@8.2.0(@types/node@26.1.2)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4)(yaml@2.9.0))
+ 
+   packages/logging:
+     devDependencies:
+@@ -275,7 +287,7 @@ importers:
+         version: 6.0.3
+       vitest:
+         specifier: 4.1.10
+-        version: 4.1.10(@types/node@24.13.3)(vite@8.2.0(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4))
++        version: 4.1.10(@types/node@24.13.3)(vite@8.2.0(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4)(yaml@2.9.0))
+ 
+   packages/testing:
+     devDependencies:
+@@ -284,7 +296,7 @@ importers:
+         version: 6.0.3
+       vitest:
+         specifier: 4.1.10
+-        version: 4.1.10(@types/node@26.1.2)(vite@8.2.0(@types/node@26.1.2)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4))
++        version: 4.1.10(@types/node@26.1.2)(vite@8.2.0(@types/node@26.1.2)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4)(yaml@2.9.0))
+ 
+   packages/types:
+     devDependencies:
+@@ -293,7 +305,7 @@ importers:
+         version: 6.0.3
+       vitest:
+         specifier: 4.1.10
+-        version: 4.1.10(@types/node@26.1.2)(vite@8.2.0(@types/node@26.1.2)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4))
++        version: 4.1.10(@types/node@26.1.2)(vite@8.2.0(@types/node@26.1.2)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4)(yaml@2.9.0))
+ 
+   packages/ui:
+     devDependencies:
+@@ -302,7 +314,7 @@ importers:
+         version: 6.0.3
+       vitest:
+         specifier: 4.1.10
+-        version: 4.1.10(@types/node@26.1.2)(vite@8.2.0(@types/node@26.1.2)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4))
++        version: 4.1.10(@types/node@26.1.2)(vite@8.2.0(@types/node@26.1.2)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4)(yaml@2.9.0))
+ 
+   packages/validation:
+     devDependencies:
+@@ -311,7 +323,7 @@ importers:
+         version: 6.0.3
+       vitest:
+         specifier: 4.1.10
+-        version: 4.1.10(@types/node@26.1.2)(vite@8.2.0(@types/node@26.1.2)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4))
++        version: 4.1.10(@types/node@26.1.2)(vite@8.2.0(@types/node@26.1.2)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4)(yaml@2.9.0))
+ 
+ packages:
+ 
+@@ -1388,6 +1400,13 @@ packages:
+       '@nestjs/platform-express':
+         optional: true
+ 
++  '@nestjs/throttler@6.4.0':
++    resolution: {integrity: sha512-osL67i0PUuwU5nqSuJjtUJZMkxAnYB4VldgYUMGzvYRJDCqGRFMWbsbzm/CkUtPLRL30I8T74Xgt/OQxnYokiA==}
++    peerDependencies:
++      '@nestjs/common': ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0 || ^11.0.0
++      '@nestjs/core': ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0 || ^11.0.0
++      reflect-metadata: ^0.1.13 || ^0.2.0
++
+   '@next/env@16.2.12':
+     resolution: {integrity: sha512-d0Z5Bc13Fa4nR8pFAKx2jay2yhJM16vlfHbTzYnUQAxlNb6B6lmn4hjt69lYNt4kRtyYP6gEM49lPRHNbIyneg==}
+ 
+@@ -1454,6 +1473,11 @@ packages:
+     resolution: {integrity: sha512-SEeaJLb3qBNF/OaXnaR1NmmBbFYk1zC0ZH/52fATcRPLFg/p791YrcyFFy44Bo9sLaGuSuLp5Q6axbb/O+v/RA==}
+     engines: {node: ^14.18.0 || >=16.0.0}
+ 
++  '@playwright/test@1.52.0':
++    resolution: {integrity: sha512-uh6W7sb55hl7D6vsAeA+V2p5JnlAqzhqFyF0VcJkKZXkgnFcVG9PziERRHQfPLfNGx1C292a4JqbWzhR8L4R1g==}
++    engines: {node: '>=18'}
++    hasBin: true
++
+   '@prisma/adapter-pg@7.7.0':
+     resolution: {integrity: sha512-q33Ta8sKbgzEpAy0lx45tAq//yMv0qcb+8nj+TCA3P4wiAY+OBFEFk/NDkZncAfHaNJeGo5WJpJdpbL+ijYx8g==}
+ 
+@@ -2263,6 +2287,10 @@ packages:
+     resolution: {integrity: sha512-gKXj5ALrKWQLsYG9jlTRmR/xKluxHV+Z9QEwNIgCfM1/uwPMCuzVVnh5mwTd+OuBZcwSIMbqssNWRm1lE51QaQ==}
+     engines: {node: '>=8'}
+ 
++  ansi-escapes@7.3.0:
++    resolution: {integrity: sha512-BvU8nYgGQBxcmMuEeUEmNTvrMVjJNSH7RgW24vXexN4Ven6qCvy4TntnvlnwnMLTVlcRQQdbRY8NKnaIoeWDNg==}
++    engines: {node: '>=18'}
++
+   ansi-regex@5.0.1:
+     resolution: {integrity: sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ==}
+     engines: {node: '>=8'}
+@@ -2375,6 +2403,10 @@ packages:
+     resolution: {integrity: sha512-ScQ4IuvIEF1TMlP7Zt+vjJ//9zlPb2SDcxWxM3bk8s6t6GGdJ7KO1dCcTidOPJKePW30LE/2cT7wCyPho9/Wxg==}
+     engines: {node: 20 || >=22}
+ 
++  braces@3.0.3:
++    resolution: {integrity: sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==}
++    engines: {node: '>=8'}
++
+   browserslist@4.28.7:
+     resolution: {integrity: sha512-JxV13hNrFxqjOc8alRbq9dK1MM79NEXYpma2B2J4wAtpWS5zIEIKqWPGCl7N4o7Uc7B7itylh7SuDujATRyyTw==}
+     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
+@@ -2458,6 +2490,10 @@ packages:
+     resolution: {integrity: sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==}
+     engines: {node: '>=10'}
+ 
++  chalk@5.6.2:
++    resolution: {integrity: sha512-7NzBL0rN6fMUW+f7A6Io4h40qQlG+xGmtMxfbnH/K7TAtt8JQWVQK+6g0UXKMeVJoyV5EkkNsErQ8pVD3bLHbA==}
++    engines: {node: ^12.17.0 || ^14.13 || >=16.0.0}
++
+   char-regex@1.0.2:
+     resolution: {integrity: sha512-kWWXztvZ5SBQV+eRgKFeh8q5sLuZY2+8WUIzlxWVTg+oGwY14qylx1KbKzHd8P6ZYkAg0xyIDU9JMHhyJMZ1jw==}
+     engines: {node: '>=10'}
+@@ -2508,6 +2544,10 @@ packages:
+     resolution: {integrity: sha512-I/zHAwsKf9FqGoXM4WWRACob9+SNukZTd94DWF57E4toouRulbCxcUh6RKUEOQlYTHJnzkPMySvPNaaSLNfLZw==}
+     engines: {node: '>=8'}
+ 
++  cli-cursor@5.0.0:
++    resolution: {integrity: sha512-aCj4O5wKyszjMmDT4tZj93kxyydN/K5zPWSCe6/0AV/AA1pqe5ZBIw0a2ZfPQV7lL5/yb5HsUreJ6UFAF1tEQw==}
++    engines: {node: '>=18'}
++
+   cli-spinners@2.9.2:
+     resolution: {integrity: sha512-ywqV+5MmyL4E7ybXgKys4DugZbX0FC6LnwrhjuykIjnK9k8OQacQ7axGKnjDXWNhns0xot3bZI5h55H8yo9cJg==}
+     engines: {node: '>=6'}
+@@ -2516,6 +2556,10 @@ packages:
+     resolution: {integrity: sha512-+W/5efTR7y5HRD7gACw9yQjqMVvEMLBHmboM/kPWam+H+Hmyrgjh6YncVKK122YZkXrLudzTuAukUw9FnMf7IQ==}
+     engines: {node: 10.* || >= 12.*}
+ 
++  cli-truncate@4.0.0:
++    resolution: {integrity: sha512-nPdaFdQ0h/GEigbPClz11D0v/ZJEwxmeVZGeMo3Z5StPtUTkA9o1lD6QwoirYiSDzbcwn2XcjwmCp68W1IS4TA==}
++    engines: {node: '>=18'}
++
+   cli-width@4.1.0:
+     resolution: {integrity: sha512-ouuZd4/dm2Sw5Gmqy6bGyNNNe1qt9RpmxveLSO7KcgsTnU7RXfsw+/bukWGo1abgBiMAic068rclZsO4IWmmxQ==}
+     engines: {node: '>= 12'}
+@@ -2545,6 +2589,13 @@ packages:
+   color-name@1.1.4:
+     resolution: {integrity: sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==}
+ 
++  colorette@2.0.20:
++    resolution: {integrity: sha512-IfEDxwoWIjkeXL1eXcDiow4UbKjhLdq6/EuSVR9GMN7KVH3r9gQ83e73hsz1Nd1T3ijd5xv1wcWRYO+D6kCI2w==}
++
++  commander@14.0.3:
++    resolution: {integrity: sha512-H+y0Jo/T1RZ9qPP4Eh1pkcQcLRglraJaSLoyOtHxu6AapkjWVCy2Sit1QQ4x3Dng8qDlSsZEet7g5Pq06MvTgw==}
++    engines: {node: '>=20'}
++
+   commander@2.20.3:
+     resolution: {integrity: sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==}
+ 
+@@ -2694,6 +2745,9 @@ packages:
+     resolution: {integrity: sha512-DeWwawk6r5yR9jFgnDKYt4sLS0LmHJJi3ZOnb5/JdbYwj3nW+FxQnHIjhBKz8YLC7oRNPVM9NQ47I3CVx34eqQ==}
+     engines: {node: '>=12'}
+ 
++  emoji-regex@10.6.0:
++    resolution: {integrity: sha512-toUI84YS5YmxW219erniWD0CIVOo46xGKColeNQRgOzDorgBi1v4D71/OFzgD9GO2UGKIv1C3Sp8DAn0+j5w7A==}
++
+   emoji-regex@8.0.0:
+     resolution: {integrity: sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==}
+ 
+@@ -2716,6 +2770,10 @@ packages:
+     resolution: {integrity: sha512-dtJUTepzMW3Lm/NPxRf3wP4642UWhjL2sQxc+ym2YMj1m/H2zDNQOlezafzkHwn6sMstjHTwG6iQQsctDW/b1A==}
+     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+ 
++  environment@1.1.0:
++    resolution: {integrity: sha512-xUtoPkMggbz0MPyPiIWr1Kp4aeWJjDZ6SMvURhimjdZgsRuDplF5/s9hcgGhyXMhs+6vpnuoiZ2kFiu3FMnS8Q==}
++    engines: {node: '>=18'}
++
+   error-ex@1.3.4:
+     resolution: {integrity: sha512-sqQamAnR14VgCr1A618A3sGrygcpK+HEbenA/HiEAkkUwcZIIB/tgWqHFxWgOyDh4nB4JCRimh79dR5Ywc9MDQ==}
+ 
+@@ -2816,6 +2874,9 @@ packages:
+     resolution: {integrity: sha512-aIL5Fx7mawVa300al2BnEE4iNvo1qETxLrPI/o05L7z6go7fCw1J6EQmbK4FmJ2AS7kgVF/KEZWufBfdClMcPg==}
+     engines: {node: '>= 0.6'}
+ 
++  eventemitter3@5.0.4:
++    resolution: {integrity: sha512-mlsTRyGaPBjPedk6Bvw+aqbsXDtoAyAzm5MO7JgU+yVRyMQ5O8bD4Kcci7BS85f93veegeCPkL8R4GLClnjLFw==}
++
+   events@3.3.0:
+     resolution: {integrity: sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q==}
+     engines: {node: '>=0.8.x'}
+@@ -2882,6 +2943,10 @@ packages:
+     resolution: {integrity: sha512-Ievi/yy8DS3ygGvT47PjSfdFoX+2isQueoYP1cntFW1JLYAuS4GD7NUPGg4zv2iZfV52uDyk5w5Z0TdpRS6Q1g==}
+     engines: {node: '>=20'}
+ 
++  fill-range@7.1.1:
++    resolution: {integrity: sha512-YsGpe3WHLK8ZYi4tWDg2Jy3ebRz2rXowDxnld4bkQB00cc/1Zw9AWnC0i9ztDJitivtQvaI9KaLyKrc+hBW0yg==}
++    engines: {node: '>=8'}
++
+   finalhandler@2.1.1:
+     resolution: {integrity: sha512-S8KoZgRZN+a5rNwqTxlZZePjT/4cnm0ROV70LedRHZ0p8u9fRID0hJUZQpkKLzro8LfmC8sx23bY6tVNxv8pQA==}
+     engines: {node: '>= 18.0.0'}
+@@ -2930,6 +2995,11 @@ packages:
+   fs.realpath@1.0.0:
+     resolution: {integrity: sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==}
+ 
++  fsevents@2.3.2:
++    resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==}
++    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
++    os: [darwin]
++
+   fsevents@2.3.3:
+     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
+     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
+@@ -2949,6 +3019,10 @@ packages:
+     resolution: {integrity: sha512-DyFP3BM/3YHTQOCUL/w0OZHR0lpKeGrxotcHWcqNEdnltqFwXVfhEBQ94eIo34AfQpo0rGki4cyIiftY06h2Fg==}
+     engines: {node: 6.* || 8.* || >= 10.*}
+ 
++  get-east-asian-width@1.6.0:
++    resolution: {integrity: sha512-QRbvDIbx6YklUe6RxeTeleMR0yv3cYH6PsPZHcnVn7xv7zO1BHN8r0XETu8n6Ye3Q+ahtSarc3WgtNWmehIBfA==}
++    engines: {node: '>=18'}
++
+   get-intrinsic@1.3.0:
+     resolution: {integrity: sha512-9fSjSaos/fRIVIp+xSJlE6lfwhES7LNtKaCBIamHsjr2na1BiABJPo0mOjjz8GJDURarmCPGqaiVg5mfjb98CQ==}
+     engines: {node: '>= 0.4'}
+@@ -3043,6 +3117,11 @@ packages:
+     resolution: {integrity: sha512-B4FFZ6q/T2jhhksgkbEW3HBvWIfDW85snkQgawt07S7J5QXTk6BkNV+0yAeZrM5QpMAdYlocGoljn0sJ/WQkFw==}
+     engines: {node: '>=10.17.0'}
+ 
++  husky@9.1.7:
++    resolution: {integrity: sha512-5gs5ytaNjBrh5Ow3zrvdUUY+0VxIuWVL4i9irt6friV+BqdCfmV11CQTWMiBYWHbXhco+J1kHfTOUkePhCDvMA==}
++    engines: {node: '>=18'}
++    hasBin: true
++
+   iconv-lite@0.7.3:
+     resolution: {integrity: sha512-IKXpvIzjnC9XTAUbVBcMfGS0EPaIXtW6v+zr+RRp+hqULEpo0owZax6wyRwPOJbWbzjYspQwusTsfVr0ifh4uQ==}
+     engines: {node: '>=0.10.0'}
+@@ -3093,6 +3172,14 @@ packages:
+     resolution: {integrity: sha512-zymm5+u+sCsSWyD9qNaejV3DFvhCKclKdizYaJUuHA83RLjb7nSuGnddCHGv0hk+KY7BMAlsWeK4Ueg6EV6XQg==}
+     engines: {node: '>=8'}
+ 
++  is-fullwidth-code-point@4.0.0:
++    resolution: {integrity: sha512-O4L094N2/dZ7xqVdrXhh9r1KODPJpFms8B5sGdJLPy664AgvXsreZUyCQQNItZRDlYug4xStLjNp/sz3HvBowQ==}
++    engines: {node: '>=12'}
++
++  is-fullwidth-code-point@5.1.0:
++    resolution: {integrity: sha512-5XHYaSyiqADb4RnZ1Bdad6cPp8Toise4TzEjcOYDHZkTCbKgiUl7WTUCpNWHuxmDt91wnsZBc9xinNzopv3JMQ==}
++    engines: {node: '>=18'}
++
+   is-generator-fn@2.1.0:
+     resolution: {integrity: sha512-cTIB4yPYL/Grw0EaSzASzg6bBy9gqCofvWN8okThAYIxKJZC+udlRAmGbM0XLeniEJSs8uEgHPGuHSe1XsOLSQ==}
+     engines: {node: '>=6'}
+@@ -3105,6 +3192,10 @@ packages:
+     resolution: {integrity: sha512-2HvIEKRoqS62guEC+qBjpvRubdX910WCMuJTZ+I9yvqKU2/12eSL549HMwtabb4oupdj2sMP50k+XJfB/8JE6w==}
+     engines: {node: '>=8'}
+ 
++  is-number@7.0.0:
++    resolution: {integrity: sha512-41Cifkg6e8TylSpdtTpeLVMqvSBEVzTttHvERD741+pnZ8ANv0004MRL43QKPDlK9cGvNp6NZWZUBlbGXYxxng==}
++    engines: {node: '>=0.12.0'}
++
+   is-promise@4.0.0:
+     resolution: {integrity: sha512-hvpoI6korhJMnej285dSg6nu1+e6uxs7zG3BYAm5byqDsgJNWwxzM6z6iZiAgQR4TJ30JmBTOwqZUw3WlyH3AQ==}
+ 
+@@ -3493,9 +3584,22 @@ packages:
+     resolution: {integrity: sha512-WkUDrojuJs0xkgGf2udWxa3yGBRxPtxUkB79i6aCZLRgc7PM8fZe9TosfPDcvEpQZbuFASnHYmRLBLUbmLOIIA==}
+     engines: {node: '>= 12.0.0'}
+ 
++  lilconfig@3.1.3:
++    resolution: {integrity: sha512-/vlFKAoH5Cgt3Ie+JLhRbwOsCQePABiU3tJ1egGvyQ+33R/vcwM2Zl2QR/LzjsBeItPt3oSVXapn+m4nQDvpzw==}
++    engines: {node: '>=14'}
++
+   lines-and-columns@1.2.4:
+     resolution: {integrity: sha512-7ylylesZQ/PV29jhEDl3Ufjo6ZX7gCqJr5F7PKrqc93v7fzSymt1BpwEU8nAUXs8qzzvqhbjhK5QZg6Mt/HkBg==}
+ 
++  lint-staged@16.1.0:
++    resolution: {integrity: sha512-HkpQh69XHxgCjObjejBT3s2ILwNjFx8M3nw+tJ/ssBauDlIpkx2RpqWSi1fBgkXLSSXnbR3iEq1NkVtpvV+FLQ==}
++    engines: {node: '>=20.17'}
++    hasBin: true
++
++  listr2@8.3.3:
++    resolution: {integrity: sha512-LWzX2KsqcB1wqQ4AHgYb4RsDXauQiqhjLk+6hjbaeHG4zpjjVAB6wC/gz6X0l+Du1cN3pUB5ZlrvTbhGSNnUQQ==}
++    engines: {node: '>=18.0.0'}
++
+   load-esm@1.0.3:
+     resolution: {integrity: sha512-v5xlu8eHD1+6r8EHTg6hfmO97LN8ugKtiXcy5e6oN72iD2r6u0RPfLl6fxM+7Wnh2ZRq15o0russMst44WauPA==}
+     engines: {node: '>=13.2.0'}
+@@ -3522,6 +3626,10 @@ packages:
+     resolution: {integrity: sha512-8XPvpAA8uyhfteu8pIvQxpJZ7SYYdpUivZpGy6sFsBuKRY/7rQGavedeB8aK+Zkyq6upMFVL/9AW6vOYzfRyLg==}
+     engines: {node: '>=10'}
+ 
++  log-update@6.1.0:
++    resolution: {integrity: sha512-9ie8ItPR6tjY5uYJh8K/Zrv/RMZ5VOlOWvtZdEHYSTFKZfIBPQa9tOAEeAWhd+AnIneLJ22w5fjOYtoutpWq5w==}
++    engines: {node: '>=18'}
++
+   long@5.3.2:
+     resolution: {integrity: sha512-mNAgZ1GmyNhD7AuqnTG3/VQ26o760+ZYBPKjPvugO8+nLbYfX6TVpJPseBvopbdY+qpZ/lKUnmEc1LeZYS3QAA==}
+ 
+@@ -3582,6 +3690,10 @@ packages:
+   merge-stream@2.0.0:
+     resolution: {integrity: sha512-abv/qOcuPfk3URPfDzmZU1LKmuw8kT+0nIHvKrKgFrwifol/doWcdA4ZqsWQ8ENrFKkd67Mfpo/LovbIUsbt3w==}
+ 
++  micromatch@4.0.8:
++    resolution: {integrity: sha512-PXwfBhYu0hBCPw8Dn0E+WDYb7af3dSLVWKi3HGv84IdF4TyFoC0ysxFd0Goxw7nSv4T/PzEJQxsYsEiFCKo2BA==}
++    engines: {node: '>=8.6'}
++
+   mime-db@1.52.0:
+     resolution: {integrity: sha512-sPU4uV7dYlvtWJxwwxHD0PuihVNiE7TyAbQ5SWxDCB9mUYvOgroQOwYQQOKPJ8CIbE+1ETVlOoK1UC2nU3gYvg==}
+     engines: {node: '>= 0.6'}
+@@ -3602,6 +3714,10 @@ packages:
+     resolution: {integrity: sha512-OqbOk5oEQeAZ8WXWydlu9HJjz9WVdEIvamMCcXmuqUYjTknH/sqsWvhQ3vgwKFRR1HpjvNBKQ37nbJgYzGqGcg==}
+     engines: {node: '>=6'}
+ 
++  mimic-function@5.0.1:
++    resolution: {integrity: sha512-VP79XUPxV2CigYP3jWwAUFSku2aKqBH7uTAapFWCBqutsbmDo96KY5o8uh6U+/YSIn5OxJnXp73beVkpqMIGhA==}
++    engines: {node: '>=18'}
++
+   minimatch@10.2.6:
+     resolution: {integrity: sha512-vpLQEs+VLCr1nU0BXS07maYoFwlDAH0gngQuuttxIwutDFEMHq2blX+8vpgxDdK3J1PwjCJiep77OitTZ4Ll1A==}
+     engines: {node: 18 || 20 || >=22}
+@@ -3646,6 +3762,10 @@ packages:
+     resolution: {integrity: sha512-Tz09sEL2EEuv5fFowm419c1+a/jSMiBjI9gHxVLrVdbUkkNUUfjsVYs9pVZu5oCon/kmRh9TfLEObFtkVxmY0w==}
+     engines: {node: '>=8.0.0'}
+ 
++  nano-spawn@1.0.3:
++    resolution: {integrity: sha512-jtpsQDetTnvS2Ts1fiRdci5rx0VYws5jGyC+4IYOTnIQ/wwdf6JdomlHBwqC3bJYOvaKu0C2GSZ1A60anrYpaA==}
++    engines: {node: '>=20.17'}
++
+   nanoid@3.3.17:
+     resolution: {integrity: sha512-xQLf0A3HOMlgHq0n247/LRuAOYmB7dXJ/DvAxGvsSBij45XtBSmQycu+F8ODbHwns/XyFZagyL1+J0Offw1E0g==}
+     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
+@@ -3746,6 +3866,10 @@ packages:
+     resolution: {integrity: sha512-kbpaSSGJTWdAY5KPVeMOKXSrPtr8C8C7wodJbcsd51jRnmD+GZu8Y0VoU6Dm5Z4vWr0Ig/1NKuWRKf7j5aaYSg==}
+     engines: {node: '>=6'}
+ 
++  onetime@7.0.0:
++    resolution: {integrity: sha512-VXJjc87FScF88uafS3JllDgvAm+c/Slfz06lorj2uAY34rlUu0Nt+v8wreiImcrgAjjIHp1rXpTDlLOGw29WwQ==}
++    engines: {node: '>=18'}
++
+   optionator@0.9.4:
+     resolution: {integrity: sha512-6IpQ7mKUxRcZNLIObR0hz7lxsapSSIYNZJwXPGeF0mTVqGKFIXj1DQcMoT22S3ROcLyY/rz0PWaWZ9ayWmad9g==}
+     engines: {node: '>= 0.8.0'}
+@@ -3871,6 +3995,11 @@ packages:
+     resolution: {integrity: sha512-RvwwcruNjI1ncT5xRakeyS9Lf8lcItv34KD+aif+VH9kduAyfYBipGh12274xtenIPZ119/R9BdTBa8gAwSh0A==}
+     engines: {node: '>=12'}
+ 
++  pidtree@0.6.1:
++    resolution: {integrity: sha512-e0F9AOF1JMrCfBsyJOwU9lNvQ0WtXTq0j/4jk0BQ5JSI9VAybPXmDpPRw/2FQ3e5d3ZFN1mLh7jW99m/jjaptw==}
++    engines: {node: '>=0.10'}
++    hasBin: true
++
+   pirates@4.0.7:
+     resolution: {integrity: sha512-TfySrs/5nm8fQJDcBDuUng3VOUKsd7S+zqvbOTiGXHfxX4wK31ard+hoNuvkicM/2YFzlpDgABOevKSsB4G/FA==}
+     engines: {node: '>= 6'}
+@@ -3882,6 +4011,16 @@ packages:
+   pkg-types@2.3.1:
+     resolution: {integrity: sha512-y+ichcgc2LrADuhLNAx8DFjVfgz91pRxfZdI3UDhxHvcVEZsenLO+7XaU5vOp0u/7V/wZ+plyuQxtrDlZJ+yeg==}
+ 
++  playwright-core@1.52.0:
++    resolution: {integrity: sha512-l2osTgLXSMeuLZOML9qYODUQoPPnUsKsb5/P6LJ2e6uPKXUdPK5WYhN4z03G+YNbWmGDY4YENauNu4ZKczreHg==}
++    engines: {node: '>=18'}
++    hasBin: true
++
++  playwright@1.52.0:
++    resolution: {integrity: sha512-JAwMNMBlxJ2oD1kce4KPtMkDeKGHQstdpFPcPH3maElAXon/QZeTvtsfXmTMRyO9TslfoYOXkSsvao2nE1ilTw==}
++    engines: {node: '>=18'}
++    hasBin: true
++
+   pluralize@8.0.0:
+     resolution: {integrity: sha512-Nc3IT5yHzflTfbjgqWcCPpo7DaKy4FnpB0l/zCAW0Tc7jxAiuqSxHasntB3D7887LSrA93kDJ9IXovxJYxyLCA==}
+     engines: {node: '>=4'}
+@@ -4027,10 +4166,17 @@ packages:
+     resolution: {integrity: sha512-l+sSefzHpj5qimhFSE5a8nufZYAM3sBSVMAPtYkmC+4EH2anSGaEMXSD0izRQbu9nfyQ9y5JrVmp7E8oZrUjvA==}
+     engines: {node: '>=8'}
+ 
++  restore-cursor@5.1.0:
++    resolution: {integrity: sha512-oMA2dcrw6u0YfxJQXm342bFKX/E4sG9rbTzO9ptUcR/e8A33cHuvStiYOwH7fszkZlZ1z/ta9AAoPk2F4qIOHA==}
++    engines: {node: '>=18'}
++
+   retry@0.12.0:
+     resolution: {integrity: sha512-9LkiTwjUh6rT555DtE9rTX+BKByPfrMzEAtnlEtdEwr3Nkffwiihqe2bWADg+OQRjt9gl6ICdmB/ZFDCGAtSow==}
+     engines: {node: '>= 4'}
+ 
++  rfdc@1.4.1:
++    resolution: {integrity: sha512-q1b3N5QkRUWUl7iyylaaj3kOpIT0N2i9MqIEQXP73GVsN9cw3fdx8X63cEmWhJGi2PPCF23Ijp7ktmd39rawIA==}
++
+   rolldown@1.2.2:
+     resolution: {integrity: sha512-opwpo1tQBAcpSUJDt94B7hhLNGOKjCdE//XXjeLrnx9b83bjnw45tXdg1b09yEw/VLFBJGZpwRULMmOZo7ol+A==}
+     engines: {node: ^20.19.0 || >=22.12.0}
+@@ -4128,6 +4274,14 @@ packages:
+     resolution: {integrity: sha512-g9Q1haeby36OSStwb4ntCGGGaKsaVSjQ68fBxoQcutl5fS1vuY18H3wSt3jFyFtrkx+Kz0V1G85A4MyAdDMi2Q==}
+     engines: {node: '>=8'}
+ 
++  slice-ansi@5.0.0:
++    resolution: {integrity: sha512-FC+lgizVPfie0kkhqUScwRu1O/lF6NOgJmlCgK+/LYxDCTk8sGelYaHDhFcDN+Sn3Cv+3VSa4Byeo+IMCzpMgQ==}
++    engines: {node: '>=12'}
++
++  slice-ansi@7.1.2:
++    resolution: {integrity: sha512-iOBWFgUX7caIZiuutICxVgX1SdxwAVFFKwt1EvMYYec/NWO5meOJ6K5uQxhrYBdQJne4KxiqZc+KptFOWFSI9w==}
++    engines: {node: '>=18'}
++
+   source-map-js@1.2.1:
+     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
+     engines: {node: '>=0.10.0'}
+@@ -4178,6 +4332,10 @@ packages:
+     resolution: {integrity: sha512-Mcc5wHehp9aXz1ax6bZUyY5afg9u2rv5cqQI3mRrYkGC8rW2hM02jWuwjtL++LS5qinSyhj2QfLyNsuc+VsExg==}
+     engines: {node: '>=10.0.0'}
+ 
++  string-argv@0.3.2:
++    resolution: {integrity: sha512-aqD2Q0144Z+/RqG52NeHEkZauTAUWJO8c6yTftGJKO3Tja5tUgIfmIl6kExvhtxSDP7fXB6DvzkfMpCd/F3G+Q==}
++    engines: {node: '>=0.6.19'}
++
+   string-length@4.0.2:
+     resolution: {integrity: sha512-+l6rNN5fYHNhZZy41RXsYptCjA2Igmq4EG7kZAYFQI1E1VTXarr6ZPXBg6eq7Y6eK4FEhY6AJlyuFIb/v/S0VQ==}
+     engines: {node: '>=10'}
+@@ -4190,6 +4348,10 @@ packages:
+     resolution: {integrity: sha512-HnLOCR3vjcY8beoNLtcjZ5/nxn2afmME6lhrDrebokqMap+XbeW8n9TXpPDOqdGK5qcI3oT0GKTW6wC7EMiVqA==}
+     engines: {node: '>=12'}
+ 
++  string-width@7.2.0:
++    resolution: {integrity: sha512-tsaTIkKW9b4N+AEj+SVA+WhJzV7/zMhcSu78mLKWSk7cXMOSHsBKFWUs0fWwq8QyK3MgJBQRX6Gbi4kYbdvGkQ==}
++    engines: {node: '>=18'}
++
+   string_decoder@1.3.0:
+     resolution: {integrity: sha512-hkRX8U1WjJFd8LsDJ2yQ/wWWxaopEsABU1XfkM8A+j0+85JAGppt16cr1Whg6KIbb4okU6Mql6BOj+uup/wKeA==}
+ 
+@@ -4330,6 +4492,10 @@ packages:
+   tmpl@1.0.5:
+     resolution: {integrity: sha512-3f0uOEAQwIqGuWW2MVzYg8fV/QNnc/IpuJNG837rLuczAaLVHslWHZQj4IGiEl5Hs3kkbhwL9Ab7Hrsmuj+Smw==}
+ 
++  to-regex-range@5.0.1:
++    resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
++    engines: {node: '>=8.0'}
++
+   toidentifier@1.0.1:
+     resolution: {integrity: sha512-o5sSPKEkg/DIQNmH43V0/uerLrpzVedkUh8tGNvaeXpfpuwjKenlSox/2O/BTlZUtEe+JG7s5YhEz608PlAHRA==}
+     engines: {node: '>=0.6'}
+@@ -4646,6 +4812,10 @@ packages:
+     resolution: {integrity: sha512-si7QWI6zUMq56bESFvagtmzMdGOtoxfR+Sez11Mobfc7tm+VkUckk9bW2UeffTGVUbOksxmSw0AA2gs8g71NCQ==}
+     engines: {node: '>=12'}
+ 
++  wrap-ansi@9.0.2:
++    resolution: {integrity: sha512-42AtmgqjV+X1VpdOfyTGOYRi0/zsoLqtXQckTmqTeybT+BDIbM/Guxo7x3pE2vtpr1ok6xRqM9OpBe+Jyoqyww==}
++    engines: {node: '>=18'}
++
+   wrappy@1.0.2:
+     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
+ 
+@@ -4664,6 +4834,11 @@ packages:
+   yallist@3.1.1:
+     resolution: {integrity: sha512-a4UGQaWPH59mOXUYnAG2ewncQS4i4F43Tv3JoAM+s2VDAmS9NsK8GpDMLrCHPksFT7h3K6TOoUNn2pb7RoXx4g==}
+ 
++  yaml@2.9.0:
++    resolution: {integrity: sha512-2AvhNX3mb8zd6Zy7INTtSpl1F15HW6Wnqj0srWlkKLcpYl/gMIMJiyuGq2KeI2YFxUPjdlB+3Lc10seMLtL4cA==}
++    engines: {node: '>= 14.6'}
++    hasBin: true
++
+   yargs-parser@21.1.1:
+     resolution: {integrity: sha512-tVpsJW7DdjecAiFpbIB1e3qxIQsE6NoPc5/eTdrbbIC4h0LVsWhnoa3g+m2HclBIujHzsxZ4VJVA+GUuc2/LBw==}
+     engines: {node: '>=12'}
+@@ -5730,6 +5905,12 @@ snapshots:
+     optionalDependencies:
+       '@nestjs/platform-express': 11.1.28(@nestjs/common@11.1.28(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.28)
+ 
++  '@nestjs/throttler@6.4.0(@nestjs/common@11.1.28(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.28)(reflect-metadata@0.2.2)':
++    dependencies:
++      '@nestjs/common': 11.1.28(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
++      '@nestjs/core': 11.1.28(@nestjs/common@11.1.28(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.1.28)(reflect-metadata@0.2.2)(rxjs@7.8.2)
++      reflect-metadata: 0.2.2
++
+   '@next/env@16.2.12': {}
+ 
+   '@next/swc-darwin-arm64@16.2.12':
+@@ -5763,6 +5944,10 @@ snapshots:
+ 
+   '@pkgr/core@0.3.6': {}
+ 
++  '@playwright/test@1.52.0':
++    dependencies:
++      playwright: 1.52.0
++
+   '@prisma/adapter-pg@7.7.0':
+     dependencies:
+       '@prisma/driver-adapter-utils': 7.7.0
+@@ -6382,21 +6567,21 @@ snapshots:
+       chai: 6.2.2
+       tinyrainbow: 3.1.1
+ 
+-  '@vitest/mocker@4.1.10(vite@8.2.0(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4))':
++  '@vitest/mocker@4.1.10(vite@8.2.0(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4)(yaml@2.9.0))':
+     dependencies:
+       '@vitest/spy': 4.1.10
+       estree-walker: 3.0.3
+       magic-string: 0.30.21
+     optionalDependencies:
+-      vite: 8.2.0(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4)
++      vite: 8.2.0(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4)(yaml@2.9.0)
+ 
+-  '@vitest/mocker@4.1.10(vite@8.2.0(@types/node@26.1.2)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4))':
++  '@vitest/mocker@4.1.10(vite@8.2.0(@types/node@26.1.2)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4)(yaml@2.9.0))':
+     dependencies:
+       '@vitest/spy': 4.1.10
+       estree-walker: 3.0.3
+       magic-string: 0.30.21
+     optionalDependencies:
+-      vite: 8.2.0(@types/node@26.1.2)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4)
++      vite: 8.2.0(@types/node@26.1.2)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4)(yaml@2.9.0)
+ 
+   '@vitest/pretty-format@4.1.10':
+     dependencies:
+@@ -6565,6 +6750,10 @@ snapshots:
+     dependencies:
+       type-fest: 0.21.3
+ 
++  ansi-escapes@7.3.0:
++    dependencies:
++      environment: 1.1.0
++
+   ansi-regex@5.0.1: {}
+ 
+   ansi-regex@6.2.2: {}
+@@ -6704,6 +6893,10 @@ snapshots:
+     dependencies:
+       balanced-match: 4.0.4
+ 
++  braces@3.0.3:
++    dependencies:
++      fill-range: 7.1.1
++
+   browserslist@4.28.7:
+     dependencies:
+       baseline-browser-mapping: 2.11.12
+@@ -6783,6 +6976,8 @@ snapshots:
+       ansi-styles: 4.3.0
+       supports-color: 7.2.0
+ 
++  chalk@5.6.2: {}
++
+   char-regex@1.0.2: {}
+ 
+   chardet@2.2.0: {}
+@@ -6823,6 +7018,10 @@ snapshots:
+     dependencies:
+       restore-cursor: 3.1.0
+ 
++  cli-cursor@5.0.0:
++    dependencies:
++      restore-cursor: 5.1.0
++
+   cli-spinners@2.9.2: {}
+ 
+   cli-table3@0.6.5:
+@@ -6831,6 +7030,11 @@ snapshots:
+     optionalDependencies:
+       '@colors/colors': 1.5.0
+ 
++  cli-truncate@4.0.0:
++    dependencies:
++      slice-ansi: 5.0.0
++      string-width: 7.2.0
++
+   cli-width@4.1.0: {}
+ 
+   client-only@0.0.1: {}
+@@ -6853,6 +7057,10 @@ snapshots:
+ 
+   color-name@1.1.4: {}
+ 
++  colorette@2.0.20: {}
++
++  commander@14.0.3: {}
++
+   commander@2.20.3: {}
+ 
+   commander@4.1.1: {}
+@@ -6962,6 +7170,8 @@ snapshots:
+ 
+   emittery@0.13.1: {}
+ 
++  emoji-regex@10.6.0: {}
++
+   emoji-regex@8.0.0: {}
+ 
+   emoji-regex@9.2.2: {}
+@@ -6977,6 +7187,8 @@ snapshots:
+ 
+   env-paths@3.0.0: {}
+ 
++  environment@1.1.0: {}
++
+   error-ex@1.3.4:
+     dependencies:
+       is-arrayish: 0.2.1
+@@ -7109,6 +7321,8 @@ snapshots:
+ 
+   etag@1.8.1: {}
+ 
++  eventemitter3@5.0.4: {}
++
+   events@3.3.0: {}
+ 
+   execa@5.1.1:
+@@ -7206,6 +7420,10 @@ snapshots:
+     transitivePeerDependencies:
+       - supports-color
+ 
++  fill-range@7.1.1:
++    dependencies:
++      to-regex-range: 5.0.1
++
+   finalhandler@2.1.1:
+     dependencies:
+       debug: 4.4.3
+@@ -7270,6 +7488,9 @@ snapshots:
+ 
+   fs.realpath@1.0.0: {}
+ 
++  fsevents@2.3.2:
++    optional: true
++
+   fsevents@2.3.3:
+     optional: true
+ 
+@@ -7283,6 +7504,8 @@ snapshots:
+ 
+   get-caller-file@2.0.5: {}
+ 
++  get-east-asian-width@1.6.0: {}
++
+   get-intrinsic@1.3.0:
+     dependencies:
+       call-bind-apply-helpers: 1.0.2
+@@ -7391,6 +7614,8 @@ snapshots:
+ 
+   human-signals@2.1.0: {}
+ 
++  husky@9.1.7: {}
++
+   iconv-lite@0.7.3:
+     dependencies:
+       safer-buffer: 2.1.2
+@@ -7428,6 +7653,12 @@ snapshots:
+ 
+   is-fullwidth-code-point@3.0.0: {}
+ 
++  is-fullwidth-code-point@4.0.0: {}
++
++  is-fullwidth-code-point@5.1.0:
++    dependencies:
++      get-east-asian-width: 1.6.0
++
+   is-generator-fn@2.1.0: {}
+ 
+   is-glob@4.0.3:
+@@ -7436,6 +7667,8 @@ snapshots:
+ 
+   is-interactive@1.0.0: {}
+ 
++  is-number@7.0.0: {}
++
+   is-promise@4.0.0: {}
+ 
+   is-property@1.0.2: {}
+@@ -7952,8 +8185,34 @@ snapshots:
+       lightningcss-win32-arm64-msvc: 1.33.0
+       lightningcss-win32-x64-msvc: 1.33.0
+ 
++  lilconfig@3.1.3: {}
++
+   lines-and-columns@1.2.4: {}
+ 
++  lint-staged@16.1.0:
++    dependencies:
++      chalk: 5.6.2
++      commander: 14.0.3
++      debug: 4.4.3
++      lilconfig: 3.1.3
++      listr2: 8.3.3
++      micromatch: 4.0.8
++      nano-spawn: 1.0.3
++      pidtree: 0.6.1
++      string-argv: 0.3.2
++      yaml: 2.9.0
++    transitivePeerDependencies:
++      - supports-color
++
++  listr2@8.3.3:
++    dependencies:
++      cli-truncate: 4.0.0
++      colorette: 2.0.20
++      eventemitter3: 5.0.4
++      log-update: 6.1.0
++      rfdc: 1.4.1
++      wrap-ansi: 9.0.2
++
+   load-esm@1.0.3: {}
+ 
+   loader-runner@4.3.2: {}
+@@ -7975,6 +8234,14 @@ snapshots:
+       chalk: 4.1.2
+       is-unicode-supported: 0.1.0
+ 
++  log-update@6.1.0:
++    dependencies:
++      ansi-escapes: 7.3.0
++      cli-cursor: 5.0.0
++      slice-ansi: 7.1.2
++      strip-ansi: 7.2.0
++      wrap-ansi: 9.0.2
++
+   long@5.3.2: {}
+ 
+   lru-cache@10.4.3: {}
+@@ -8021,6 +8288,11 @@ snapshots:
+ 
+   merge-stream@2.0.0: {}
+ 
++  micromatch@4.0.8:
++    dependencies:
++      braces: 3.0.3
++      picomatch: 2.3.2
++
+   mime-db@1.52.0: {}
+ 
+   mime-db@1.54.0: {}
+@@ -8035,6 +8307,8 @@ snapshots:
+ 
+   mimic-fn@2.1.0: {}
+ 
++  mimic-function@5.0.1: {}
++
+   minimatch@10.2.6:
+     dependencies:
+       brace-expansion: 5.0.9
+@@ -8094,6 +8368,8 @@ snapshots:
+     dependencies:
+       lru.min: 1.1.4
+ 
++  nano-spawn@1.0.3: {}
++
+   nanoid@3.3.17: {}
+ 
+   napi-postinstall@0.3.4: {}
+@@ -8104,7 +8380,7 @@ snapshots:
+ 
+   neo-async@2.6.2: {}
+ 
+-  next@16.2.12(react-dom@19.2.8(react@19.2.8))(react@19.2.8):
++  next@16.2.12(@playwright/test@1.52.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8):
+     dependencies:
+       '@next/env': 16.2.12
+       '@swc/helpers': 0.5.15
+@@ -8123,6 +8399,7 @@ snapshots:
+       '@next/swc-linux-x64-musl': 16.2.12
+       '@next/swc-win32-arm64-msvc': 16.2.12
+       '@next/swc-win32-x64-msvc': 16.2.12
++      '@playwright/test': 1.52.0
+       sharp: 0.34.5
+     transitivePeerDependencies:
+       - '@babel/core'
+@@ -8177,6 +8454,10 @@ snapshots:
+     dependencies:
+       mimic-fn: 2.1.0
+ 
++  onetime@7.0.0:
++    dependencies:
++      mimic-function: 5.0.1
++
+   optionator@0.9.4:
+     dependencies:
+       deep-is: 0.1.4
+@@ -8298,6 +8579,8 @@ snapshots:
+ 
+   picomatch@4.0.5: {}
+ 
++  pidtree@0.6.1: {}
++
+   pirates@4.0.7: {}
+ 
+   pkg-dir@4.2.0:
+@@ -8310,6 +8593,14 @@ snapshots:
+       exsolve: 1.1.1
+       pathe: 2.0.3
+ 
++  playwright-core@1.52.0: {}
++
++  playwright@1.52.0:
++    dependencies:
++      playwright-core: 1.52.0
++    optionalDependencies:
++      fsevents: 2.3.2
++
+   pluralize@8.0.0: {}
+ 
+   postcss@8.4.31:
+@@ -8442,8 +8733,15 @@ snapshots:
+       onetime: 5.1.2
+       signal-exit: 3.0.7
+ 
++  restore-cursor@5.1.0:
++    dependencies:
++      onetime: 7.0.0
++      signal-exit: 4.1.0
++
+   retry@0.12.0: {}
+ 
++  rfdc@1.4.1: {}
++
+   rolldown@1.2.2:
+     dependencies:
+       '@oxc-project/types': 0.142.0
+@@ -8608,6 +8906,16 @@ snapshots:
+ 
+   slash@3.0.0: {}
+ 
++  slice-ansi@5.0.0:
++    dependencies:
++      ansi-styles: 6.2.3
++      is-fullwidth-code-point: 4.0.0
++
++  slice-ansi@7.1.2:
++    dependencies:
++      ansi-styles: 6.2.3
++      is-fullwidth-code-point: 5.1.0
++
+   source-map-js@1.2.1: {}
+ 
+   source-map-support@0.5.13:
+@@ -8644,6 +8952,8 @@ snapshots:
+ 
+   streamsearch@1.1.0: {}
+ 
++  string-argv@0.3.2: {}
++
+   string-length@4.0.2:
+     dependencies:
+       char-regex: 1.0.2
+@@ -8661,6 +8971,12 @@ snapshots:
+       emoji-regex: 9.2.2
+       strip-ansi: 7.2.0
+ 
++  string-width@7.2.0:
++    dependencies:
++      emoji-regex: 10.6.0
++      get-east-asian-width: 1.6.0
++      strip-ansi: 7.2.0
++
+   string_decoder@1.3.0:
+     dependencies:
+       safe-buffer: 5.2.1
+@@ -8746,6 +9062,10 @@ snapshots:
+ 
+   tmpl@1.0.5: {}
+ 
++  to-regex-range@5.0.1:
++    dependencies:
++      is-number: 7.0.0
++
+   toidentifier@1.0.1: {}
+ 
+   token-types@6.1.2:
+@@ -8920,7 +9240,7 @@ snapshots:
+ 
+   vary@1.1.2: {}
+ 
+-  vite@8.2.0(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4):
++  vite@8.2.0(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4)(yaml@2.9.0):
+     dependencies:
+       lightningcss: 1.33.0
+       picomatch: 4.0.5
+@@ -8933,8 +9253,9 @@ snapshots:
+       jiti: 2.7.0
+       terser: 5.49.1
+       tsx: 4.19.4
++      yaml: 2.9.0
+ 
+-  vite@8.2.0(@types/node@26.1.2)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4):
++  vite@8.2.0(@types/node@26.1.2)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4)(yaml@2.9.0):
+     dependencies:
+       lightningcss: 1.33.0
+       picomatch: 4.0.5
+@@ -8947,11 +9268,12 @@ snapshots:
+       jiti: 2.7.0
+       terser: 5.49.1
+       tsx: 4.19.4
++      yaml: 2.9.0
+ 
+-  vitest@4.1.10(@types/node@24.13.3)(vite@8.2.0(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4)):
++  vitest@4.1.10(@types/node@24.13.3)(vite@8.2.0(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4)(yaml@2.9.0)):
+     dependencies:
+       '@vitest/expect': 4.1.10
+-      '@vitest/mocker': 4.1.10(vite@8.2.0(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4))
++      '@vitest/mocker': 4.1.10(vite@8.2.0(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4)(yaml@2.9.0))
+       '@vitest/pretty-format': 4.1.10
+       '@vitest/runner': 4.1.10
+       '@vitest/snapshot': 4.1.10
+@@ -8968,17 +9290,17 @@ snapshots:
+       tinyexec: 1.3.0
+       tinyglobby: 0.2.17
+       tinyrainbow: 3.1.1
+-      vite: 8.2.0(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4)
++      vite: 8.2.0(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4)(yaml@2.9.0)
+       why-is-node-running: 2.3.0
+     optionalDependencies:
+       '@types/node': 24.13.3
+     transitivePeerDependencies:
+       - msw
+ 
+-  vitest@4.1.10(@types/node@26.1.2)(vite@8.2.0(@types/node@26.1.2)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4)):
++  vitest@4.1.10(@types/node@26.1.2)(vite@8.2.0(@types/node@26.1.2)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4)(yaml@2.9.0)):
+     dependencies:
+       '@vitest/expect': 4.1.10
+-      '@vitest/mocker': 4.1.10(vite@8.2.0(@types/node@26.1.2)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4))
++      '@vitest/mocker': 4.1.10(vite@8.2.0(@types/node@26.1.2)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4)(yaml@2.9.0))
+       '@vitest/pretty-format': 4.1.10
+       '@vitest/runner': 4.1.10
+       '@vitest/snapshot': 4.1.10
+@@ -8995,7 +9317,7 @@ snapshots:
+       tinyexec: 1.3.0
+       tinyglobby: 0.2.17
+       tinyrainbow: 3.1.1
+-      vite: 8.2.0(@types/node@26.1.2)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4)
++      vite: 8.2.0(@types/node@26.1.2)(jiti@2.7.0)(terser@5.49.1)(tsx@4.19.4)(yaml@2.9.0)
+       why-is-node-running: 2.3.0
+     optionalDependencies:
+       '@types/node': 26.1.2
+@@ -9093,6 +9415,12 @@ snapshots:
+       string-width: 5.1.2
+       strip-ansi: 7.2.0
+ 
++  wrap-ansi@9.0.2:
++    dependencies:
++      ansi-styles: 6.2.3
++      string-width: 7.2.0
++      strip-ansi: 7.2.0
++
+   wrappy@1.0.2: {}
+ 
+   write-file-atomic@5.0.1:
+@@ -9106,6 +9434,8 @@ snapshots:
+ 
+   yallist@3.1.1: {}
+ 
++  yaml@2.9.0: {}
++
+   yargs-parser@21.1.1: {}
+ 
+   yargs@17.7.3:
+diff --git a/prisma/seed.ts b/prisma/seed.ts
+index 4d6f5b9..2e4dc5a 100644
+--- a/prisma/seed.ts
++++ b/prisma/seed.ts
+@@ -6,19 +6,102 @@ const prisma = new PrismaClient({
+   adapter: new PrismaPg({ connectionString }),
+ });
+ 
+-async function main(): Promise<void> {
+-  await prisma.appSetting.upsert({
+-    where: { key: 'app.name' },
+-    update: {},
+-    create: {
+-      key: 'app.name',
+-      value: 'Vườn Măng Đen',
+-      category: 'general',
+-      isSecretReference: false,
+-    },
+-  });
++const APP_SETTINGS = [
++  {
++    key: 'app.name',
++    value: 'Vườn Măng Đen',
++    category: 'general',
++  },
++  {
++    key: 'app.timezone',
++    value: 'Asia/Ho_Chi_Minh',
++    category: 'general',
++  },
++  {
++    key: 'app.currency',
++    value: 'VND',
++    category: 'general',
++  },
++  {
++    key: 'app.locale',
++    value: 'vi-VN',
++    category: 'general',
++  },
++  {
++    key: 'booking.hold_ttl_minutes',
++    value: 15,
++    category: 'booking',
++  },
++  {
++    key: 'booking.max_rooms_per_booking',
++    value: 5,
++    category: 'booking',
++  },
++  {
++    key: 'notification.reminder_days',
++    value: [7, 3, 1],
++    category: 'notification',
++  },
++  {
++    key: 'notification.from_email',
++    value: 'noreply@vuonmangden.vn',
++    category: 'notification',
++    isSecretReference: false,
++  },
++];
++
++const SAMPLE_CUSTOMERS = [
++  {
++    customerCode: 'VMD-SEED-0001',
++    fullName: 'Nguyễn Văn Anh',
++    phoneNormalized: '+84901234567',
++    emailNormalized: 'nguyenvananh@example.com',
++    source: 'DIRECT',
++    marketingConsent: true,
++    notes: 'Seed data — khách mẫu để kiểm thử',
++  },
++  {
++    customerCode: 'VMD-SEED-0002',
++    fullName: 'Trần Thị Bình',
++    phoneNormalized: '+84912345678',
++    emailNormalized: 'tranthibinh@example.com',
++    source: 'WEBSITE',
++    marketingConsent: false,
++    notes: 'Seed data — khách mẫu để kiểm thử',
++  },
++];
++
++async function seedAppSettings(): Promise<void> {
++  for (const setting of APP_SETTINGS) {
++    await prisma.appSetting.upsert({
++      where: { key: setting.key },
++      update: {},
++      create: {
++        key: setting.key,
++        value: setting.value as never,
++        category: setting.category,
++        isSecretReference: setting.isSecretReference ?? false,
++      },
++    });
++  }
++  console.log(`Seeded ${APP_SETTINGS.length} app_settings.`);
++}
++
++async function seedCustomers(): Promise<void> {
++  for (const customer of SAMPLE_CUSTOMERS) {
++    await prisma.customer.upsert({
++      where: { customerCode: customer.customerCode },
++      update: {},
++      create: customer,
++    });
++  }
++  console.log(`Seeded ${SAMPLE_CUSTOMERS.length} sample customers.`);
++}
+ 
+-  console.log('Seed completed: app_settings smoke record inserted.');
++async function main(): Promise<void> {
++  await seedAppSettings();
++  await seedCustomers();
++  console.log('Seed completed.');
+ }
+ 
+ main()

@@ -14,12 +14,12 @@
 | Chỉ số | Giá trị hiện tại |
 |---|---|
 | Phase | Phase 1 — MVP |
-| Trạng thái tổng thể | Foundation đang triển khai |
-| Milestone hiện tại | Milestone 1 |
-| Task đang thực hiện | Không (Foundation hoàn tất, CI thiết lập xong) |
-| Task hoàn thành | 7 |
-| Blocker mở | Xem Milestone 0 và Open Decisions |
-| Cập nhật gần nhất | 2026-08-08 |
+| Trạng thái tổng thể | Repository đã audit; còn xác minh Docker/database và GitHub-hosted CI |
+| Milestone hiện tại | Milestone 1 — verification/cleanup |
+| Task đang thực hiện | MNT-001 — Review |
+| Task hoàn thành | 3 (FND-001, FND-002, FND-004) |
+| Blocker mở | Docker CLI/Engine không khả dụng; GitHub Actions/branch protection cần xác minh ngoài local |
+| Cập nhật gần nhất | 2026-08-09 |
 
 ## 3. Milestone 0 — Chốt đầu vào
 
@@ -42,9 +42,9 @@
 |---|---|---|---|---|---|---|---|---|
 | FND-001 | Khởi tạo monorepo | Done | Không | `chore/fnd-001-initialize-monorepo` / `3c5036a`, `8913286` | N/A | Node 24.14.0; pnpm 11.9.0; frozen install đạt; lint/typecheck/test/build 12/12 đạt với Turbo cache bypass; web/admin HTTP 200, API port 3002, worker duy trì tiến trình | Node 22.14.0 bị runtime gate từ chối; local secret/client-env/ignore checks đạt | Human review đã duyệt; còn 3 deprecated transitive dependencies (`glob@10.5.0`, `glob@7.2.3`, `inflight@1.0.6`) |
 | FND-002 | Local development | Done | FND-001 | `chore/fnd-002-local-development` / `01ce62e`, `eb74fe9`, `10ef3cb` | Không | Node 24.14.0; pnpm 11.9.0 frozen install đạt; lint/typecheck/test/build 12/12 đạt, cache bypass; 7/7 unit test FND-002 đạt; Compose config và 6/6 service healthy | Loopback-only ports; pinned images; không latest/privileged/socket/secret; `.env` fallback, env boundary và ignore checks đạt | Human review đã duyệt; read-only MinIO check; marker giữ nguyên timestamp/ETag sau restart; down giữ 4 named volumes; evidence: `docs/evidence/FND-002-LOCAL-ENVIRONMENT.md` |
-| FND-003 | CI | Done | FND-001 | `chore/fnd-003-ci` | N/A | lint/typecheck/test/build 12/12 đạt; prisma validate đạt; CI workflow syntax hợp lệ | gitleaks secret scan; pnpm audit dependency scan; GITHUB_TOKEN only; no long-lived credentials | GitHub Actions CI: 2 jobs (ci + security); ADR-002 đóng DEC-002 |
+| FND-003 | CI | Review | FND-001 | `chore/fnd-003-ci`; hardened trong `chore/mnt-001-repository-audit-cleanup` | N/A | Clean sandbox: lint/typecheck/test/build đạt; Prisma/migration check và actionlint đạt | Gitleaks source/history + synthetic fixture đạt; production audit: 0 High/Critical, 3 Moderate; actions pin SHA, quyền read-only | Chờ GitHub-hosted workflow run và branch protection verification |
 | FND-004 | API foundation | Done | FND-001, FND-002 | `chore/fnd-004-api-foundation` | N/A | lint/typecheck/test/build 12/12 đạt; 11 API tests (correlation-id 4, exception-filter 3, health 3, app-module 1) đạt; 4 app shells build thành công | Không stack trace trong response; không secret/PII trong log; correlation ID validate UUID | Error format §25.3, correlation ID §40, validation pipe, global exception filter, Swagger `/api/docs`, health endpoints `/health/{live,ready,dependencies}`, structured logger `@vmd/logging` |
-| FND-005 | Database foundation | Done | FND-002, FND-004 | `chore/fnd-005-database-foundation` | `20260807000000_initial_foundation` — 4 tables, 3 extensions, 2 indexes | lint/typecheck/test/build 12/12 đạt; 16 API tests (prisma-service 3, prisma-module 1, health 4, correlation-id 4, exception-filter 3, app-module 1) đạt | DATABASE_URL server-only; connection string không log; audit_logs immutable; app_settings secret reference only | Prisma 7.7.0 + @prisma/adapter-pg; audit_logs, idempotency_keys, outbox_events, app_settings; pgcrypto, btree_gist, citext; PrismaModule global; health/dependencies check DB |
+| FND-005 | Database foundation | Review | FND-002, FND-004 | `chore/fnd-005-database-foundation`; audit MNT-001 | `20260807000000_initial_foundation` — 4 tables, 3 extensions, 2 indexes | Unit tests và Prisma validation đạt; database-blank migration/seed/persistence chưa chạy lại do thiếu Docker | DATABASE_URL server-only; connection string không log; audit_logs immutable; app_settings chỉ giữ giá trị kỹ thuật | Chờ Docker PostgreSQL verification trước khi Done |
 
 **Gate:** CI xanh; local chạy được; migration và seed chạy được từ database trắng.
 
@@ -92,7 +92,7 @@
 
 | Task ID | Nội dung | Trạng thái | Dependency | Branch/PR | Tests | Ghi chú |
 |---|---|---|---|---|---|---|
-| BKG-001 | Customer Core | Done | FND-005 | `chore/fnd-005-database-foundation` | lint/typecheck/test/build 12/12 đạt; 31 API tests (customers 15, health 4, correlation-id 4, exception-filter 3, prisma 4, app-module 1) đạt | Migration `20260808000000_add_customers`; Prisma Customer model; CustomersService (normalize phone/email, findDuplicates, findOrCreate, softDelete); outbox event `customer.created`; consent tracking |
+| BKG-001 | Customer Core | Review | FND-005 | `chore/fnd-005-database-foundation`; audit MNT-001 | API 32/32 tests đạt; customer + outbox cùng transaction, có rollback regression | Migration `20260808000000_add_customers`; chờ PostgreSQL integration verification |
 | BKG-002 | Occupancy Model | Backlog | RMS-002 |  |  | Unique `(room_id, stay_date)` |
 | BKG-003 | Resource Hold | Backlog | BKG-002 |  |  | TTL/expiry/retry |
 | BKG-004 | Booking Creation | Backlog | BKG-001, BKG-003, RMS-005 |  |  | Idempotency bắt buộc |
@@ -134,7 +134,7 @@
 
 | Task ID | Nội dung | Trạng thái | Dependency | Branch/PR | Tests | Ghi chú |
 |---|---|---|---|---|---|---|
-| NTF-001 | Queue và Outbox | Done | FND-005 | `chore/fnd-005-database-foundation` | lint/typecheck/test/build 12/12 đạt; 31 API tests + 7 worker tests + 7 script tests đạt | BullMQ 6.0.9 + @nestjs/bullmq 11.0.5; 9 queues §42; OutboxProcessor poll/dispatch/retry/fail; notification_jobs + notification_deliveries migration; QueueModule shared |
+| NTF-001 | Queue và Outbox | Review | FND-005 | `chore/fnd-005-database-foundation`; audit MNT-001 | Worker 8/8 tests đạt; queue registration, fail-closed route và event-id job dedup regression đạt | Chờ Redis/PostgreSQL integration and worker smoke verification |
 | NTF-002 | Email Adapter | Backlog | NTF-001, PRE-007 |  |  | Mailpit/sandbox |
 | NTF-003 | Zalo Adapter | Backlog | NTF-001, PRE-007 |  |  | Template được duyệt |
 | NTF-004 | Booking Notifications | Backlog | NTF-002, NTF-003, BKG-005, PAY-003 |  |  |  |
@@ -181,11 +181,26 @@
 | LIVE-003 | Handover | Backlog | LIVE-002 | TBD |  | Runbook/training |
 | LIVE-004 | Phase 1 closure | Backlog | LIVE-003 | TBD |  | Known issues/Phase 2 backlog |
 
+## 14b. Prep Tasks (không thuộc task ID chính)
+
+| # | Nội dung | Trạng thái | File tạo/thay đổi | Ghi chú |
+|---|---|---|---|---|
+| PREP-001 | Dockerfile staging (API + Worker) | Backlog | Không giữ | Review phát hiện healthcheck giả; loại khỏi working tree |
+| PREP-002 | Prisma seed script mở rộng | Backlog | Không giữ | Loại sample PII và giá trị booking/notification chưa được duyệt |
+| PREP-003 | E2E test infrastructure | Backlog | Không giữ | Playwright cũ có advisory và cấu hình không khởi động API đúng |
+| PREP-004 | Git hooks (husky + lint-staged) | Backlog | Không giữ | Chưa có task/phê duyệt; tránh tự sửa staged source bằng hook |
+| PREP-005 | Shared types & state machines | Backlog | Không giữ | Logic trạng thái nghiệp vụ chưa có task/test/phê duyệt |
+| PREP-006 | API rate limiting foundation | Backlog | Không giữ | Giới hạn tự đặt và chưa xử lý proxy/multi-instance |
+
+**Lưu ý:** Sáu nhóm prep trên chỉ là thay đổi chưa commit được audit trong MNT-001; chúng không phải task đã hoàn thành và đã được loại bỏ. Không triển khai lại nếu chưa có task và phê duyệt riêng.
+
 ## 15. Blocker log
 
 | ID | Ngày mở | Liên quan | Mô tả | Ảnh hưởng | Owner | Trạng thái | Quyết định/Ngày đóng |
 |---|---|---|---|---|---|---|---|
 | BLK-001 | 2026-08-05 | PRE-* | Dữ liệu vận hành Milestone 0 chưa được xác nhận trong tracker | Chưa thể triển khai module nghiệp vụ | TBD | Open |  |
+| BLK-002 | 2026-08-09 | FND-005, BKG-001, NTF-001, MNT-001 | Máy hiện tại không có Docker CLI/Engine | Không thể chạy database trắng, seed/persistence và Redis worker smoke | Chủ dự án | Open | Cài/khởi động Docker rồi chạy lại gate |
+| BLK-003 | 2026-08-09 | FND-003 | Chưa có bằng chứng GitHub-hosted run/branch protection | CI không thể được đánh dấu Done chỉ bằng local validation | Chủ dự án | Open | Push/PR và cấu hình branch protection ngoài task này |
 
 ## 16. Open decisions
 
@@ -200,7 +215,7 @@
 | Severity | Open | In progress | Fixed pending verify | Closed |
 |---|---:|---:|---:|---:|
 | P0 | 0 | 0 | 0 | 0 |
-| P1 | 0 | 0 | 0 | 0 |
+| P1 | 0 | 0 | 2 | 0 |
 | P2 | 0 | 0 | 0 | 0 |
 | P3 | 0 | 0 | 0 | 0 |
 
@@ -238,3 +253,6 @@ Người cập nhật:
 | 2026-08-08 | Claude | Triển khai FND-003 CI pipeline: GitHub Actions workflow với 2 jobs song song (ci: install/lint/typecheck/test/prisma-validate/build, security: gitleaks secret scan + pnpm audit dependency scan); ADR-002 đóng DEC-002; lint/typecheck/test/build 12/12 đạt local; prisma validate đạt; chuyển sang Done |
 | 2026-08-08 | Claude | Triển khai BKG-001 Customer Core: migration add_customers (17 cột, 2 indexes), Prisma Customer model, CustomersService (normalize phone E.164, normalize email, findDuplicates, findOrCreate, softDelete, generateCode VMD-*), outbox event customer.created, CreateCustomerDto/UpdateCustomerDto, CustomersModule; 31 API tests (15 customer tests mới) đạt, lint/typecheck/test/build 12/12 đạt; chuyển sang Done |
 | 2026-08-08 | Claude | Triển khai NTF-001 Queue và Outbox: BullMQ 6.0.9 + @nestjs/bullmq 11.0.5 cho API và Worker; 9 queues theo §42; OutboxProcessor (poll pending → dispatch → mark published, retry max 5 → mark failed); QueueModule shared; PrismaModule cho Worker; migration notification_jobs + notification_deliveries theo §10.37-38; 31 API tests + 7 worker tests + 7 script tests đạt; chuyển sang Done |
+| 2026-08-08 | Claude | Triển khai 3 prep tasks trong khi chờ PRE-007: (1) Dockerfile staging multi-stage cho API + Worker với compose.staging.yaml và .dockerignore; (2) Mở rộng prisma/seed.ts — 8 app_settings + 2 sample customers; (3) E2E test infra — Playwright 1.52.0, config chromium + mobile-chrome, health smoke tests. Lint/typecheck/test/build 12/12 đạt. Sửa lint error unused BullModule import trong app.module.spec.ts |
+| 2026-08-08 | Claude | Triển khai 3 prep tasks bổ sung: (4) Git hooks — husky 9.1.7 + lint-staged 16.1.0, pre-commit chạy eslint --fix trên staged files; (5) Shared types @vmd/types — BookingStatus 13 values + state machine transitions (§12), BbqStatus 11 values + transitions (§13), PaymentStatus 11 values (§14), NotificationJobStatus, NotificationDeliveryStatus, OutboxEventStatus; (6) API rate limiting — @nestjs/throttler 6.4.0, 3 tiers (short/medium/long), global ThrottlerGuard theo Security Baseline §35.2. Lint/typecheck/test/build 12/12 đạt |
+| 2026-08-09 | Codex | MNT-001 audit: bảo toàn patch ban đầu; loại sáu nhóm prep chưa được phê duyệt; sửa atomic customer/outbox và worker queue routing/dedup; harden CI/dependencies; local clean sandbox đạt quality gates. FND-003/FND-005/BKG-001/NTF-001 chuyển về Review vì còn GitHub/Docker verification. |
