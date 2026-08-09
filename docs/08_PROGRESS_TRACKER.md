@@ -209,6 +209,7 @@
 | DEC-001 | Xác nhận toolchain, test runner, package scope và secret scanning | FND-001 | Chủ dự án | 2026-08-05 | Closed | `docs/decisions/ADR-001-FOUNDATION-TOOLCHAIN.md` |
 | DEC-002 | Xác nhận lệnh chuẩn và toolchain CI | FND-003 | Claude | 2026-08-08 | Closed | `docs/decisions/ADR-002-CI-TOOLCHAIN.md` |
 | DEC-003 | Xác nhận dữ liệu và chính sách Milestone 0 | RMS/BKG/PAY/BBQ | TBD | Trước module tương ứng | Open |  |
+| DEC-004 | Cho phép dùng dữ liệu giả lập có guard trong local/development/test/demo nội bộ cho đến khi có dữ liệu thật; không áp dụng production và không đóng PRE/BLK-001 | PRE-001–PRE-008 và task phụ thuộc | Chủ dự án | 2026-08-09 | Closed | Ghi nhận tại `docs/09_MILESTONE_0_INPUT_PACK.md` |
 
 ## 17. Defect summary
 
@@ -259,3 +260,4 @@ Người cập nhật:
 | 2026-08-09 | Codex | MNT-001 follow-up: sửa Prisma 7 root datasource config và root seed dependency resolution; regression test đạt; database trắng/deploy lần hai/seed idempotency, sáu service checks, API database health, Worker startup, quality/security gates đều đạt. Đóng BLK-002; còn GitHub-hosted CI/branch protection. |
 | 2026-08-09 | Codex | Bắt đầu MNT-002 theo phê duyệt chủ dự án: bật Codex auto-review/workspace-write/network; cho phép tối đa 3 luồng độc lập có branch/worktree và file ownership; tạo Milestone 0 input pack, liên kết PRE-001–PRE-008. GitHub plugin/OAuth và dữ liệu vận hành vẫn chờ chủ dự án. |
 | 2026-08-09 | Codex | Xác minh GitHub connector đã authenticated và đọc được repository `vuonmangden/vmd-website`; local remote `origin` cũng truy cập được. GitHub CLI `2.97.0` đã cài và tài khoản `vuonmangden` đã xác thực với quyền `repo`/`workflow`; PRE-001–PRE-008 vẫn chờ dữ liệu và phê duyệt của chủ dự án. |
+| 2026-08-09 | Chủ dự án/Codex | Đóng DEC-004: cho phép dùng dữ liệu giả lập được gắn nhãn và có production guard cho local/development/test/demo nội bộ cho đến khi chủ dự án cung cấp hoặc yêu cầu dùng dữ liệu thật. PRE-001–PRE-008 và BLK-001 vẫn giữ nguyên trạng thái chờ dữ liệu thật được duyệt. |
