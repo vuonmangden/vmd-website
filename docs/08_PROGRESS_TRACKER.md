@@ -14,25 +14,25 @@
 | Chỉ số | Giá trị hiện tại |
 |---|---|
 | Phase | Phase 1 — MVP |
-| Trạng thái tổng thể | Repository đã audit; Docker/database/runtime local đã xác minh, còn GitHub-hosted CI và branch protection |
-| Milestone hiện tại | Milestone 1 — verification/cleanup |
-| Task đang thực hiện | MNT-001 — Review |
-| Task hoàn thành | 3 (FND-001, FND-002, FND-004) |
-| Blocker mở | GitHub Actions/branch protection cần xác minh ngoài local |
+| Trạng thái tổng thể | Baseline local và GitHub-hosted đã xác minh; `main` có required CI checks và branch protection |
+| Milestone hiện tại | Milestone 0 — hoàn thiện dữ liệu thật; chuẩn bị Identity/CMS/Notification theo readiness gate |
+| Task đang thực hiện | Không có; chờ mở task kế tiếp theo readiness matrix |
+| Task hoàn thành | 8 (FND-001–FND-005, BKG-001, NTF-001, MNT-002) |
+| Blocker mở | BLK-001 — dữ liệu vận hành thật PRE-001–PRE-008 chưa được duyệt |
 | Cập nhật gần nhất | 2026-08-09 |
 
 ## 3. Milestone 0 — Chốt đầu vào
 
 | Task ID | Nội dung | Trạng thái | Owner | Bằng chứng/Link | Blocker/Ghi chú |
 |---|---|---|---|---|---|
-| PRE-001 | Chốt danh sách loại phòng | Backlog | TBD |  | Không được giả định |
-| PRE-002 | Chốt danh sách phòng thực tế | Backlog | TBD |  | Cần mã phòng, sức chứa, trạng thái |
-| PRE-003 | Chốt bảng giá, phụ thu và cọc | Backlog | TBD |  | Blocker cho Price Engine/Booking |
-| PRE-004 | Chốt khu vực, bàn, khung giờ và combo BBQ | Backlog | TBD |  | Blocker cho BBQ |
-| PRE-005 | Chốt chính sách hủy, đổi lịch, hoàn tiền | Backlog | TBD |  | Blocker cho Booking/Payment |
-| PRE-006 | Chốt vai trò và quyền nhân sự | Backlog | TBD |  | Blocker cho RBAC/Admin |
-| PRE-007 | Chuẩn bị domain, Supabase, SePay, email, Zalo | Backlog | TBD |  | Không ghi secret vào tracker |
-| PRE-008 | Chốt bộ nhận diện, ảnh và nội dung ban đầu | Backlog | TBD |  | Cần asset/source được duyệt |
+| PRE-001 | Chốt danh sách loại phòng | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §4 | Chờ chủ dự án điền và duyệt; không được giả định |
+| PRE-002 | Chốt danh sách phòng thực tế | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §5 | Chờ mã phòng, sức chứa, trạng thái được duyệt |
+| PRE-003 | Chốt bảng giá, phụ thu và cọc | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §6 | P0 blocker cho Price Engine/Booking |
+| PRE-004 | Chốt khu vực, bàn, khung giờ và combo BBQ | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §7 | Chờ dữ liệu vận hành BBQ được duyệt |
+| PRE-005 | Chốt chính sách hủy, đổi lịch, hoàn tiền | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §8 | P0 blocker cho Booking/Payment |
+| PRE-006 | Chốt vai trò và quyền nhân sự | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §9 | P0 blocker cho RBAC/Admin |
+| PRE-007 | Chuẩn bị domain, Supabase, SePay, email, Zalo | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §10 | Chỉ ghi identifier/reference; không ghi secret vào Git |
+| PRE-008 | Chốt bộ nhận diện, ảnh và nội dung ban đầu | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §11 | Chờ asset/source và quyền sử dụng được duyệt |
 
 **Gate:** Không triển khai Price Engine, Booking hoặc Payment bằng dữ liệu giả rồi kỳ vọng sửa sau.
 
@@ -42,9 +42,9 @@
 |---|---|---|---|---|---|---|---|---|
 | FND-001 | Khởi tạo monorepo | Done | Không | `chore/fnd-001-initialize-monorepo` / `3c5036a`, `8913286` | N/A | Node 24.14.0; pnpm 11.9.0; frozen install đạt; lint/typecheck/test/build 12/12 đạt với Turbo cache bypass; web/admin HTTP 200, API port 3002, worker duy trì tiến trình | Node 22.14.0 bị runtime gate từ chối; local secret/client-env/ignore checks đạt | Human review đã duyệt; còn 3 deprecated transitive dependencies (`glob@10.5.0`, `glob@7.2.3`, `inflight@1.0.6`) |
 | FND-002 | Local development | Done | FND-001 | `chore/fnd-002-local-development` / `01ce62e`, `eb74fe9`, `10ef3cb` | Không | Node 24.14.0; pnpm 11.9.0 frozen install đạt; lint/typecheck/test/build 12/12 đạt, cache bypass; 7/7 unit test FND-002 đạt; Compose config và 6/6 service healthy | Loopback-only ports; pinned images; không latest/privileged/socket/secret; `.env` fallback, env boundary và ignore checks đạt | Human review đã duyệt; read-only MinIO check; marker giữ nguyên timestamp/ETag sau restart; down giữ 4 named volumes; evidence: `docs/evidence/FND-002-LOCAL-ENVIRONMENT.md` |
-| FND-003 | CI | Review | FND-001 | `chore/fnd-003-ci`; hardened trong `chore/mnt-001-repository-audit-cleanup` | N/A | Clean sandbox: lint/typecheck/test/build đạt; Prisma/migration check và actionlint đạt | Gitleaks source/history + synthetic fixture đạt; production audit: 0 High/Critical, 3 Moderate; actions pin SHA, quyền read-only | Chờ GitHub-hosted workflow run và branch protection verification |
+| FND-003 | CI | Done | FND-001 | `chore/fnd-003-ci`; hardened trong PR #1 | N/A | Local full gate đạt; GitHub Actions run `31309744163` đạt cả Quality và Security trên PR thật | Gitleaks source/history và production dependency audit đạt; actions pin SHA, quyền read-only; `main` bắt buộc 2 checks, strict/up-to-date, admin enforcement, linear history, conversation resolution; force-push/delete bị chặn | GitHub-hosted CI và branch protection xác minh ngày 2026-08-09 |
 | FND-004 | API foundation | Done | FND-001, FND-002 | `chore/fnd-004-api-foundation` | N/A | lint/typecheck/test/build 12/12 đạt; 11 API tests (correlation-id 4, exception-filter 3, health 3, app-module 1) đạt; 4 app shells build thành công | Không stack trace trong response; không secret/PII trong log; correlation ID validate UUID | Error format §25.3, correlation ID §40, validation pipe, global exception filter, Swagger `/api/docs`, health endpoints `/health/{live,ready,dependencies}`, structured logger `@vmd/logging` |
-| FND-005 | Database foundation | Review | FND-002, FND-004 | `chore/fnd-005-database-foundation`; audit MNT-001 | `20260807000000_initial_foundation` — 4 tables, 3 extensions, 2 indexes | Prisma 7 regression, database-blank deploy, deploy lần hai, seed hai lần và API database health đều đạt | DATABASE_URL server-only; connection string không log; audit_logs immutable; app_settings chỉ giữ giá trị kỹ thuật | Docker/PostgreSQL blocker đã đóng; chờ review trạng thái cuối |
+| FND-005 | Database foundation | Done | FND-002, FND-004 | `chore/fnd-005-database-foundation`; audit MNT-001; PR #1 hosted verification | `20260807000000_initial_foundation` — 4 tables, 3 extensions, 2 indexes | Prisma 7 regression, database-blank deploy, deploy lần hai, seed hai lần, API database health và GitHub-hosted full gate đều đạt | DATABASE_URL server-only; connection string không log; audit_logs immutable; app_settings chỉ giữ giá trị kỹ thuật | Local database verification và hosted CI đều đạt ngày 2026-08-09 |
 
 **Gate:** CI xanh; local chạy được; migration và seed chạy được từ database trắng.
 
@@ -92,7 +92,7 @@
 
 | Task ID | Nội dung | Trạng thái | Dependency | Branch/PR | Tests | Ghi chú |
 |---|---|---|---|---|---|---|
-| BKG-001 | Customer Core | Review | FND-005 | `chore/fnd-005-database-foundation`; audit MNT-001 | API 32/32 tests đạt; customer + outbox cùng transaction, có rollback regression | Migration `20260808000000_add_customers` áp dụng thành công trên PostgreSQL verification trắng; chờ review trạng thái cuối |
+| BKG-001 | Customer Core | Done | FND-005 | `chore/fnd-005-database-foundation`; audit MNT-001; PR #1 hosted verification | API 32/32 tests đạt; customer + outbox cùng transaction, có rollback regression | Migration `20260808000000_add_customers` áp dụng thành công trên PostgreSQL verification trắng; hosted CI đạt ngày 2026-08-09 |
 | BKG-002 | Occupancy Model | Backlog | RMS-002 |  |  | Unique `(room_id, stay_date)` |
 | BKG-003 | Resource Hold | Backlog | BKG-002 |  |  | TTL/expiry/retry |
 | BKG-004 | Booking Creation | Backlog | BKG-001, BKG-003, RMS-005 |  |  | Idempotency bắt buộc |
@@ -134,7 +134,7 @@
 
 | Task ID | Nội dung | Trạng thái | Dependency | Branch/PR | Tests | Ghi chú |
 |---|---|---|---|---|---|---|
-| NTF-001 | Queue và Outbox | Review | FND-005 | `chore/fnd-005-database-foundation`; audit MNT-001 | Worker 8/8 tests đạt; queue registration, fail-closed route và event-id job dedup regression đạt | Redis/PostgreSQL healthy; Worker startup smoke đạt với `Outbox processor started`; chờ review trạng thái cuối |
+| NTF-001 | Queue và Outbox | Done | FND-005 | `chore/fnd-005-database-foundation`; audit MNT-001; PR #1 hosted verification | Worker 8/8 tests đạt; queue registration, fail-closed route và event-id job dedup regression đạt | Redis/PostgreSQL healthy; Worker startup smoke đạt với `Outbox processor started`; hosted CI đạt ngày 2026-08-09 |
 | NTF-002 | Email Adapter | Backlog | NTF-001, PRE-007 |  |  | Mailpit/sandbox |
 | NTF-003 | Zalo Adapter | Backlog | NTF-001, PRE-007 |  |  | Template được duyệt |
 | NTF-004 | Booking Notifications | Backlog | NTF-002, NTF-003, BKG-005, PAY-003 |  |  |  |
@@ -198,9 +198,9 @@
 
 | ID | Ngày mở | Liên quan | Mô tả | Ảnh hưởng | Owner | Trạng thái | Quyết định/Ngày đóng |
 |---|---|---|---|---|---|---|---|
-| BLK-001 | 2026-08-05 | PRE-* | Dữ liệu vận hành Milestone 0 chưa được xác nhận trong tracker | Chưa thể triển khai module nghiệp vụ | TBD | Open |  |
+| BLK-001 | 2026-08-05 | PRE-* | Dữ liệu vận hành Milestone 0 chưa được chủ dự án xác nhận | Chưa thể triển khai module nghiệp vụ phụ thuộc | Chủ dự án | Open | Input pack đã tạo tại `docs/09_MILESTONE_0_INPUT_PACK.md`; chờ điền và duyệt, không ghi secret vào Git |
 | BLK-002 | 2026-08-09 | FND-005, BKG-001, NTF-001, MNT-001 | Máy audit ban đầu không có Docker CLI/Engine | Đã chạy database trắng, seed idempotency, service/API/Worker smoke trong project verification tách biệt | Chủ dự án | Closed | Docker Desktop khả dụng; toàn bộ local verification đạt ngày 2026-08-09 |
-| BLK-003 | 2026-08-09 | FND-003 | Chưa có bằng chứng GitHub-hosted run/branch protection | CI không thể được đánh dấu Done chỉ bằng local validation | Chủ dự án | Open | Push/PR và cấu hình branch protection ngoài task này |
+| BLK-003 | 2026-08-09 | FND-003 | Chưa có bằng chứng GitHub-hosted run/branch protection | CI không thể được đánh dấu Done chỉ bằng local validation | Chủ dự án | Closed | GitHub Actions run `31309744163` xanh; `main` yêu cầu Quality + Security checks và chặn force-push/delete ngày 2026-08-09 |
 
 ## 16. Open decisions
 
@@ -209,6 +209,7 @@
 | DEC-001 | Xác nhận toolchain, test runner, package scope và secret scanning | FND-001 | Chủ dự án | 2026-08-05 | Closed | `docs/decisions/ADR-001-FOUNDATION-TOOLCHAIN.md` |
 | DEC-002 | Xác nhận lệnh chuẩn và toolchain CI | FND-003 | Claude | 2026-08-08 | Closed | `docs/decisions/ADR-002-CI-TOOLCHAIN.md` |
 | DEC-003 | Xác nhận dữ liệu và chính sách Milestone 0 | RMS/BKG/PAY/BBQ | TBD | Trước module tương ứng | Open |  |
+| DEC-004 | Cho phép dùng dữ liệu giả lập có guard trong local/development/test/demo nội bộ cho đến khi có dữ liệu thật; không áp dụng production và không đóng PRE/BLK-001 | PRE-001–PRE-008 và task phụ thuộc | Chủ dự án | 2026-08-09 | Closed | Ghi nhận tại `docs/09_MILESTONE_0_INPUT_PACK.md` |
 
 ## 17. Defect summary
 
@@ -257,3 +258,7 @@ Người cập nhật:
 | 2026-08-08 | Claude | Triển khai 3 prep tasks bổ sung: (4) Git hooks — husky 9.1.7 + lint-staged 16.1.0, pre-commit chạy eslint --fix trên staged files; (5) Shared types @vmd/types — BookingStatus 13 values + state machine transitions (§12), BbqStatus 11 values + transitions (§13), PaymentStatus 11 values (§14), NotificationJobStatus, NotificationDeliveryStatus, OutboxEventStatus; (6) API rate limiting — @nestjs/throttler 6.4.0, 3 tiers (short/medium/long), global ThrottlerGuard theo Security Baseline §35.2. Lint/typecheck/test/build 12/12 đạt |
 | 2026-08-09 | Codex | MNT-001 audit: bảo toàn patch ban đầu; loại sáu nhóm prep chưa được phê duyệt; sửa atomic customer/outbox và worker queue routing/dedup; harden CI/dependencies; local clean sandbox đạt quality gates. FND-003/FND-005/BKG-001/NTF-001 chuyển về Review vì còn GitHub/Docker verification. |
 | 2026-08-09 | Codex | MNT-001 follow-up: sửa Prisma 7 root datasource config và root seed dependency resolution; regression test đạt; database trắng/deploy lần hai/seed idempotency, sáu service checks, API database health, Worker startup, quality/security gates đều đạt. Đóng BLK-002; còn GitHub-hosted CI/branch protection. |
+| 2026-08-09 | Codex | Bắt đầu MNT-002 theo phê duyệt chủ dự án: bật Codex auto-review/workspace-write/network; cho phép tối đa 3 luồng độc lập có branch/worktree và file ownership; tạo Milestone 0 input pack, liên kết PRE-001–PRE-008. GitHub plugin/OAuth và dữ liệu vận hành vẫn chờ chủ dự án. |
+| 2026-08-09 | Codex | Xác minh GitHub connector đã authenticated và đọc được repository `vuonmangden/vmd-website`; local remote `origin` cũng truy cập được. GitHub CLI `2.97.0` đã cài và tài khoản `vuonmangden` đã xác thực với quyền `repo`/`workflow`; PRE-001–PRE-008 vẫn chờ dữ liệu và phê duyệt của chủ dự án. |
+| 2026-08-09 | Chủ dự án/Codex | Đóng DEC-004: cho phép dùng dữ liệu giả lập được gắn nhãn và có production guard cho local/development/test/demo nội bộ cho đến khi chủ dự án cung cấp hoặc yêu cầu dùng dữ liệu thật. PRE-001–PRE-008 và BLK-001 vẫn giữ nguyên trạng thái chờ dữ liệu thật được duyệt. |
+| 2026-08-09 | Codex | Hoàn tất MNT-002/FND verification: tạo `main` làm default branch, retarget PR #1, sửa Prisma regression đa nền tảng và ShellCheck SC2086; GitHub-hosted run `31309744163` đạt Quality + Security. Bật branch protection với hai required checks, strict/up-to-date, admin enforcement, linear history, conversation resolution và chặn force-push/delete. Đóng BLK-003; chuyển FND-003/FND-005/BKG-001/NTF-001 và MNT-002 sang Done. PRE-001–PRE-008/BLK-001 tiếp tục độc lập, không bị synthetic data đóng sai. |

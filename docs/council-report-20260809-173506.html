@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LLM Council — Lộ trình tăng tốc Phase 1</title>
+  <style>
+    :root { color-scheme: light; --ink:#17212b; --muted:#5e6b78; --line:#dce3e8; --bg:#f5f7f9; --card:#fff; --accent:#176b5b; --warn:#a15c00; }
+    * { box-sizing:border-box } body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif }
+    main { max-width:980px; margin:auto; padding:40px 20px 64px } h1,h2,h3 { line-height:1.25 } h1 { margin:0 0 8px; font-size:32px } h2 { margin-top:32px }
+    .meta { color:var(--muted) } .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:24px; margin:20px 0; box-shadow:0 4px 18px rgba(23,33,43,.04) }
+    .verdict { border-left:6px solid var(--accent) } .first { border-left:6px solid var(--warn) } code { background:#edf2f4; padding:2px 5px; border-radius:4px }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; margin-top:16px }
+    .pill { padding:14px; border-radius:10px; border:1px solid var(--line); background:#fbfcfd } .agree { border-top:4px solid var(--accent) } .caution { border-top:4px solid var(--warn) }
+    details { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px 18px; margin:10px 0 } summary { cursor:pointer; font-weight:650 }
+    li { margin:7px 0 } footer { margin-top:40px; color:var(--muted); font-size:14px }
+  </style>
+</head>
+<body><main>
+  <header><h1>Lộ trình tăng tốc Vườn Măng Đen — Phase 1</h1><div class="meta">LLM Council · 09/08/2026 17:35 (Asia/Bangkok)</div></header>
+  <section class="card"><h2>Câu hỏi</h2><p>Các task nào cần làm tiếp theo để đẩy nhanh tiến độ mà không vi phạm dependency, bảo mật, migration ownership và quy tắc dữ liệu giả lập?</p></section>
+  <section class="card verdict"><h2>Phán quyết</h2><p><strong>Không mở feature lane ngay.</strong> Trước hết phải làm PR MNT-002 #1 có thể merge, chạy GitHub-hosted CI, thiết lập branch protection và đóng review cho FND-003, FND-005, BKG-001, NTF-001.</p><p>Song song lúc này chỉ nên làm ba việc: xử lý baseline/CI, thu thập bằng chứng PRE thật, và tạo readiness matrix cùng task fixture giả lập độc lập. Khi từng dependency row xanh, mới mở tối đa ba lane: <code>IAM-001</code>, <code>CMS-005</code>, <code>NTF-002</code>.</p></section>
+  <section class="card first"><h2>Việc đầu tiên</h2><p><strong>Làm MNT-002 PR #1 mergeable bằng CI GitHub có thẩm quyền và branch protection, rồi đóng các foundation review gates.</strong></p></section>
+  <section class="card"><h2>Thứ tự đề xuất</h2><ol><li>Baseline: MNT-002, CI, branch protection, FND-003/FND-005/BKG-001/NTF-001.</li><li>Tạo readiness matrix và task fixture giả lập có production fail-closed.</li><li>Thu thập PRE thật, ưu tiên PRE-006/PRE-007 rồi PRE-001–PRE-005.</li><li>Sau gate: chạy ba lane độc lập IAM-001, CMS-005, NTF-002.</li><li>Identity spine: IAM-001 → IAM-002 → IAM-003/IAM-004 → IAM-005.</li><li>Booking spine: RMS-001 → RMS-002 → RMS-003/RMS-004 → RMS-005/RMS-006 → BKG-002 → BKG-003 → BKG-004 → BKG-005.</li><li>Payment và nghiệp vụ tài chính chỉ sau booking, authorization và dữ liệu thật liên quan.</li></ol></section>
+  <section class="card"><h2>Đồng thuận và bất đồng</h2><div class="grid"><div class="pill agree"><strong>Contrarian</strong><br>Không biến synthetic thành dependency approval.</div><div class="pill agree"><strong>First Principles</strong><br>Baseline chưa merge là nút thắt.</div><div class="pill caution"><strong>Expansionist</strong><br>Muốn mở ba lane sớm để tăng throughput.</div><div class="pill agree"><strong>Outsider</strong><br>Cần task spec rõ trước khi dùng synthetic.</div><div class="pill agree"><strong>Executor</strong><br>CI → IAM → Booking là đường găng.</div></div><p>Bất đồng chính là thời điểm bắt đầu feature. Kết luận: có thể lập kế hoạch/giữ lane ngay, nhưng chỉ được triển khai khi dependency và PRE của chính task đó đã đạt.</p></section>
+  <section><h2>Phân tích đầy đủ</h2>
+    <details><summary>Contrarian</summary><p>Không mở ba feature branch khi nền tảng còn Review. Hoàn tất CI/protection và merge ancestry trước; dành lane song song để chốt PRE thật. Synthetic fixture phải có task riêng và không thay thế PRE.</p></details>
+    <details><summary>First Principles</summary><p>Nút thắt là baseline chưa ổn định. Khi baseline hoàn tất, IAM-001, CMS-005 và NTF-002 là ba lane tạo leverage tốt nhất; chuỗi booking phải đi sau IAM và RMS.</p></details>
+    <details><summary>Expansionist</summary><p>Tận dụng ba lane độc lập để vừa mở critical path IAM, vừa tạo public demo nhìn thấy được, vừa hoàn thiện email sandbox. Giữ migration và DB verification tuần tự.</p></details>
+    <details><summary>Outsider</summary><p>Mỗi task dùng synthetic phải có spec nói rõ môi trường, guard và giới hạn. Không ưu tiên Payment, BBQ hay dashboard khi booking core và quyền chưa ổn định.</p></details>
+    <details><summary>Executor</summary><p>Đóng baseline, sau đó chạy IAM-001/CMS-005/NTF-002. Xây vertical slice booking theo API/domain/database trước UI; không chạy đồng thời task migration.</p></details>
+    <details><summary>Peer review highlights</summary><p>Cả 5 reviewer chọn lập luận thận trọng là mạnh nhất. Blind spot chung: chưa có readiness matrix thực thi được, merge protocol, migration owner, isolated verification database và tiêu chí rollback.</p></details>
+  </section>
+  <footer>Hội đồng gồm 5 advisor, 5 peer reviewer và 1 chairman. Transcript đầy đủ: council-transcript-20260809-173506.md.</footer>
+</main></body></html>

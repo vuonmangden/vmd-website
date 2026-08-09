@@ -36,7 +36,7 @@ jobs:
       - name: Activate pinned pnpm
         run: |
           corepack enable
-          corepack prepare pnpm@${PNPM_VERSION} --activate
+          corepack prepare "pnpm@${PNPM_VERSION}" --activate
           node --version
           pnpm --version
 
@@ -109,7 +109,7 @@ jobs:
       - name: Activate pinned pnpm
         run: |
           corepack enable
-          corepack prepare pnpm@${PNPM_VERSION} --activate
+          corepack prepare "pnpm@${PNPM_VERSION}" --activate
 
       - name: Audit production dependencies
         run: pnpm audit --prod --audit-level high
