@@ -16,6 +16,7 @@
   },
   "scripts": {
     "preinstall": "node scripts/require-node-24.mjs",
+    "postinstall": "prisma generate --schema prisma/schema.prisma",
     "dev": "turbo run dev",
     "lint": "turbo run lint && eslint scripts/*.mjs infrastructure/docker/mocks/*.mjs",
     "lint:infra": "eslint scripts/*.mjs infrastructure/docker/mocks/*.mjs",
@@ -31,7 +32,8 @@
     "db:migrate": "prisma migrate dev --schema prisma/schema.prisma",
     "db:migrate:deploy": "prisma migrate deploy --schema prisma/schema.prisma",
     "db:seed": "tsx prisma/seed.ts",
-    "db:studio": "prisma studio --schema prisma/schema.prisma"
+    "db:studio": "prisma studio --schema prisma/schema.prisma",
+    "ci:prisma": "node scripts/ci-prisma-check.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

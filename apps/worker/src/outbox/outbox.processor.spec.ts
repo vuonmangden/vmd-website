@@ -1,6 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { OutboxProcessor } from './outbox.processor';
 import { PrismaService } from '../prisma/prisma.service';
+import { getQueueToken } from '@nestjs/bullmq';
 
 describe('OutboxProcessor', () => {
   let processor: OutboxProcessor;
@@ -23,6 +24,8 @@ describe('OutboxProcessor', () => {
       providers: [
         OutboxProcessor,
         { provide: PrismaService, useValue: prisma },
+        { provide: getQueueToken('outbox-publish'), useValue: { add: jest.fn() } },
+        { provide: getQueueToken('notification-send'), useValue: { add: jest.fn() } },
       ],
     }).compile();
 
@@ -59,13 +62,17 @@ describe('OutboxProcessor', () => {
       const result = await processor.pollAndPublish();
 
       expect(result).toBe(1);
-      expect(mockQueue.add).toHaveBeenCalledWith('customer.created', {
-        eventId: 'event-1',
-        aggregateType: 'customer',
-        aggregateId: 'cust-1',
-        eventType: 'customer.created',
-        payload: { customerId: 'cust-1' },
-      });
+      expect(mockQueue.add).toHaveBeenCalledWith(
+        'customer.created',
+        {
+          eventId: 'event-1',
+          aggregateType: 'customer',
+          aggregateId: 'cust-1',
+          eventType: 'customer.created',
+          payload: { customerId: 'cust-1' },
+        },
+        { jobId: 'event-1' },
+      );
       expect(prisma.outboxEvent.update).toHaveBeenCalledWith({
         where: { id: 'event-1' },
         data: {
@@ -158,7 +165,24 @@ describe('OutboxProcessor', () => {
       expect(mockQueue.add).toHaveBeenCalledWith(
         'unknown.event',
         expect.objectContaining({ eventId: 'event-4' }),
+        { jobId: 'event-4' },
       );
+    });
+
+    it('does not mark an event published when its queue is unavailable', async () => {
+      const event = {
+        id: 'event-5', aggregateType: 'customer', aggregateId: 'cust-5',
+        eventType: 'customer.created', payload: {}, status: 'pending',
+        attemptCount: 0, createdAt: new Date(),
+      };
+      prisma.outboxEvent.findMany.mockResolvedValue([event]);
+      processor.registerQueue('notification-send', undefined as never);
+
+      expect(await processor.pollAndPublish()).toBe(0);
+      expect(prisma.outboxEvent.update).toHaveBeenCalledWith({
+        where: { id: 'event-5' },
+        data: { status: 'pending', attemptCount: 1 },
+      });
     });
   });
 });

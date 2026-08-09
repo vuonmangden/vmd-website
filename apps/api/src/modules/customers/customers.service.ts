@@ -17,32 +17,34 @@ export class CustomersService {
       : null;
     const emailNormalized = dto.email ? dto.email.toLowerCase().trim() : null;
 
-    const customer = await this.prisma.customer.create({
-      data: {
-        customerCode: CustomersService.generateCode(),
-        fullName: dto.fullName.trim(),
-        phoneNormalized,
-        emailNormalized,
-        source: dto.source ?? 'DIRECT',
-        marketingConsent: dto.marketingConsent ?? false,
-        privacyConsentAt: dto.marketingConsent ? new Date() : null,
-        notes: dto.notes ?? null,
-      },
-    });
-
-    await this.prisma.outboxEvent.create({
-      data: {
-        aggregateType: 'customer',
-        aggregateId: customer.id,
-        eventType: 'customer.created',
-        payload: {
-          customerId: customer.id,
-          customerCode: customer.customerCode,
+    return this.prisma.$transaction(async (transaction) => {
+      const customer = await transaction.customer.create({
+        data: {
+          customerCode: CustomersService.generateCode(),
+          fullName: dto.fullName.trim(),
+          phoneNormalized,
+          emailNormalized,
+          source: dto.source ?? 'DIRECT',
+          marketingConsent: dto.marketingConsent ?? false,
+          privacyConsentAt: dto.marketingConsent ? new Date() : null,
+          notes: dto.notes ?? null,
         },
-      },
-    });
+      });
 
-    return customer;
+      await transaction.outboxEvent.create({
+        data: {
+          aggregateType: 'customer',
+          aggregateId: customer.id,
+          eventType: 'customer.created',
+          payload: {
+            customerId: customer.id,
+            customerCode: customer.customerCode,
+          },
+        },
+      });
+
+      return customer;
+    });
   }
 
   async update(id: string, dto: UpdateCustomerDto) {

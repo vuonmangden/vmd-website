@@ -6,11 +6,16 @@ engineStrict: true
 nodeVersion: 24.14.0
 runtimeOnFail: error
 
+overrides:
+  '@playwright/test': 1.55.1
+  playwright: 1.55.1
+  js-yaml: 5.2.2
+
 allowBuilds:
   '@prisma/engines': true
-  '@scarf/scarf': set this to true or false
+  '@scarf/scarf': false
   esbuild: true
-  msgpackr-extract: true
+  msgpackr-extract: false
   prisma: true
   sharp: true
   unrs-resolver: true

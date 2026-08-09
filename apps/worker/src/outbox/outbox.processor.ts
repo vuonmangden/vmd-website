@@ -3,6 +3,7 @@ import type { OnModuleInit } from '@nestjs/common';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { PrismaService } from '../prisma/prisma.service';
 import type { Queue } from 'bullmq';
+import { InjectQueue } from '@nestjs/bullmq';
 
 const POLL_INTERVAL_MS = 5_000;
 const BATCH_SIZE = 50;
@@ -22,7 +23,14 @@ export class OutboxProcessor implements OnModuleInit {
   private timer: ReturnType<typeof setInterval> | null = null;
   private readonly queues = new Map<string, Queue>();
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @InjectQueue('outbox-publish') outboxQueue: Queue,
+    @InjectQueue('notification-send') notificationQueue: Queue,
+  ) {
+    this.registerQueue('outbox-publish', outboxQueue);
+    this.registerQueue('notification-send', notificationQueue);
+  }
 
   registerQueue(name: string, queue: Queue): void {
     this.queues.set(name, queue);
@@ -55,15 +63,21 @@ export class OutboxProcessor implements OnModuleInit {
           EVENT_QUEUE_MAP[event.eventType] ?? 'outbox-publish';
         const queue = this.queues.get(queueName);
 
-        if (queue) {
-          await queue.add(event.eventType, {
+        if (!queue) {
+          throw new Error(`Queue ${queueName} is not registered`);
+        }
+
+        await queue.add(
+          event.eventType,
+          {
             eventId: event.id,
             aggregateType: event.aggregateType,
             aggregateId: event.aggregateId,
             eventType: event.eventType,
             payload: event.payload,
-          });
-        }
+          },
+          { jobId: event.id },
+        );
 
         await this.prisma.outboxEvent.update({
           where: { id: event.id },

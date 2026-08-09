@@ -5,6 +5,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 describe('CustomersService', () => {
   let service: CustomersService;
   let prisma: {
+    $transaction: jest.Mock;
     customer: {
       create: jest.Mock;
       update: jest.Mock;
@@ -16,6 +17,7 @@ describe('CustomersService', () => {
 
   beforeEach(async () => {
     prisma = {
+      $transaction: jest.fn(async (callback) => callback(prisma)),
       customer: {
         create: jest.fn(),
         update: jest.fn(),
@@ -54,6 +56,7 @@ describe('CustomersService', () => {
       });
 
       expect(result).toEqual(mockCustomer);
+      expect(prisma.$transaction).toHaveBeenCalledTimes(1);
       expect(prisma.customer.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           fullName: 'Nguyen Van A',
@@ -63,6 +66,14 @@ describe('CustomersService', () => {
           marketingConsent: false,
         }),
       });
+    });
+
+    it('rolls back customer creation when the outbox write fails', async () => {
+      prisma.customer.create.mockResolvedValue({ id: 'cust-id', customerCode: 'VMD-XYZ' });
+      prisma.outboxEvent.create.mockRejectedValue(new Error('outbox unavailable'));
+
+      await expect(service.create({ fullName: 'Test' })).rejects.toThrow('outbox unavailable');
+      expect(prisma.$transaction).toHaveBeenCalledTimes(1);
     });
 
     it('emits customer.created outbox event', async () => {
