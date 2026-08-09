@@ -35,17 +35,29 @@ Clean sandbox `C:\tmp\vmd-mnt001-test3`, cài bằng frozen lockfile với Node 
 
 Turbo trực tiếp trong OneDrive gặp Windows cloud-file error 389; clean sandbox được dùng để loại trừ cache và filesystem-provider interference.
 
-## Gates chưa chạy
+## Docker, database và runtime verification bổ sung
 
-Máy audit không có Docker CLI/Engine và không có Docker Desktop process. Vì vậy chưa chạy lại Compose config, database trắng, seed hai lần, persistence, API/worker smoke với PostgreSQL/Redis. Không ghi các bước này là đạt. GitHub-hosted CI và branch protection cũng cần xác minh ngoài local.
+Docker Desktop đã khả dụng trong phiên xác minh tiếp theo ngày 2026-08-09. Một project verification local tách biệt được dùng, không xóa volume hoặc dữ liệu hiện có:
+
+- Compose config hợp lệ; sáu long-running services healthy.
+- PostgreSQL `SELECT 1`, Redis `PING`, Mailpit, MinIO bucket/marker và mock SePay/Zalo đều đạt.
+- Sửa blocker Prisma 7 bằng root `prisma.config.ts` với `datasource.url` và migrations path theo API 7.7.0; thêm regression test chạy CLI `migrate deploy` với datasource cô lập.
+- Ba migration áp dụng thành công từ database trắng; deploy lần hai trả `No pending migrations to apply`.
+- Root seed được khai báo trực tiếp các runtime dependency đã có trong lock graph (`@prisma/adapter-pg`, `pg`); chạy hai lần thành công và truy vấn xác nhận đúng một `app.name` record.
+- API `GET /api/v1/health/live` và `GET /api/v1/health/dependencies` trả HTTP 200, database `healthy`.
+- Worker khởi động với PostgreSQL/Redis và log `Outbox processor started`.
+- Quality gate chạy lại đạt: lint, typecheck, API 32/32, Worker 8/8, web/admin/testing 3/3, root scripts/mocks 11/11 và build 12 workspaces.
+- Compose config, actionlint, Gitleaks 15 commits và production dependency audit đạt; audit vẫn còn 3 Moderate, 0 High/Critical.
+
+GitHub-hosted CI và branch protection vẫn cần xác minh ngoài local; không ghi hai bước này là đã đạt.
 
 ## Trạng thái task sau audit
 
 - Done: FND-001, FND-002, FND-004.
-- Review: FND-003, FND-005, BKG-001, NTF-001, MNT-001.
+- Review: FND-003, FND-005, BKG-001, NTF-001, MNT-001; các blocker Docker/database/runtime local đã được đóng, FND-003 còn chờ GitHub-hosted verification.
 - Sáu PREP audit groups: không giữ, không tính là task hoàn thành.
 
-Public Website chưa sẵn sàng triển khai nghiệp vụ: cần đóng Docker/database gates, xác minh GitHub CI/branch protection và chốt Milestone 0 inputs trước các module sản phẩm.
+Public Website chưa sẵn sàng triển khai nghiệp vụ: cần xác minh GitHub CI/branch protection và chốt Milestone 0 inputs trước các module sản phẩm.
 
 ## Commit audit
 
