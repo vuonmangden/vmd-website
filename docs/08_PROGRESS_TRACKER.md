@@ -16,8 +16,8 @@
 | Phase | Phase 1 — MVP |
 | Trạng thái tổng thể | Baseline local và GitHub-hosted đã xác minh; `main` có required CI checks và branch protection |
 | Milestone hiện tại | Milestone 0 — hoàn thiện dữ liệu thật; chuẩn bị Identity/CMS/Notification theo readiness gate |
-| Task đang thực hiện | Không có; các feature lane còn `PLANNING_ONLY` do PRE thật chưa đạt |
-| Task hoàn thành | 10 (FND-001–FND-005, BKG-001, NTF-001, MNT-002, MNT-003, TST-001) |
+| Task đang thực hiện | Không có; chờ PRE-007/PRE-008 để mở các feature lane đã có spec |
+| Task hoàn thành | 11 (FND-001–FND-005, BKG-001, NTF-001, MNT-002–MNT-004, TST-001) |
 | Blocker mở | BLK-001 — dữ liệu vận hành thật PRE-001–PRE-008 chưa được duyệt |
 | Cập nhật gần nhất | 2026-08-09 |
 
@@ -52,7 +52,7 @@
 
 | Task ID | Nội dung | Trạng thái | Dependency | Branch/PR | Tests/Security | Ghi chú |
 |---|---|---|---|---|---|---|
-| IAM-001 | Staff authentication | Backlog | FND-004, FND-005, PRE-007 |  |  | Supabase Auth |
+| IAM-001 | Staff authentication | Backlog | FND-004, FND-005, PRE-007 | Planning-only: `docs/tasks/IAM-001.md` | Chưa chạy; chờ PRE-007 | Supabase Auth; không làm RBAC trong task này |
 | IAM-002 | Roles và permissions | Backlog | IAM-001, PRE-006 |  |  | Seed permission |
 | IAM-003 | Admin route protection | Backlog | IAM-002 |  |  | Frontend + backend |
 | IAM-004 | Audit service | Backlog | FND-005, IAM-001 |  |  | Immutable operational audit |
@@ -68,7 +68,7 @@
 | CMS-002 | Content pages | Backlog | CMS-001 |  |  | Draft/publish |
 | CMS-003 | Media | Backlog | IAM-002, PRE-007 |  |  | Upload security |
 | CMS-004 | Blog | Backlog | CMS-002, CMS-003 |  |  | SEO metadata |
-| CMS-005 | Public layouts | Backlog | FND-001, PRE-008 |  |  | Mobile-first |
+| CMS-005 | Public layouts | Backlog | FND-001, PRE-008 | Planning-only: `docs/tasks/CMS-005.md` | Chưa chạy; chờ PRE-008 | Mobile-first; asset/content phải có quyền sử dụng |
 | CMS-006 | Contact | Backlog | FND-004, IAM-002 |  |  | Validation/rate limit |
 | CMS-007 | SEO | Backlog | CMS-002, CMS-004, CMS-005 |  |  | Sitemap, robots, JSON-LD |
 
@@ -135,7 +135,7 @@
 | Task ID | Nội dung | Trạng thái | Dependency | Branch/PR | Tests | Ghi chú |
 |---|---|---|---|---|---|---|
 | NTF-001 | Queue và Outbox | Done | FND-005 | `chore/fnd-005-database-foundation`; audit MNT-001; PR #1 hosted verification | Worker 8/8 tests đạt; queue registration, fail-closed route và event-id job dedup regression đạt | Redis/PostgreSQL healthy; Worker startup smoke đạt với `Outbox processor started`; hosted CI đạt ngày 2026-08-09 |
-| NTF-002 | Email Adapter | Backlog | NTF-001, PRE-007 |  |  | Mailpit/sandbox |
+| NTF-002 | Email Adapter | Backlog | NTF-001, PRE-007 | Planning-only: `docs/tasks/NTF-002.md` | Chưa chạy; chờ PRE-007 | Mailpit/sandbox; production fail-closed |
 | NTF-003 | Zalo Adapter | Backlog | NTF-001, PRE-007 |  |  | Template được duyệt |
 | NTF-004 | Booking Notifications | Backlog | NTF-002, NTF-003, BKG-005, PAY-003 |  |  |  |
 | NTF-005 | Reminders | Backlog | NTF-004, PRE-005 |  |  | T-7/T-3/T-1 |
@@ -201,6 +201,7 @@
 | MNT-002 | Project acceleration và Milestone 0 input pack | Done | MNT-001 | PR #1 / `b02083a` | CI PR và hậu-merge xanh; `main` protected; PRE/BLK-001 tiếp tục độc lập |
 | MNT-003 | Delivery readiness matrix và synthetic fixture handoff | Done | MNT-002, foundation gates | `codex/mnt-003-readiness-matrix`; PR #2 | Matrix, ownership và task spec TST-001; hosted CI `31310202234` xanh |
 | TST-001 | Synthetic non-production fixtures | Done | MNT-003, FND-005, DEC-004 | `codex/tst-001-synthetic-fixtures`; PR #3 | 9/9 unit/integration trên `vmd_synthetic_test`; seed x2/cleanup, production rejection, full local gate và hosted run `31312405432` đạt; không migration/dependency |
+| MNT-004 | Planning-only feature lane specifications | Done | MNT-003, TST-001 | `codex/mnt-004-lane-planning` | IAM-001/CMS-005/NTF-002 specs; local lint/typecheck/test/build đạt; không production code, migration hoặc dependency |
 
 ## 15. Blocker log
 
@@ -274,3 +275,5 @@ Người cập nhật:
 | 2026-08-09 | Codex | Hoàn tất MNT-003: readiness matrix xác định TST-001 là task duy nhất đủ điều kiện tiếp theo; IAM-001/CMS-005/NTF-002 giữ `PLANNING_ONLY`. PR #2 đạt hosted Quality + Security run `31310202234`; TST-001 chuyển Ready sau merge. |
 | 2026-08-09 | Codex | Bắt đầu TST-001: tạo fixture registry có marker/deterministic IDs, opt-in và multi-environment production guard; seed/cleanup transactional, idempotent và boundary-safe. Database riêng `vmd_synthetic_test` deploy 3 migration; 9/9 unit/integration, seed hai lần, cleanup, production negative test và full cache-bypass gate đều đạt. |
 | 2026-08-09 | Codex | Hoàn tất TST-001: GitHub-hosted Quality + Security run `31312405432` xanh trên PR #3. Task chuyển Done; PRE-001–PRE-008/BLK-001 không thay đổi và IAM-001/CMS-005/NTF-002 tiếp tục planning-only. |
+| 2026-08-09 | Codex | Bắt đầu MNT-004 trên branch `codex/mnt-004-lane-planning`: khóa contract, file ownership, PRE checklist, security và test plan cho IAM-001/CMS-005/NTF-002; cả ba vẫn planning-only đến khi PRE-007/PRE-008 được duyệt. |
+| 2026-08-09 | Codex | Hoàn tất phạm vi tài liệu MNT-004: ba planning-only spec và readiness/tracker handoff đã khóa; local lint/typecheck/test/build đạt. PRE-007/PRE-008 và BLK-001 giữ nguyên, chưa mở implementation. |
