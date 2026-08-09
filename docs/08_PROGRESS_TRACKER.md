@@ -16,7 +16,7 @@
 | Phase | Phase 1 — MVP |
 | Trạng thái tổng thể | Repository đã audit; Docker/database/runtime local đã xác minh, còn GitHub-hosted CI và branch protection |
 | Milestone hiện tại | Milestone 1 — verification/cleanup |
-| Task đang thực hiện | MNT-001 — Review |
+| Task đang thực hiện | MNT-002 — In progress |
 | Task hoàn thành | 3 (FND-001, FND-002, FND-004) |
 | Blocker mở | GitHub Actions/branch protection cần xác minh ngoài local |
 | Cập nhật gần nhất | 2026-08-09 |
@@ -25,14 +25,14 @@
 
 | Task ID | Nội dung | Trạng thái | Owner | Bằng chứng/Link | Blocker/Ghi chú |
 |---|---|---|---|---|---|
-| PRE-001 | Chốt danh sách loại phòng | Backlog | TBD |  | Không được giả định |
-| PRE-002 | Chốt danh sách phòng thực tế | Backlog | TBD |  | Cần mã phòng, sức chứa, trạng thái |
-| PRE-003 | Chốt bảng giá, phụ thu và cọc | Backlog | TBD |  | Blocker cho Price Engine/Booking |
-| PRE-004 | Chốt khu vực, bàn, khung giờ và combo BBQ | Backlog | TBD |  | Blocker cho BBQ |
-| PRE-005 | Chốt chính sách hủy, đổi lịch, hoàn tiền | Backlog | TBD |  | Blocker cho Booking/Payment |
-| PRE-006 | Chốt vai trò và quyền nhân sự | Backlog | TBD |  | Blocker cho RBAC/Admin |
-| PRE-007 | Chuẩn bị domain, Supabase, SePay, email, Zalo | Backlog | TBD |  | Không ghi secret vào tracker |
-| PRE-008 | Chốt bộ nhận diện, ảnh và nội dung ban đầu | Backlog | TBD |  | Cần asset/source được duyệt |
+| PRE-001 | Chốt danh sách loại phòng | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §4 | Chờ chủ dự án điền và duyệt; không được giả định |
+| PRE-002 | Chốt danh sách phòng thực tế | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §5 | Chờ mã phòng, sức chứa, trạng thái được duyệt |
+| PRE-003 | Chốt bảng giá, phụ thu và cọc | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §6 | P0 blocker cho Price Engine/Booking |
+| PRE-004 | Chốt khu vực, bàn, khung giờ và combo BBQ | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §7 | Chờ dữ liệu vận hành BBQ được duyệt |
+| PRE-005 | Chốt chính sách hủy, đổi lịch, hoàn tiền | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §8 | P0 blocker cho Booking/Payment |
+| PRE-006 | Chốt vai trò và quyền nhân sự | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §9 | P0 blocker cho RBAC/Admin |
+| PRE-007 | Chuẩn bị domain, Supabase, SePay, email, Zalo | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §10 | Chỉ ghi identifier/reference; không ghi secret vào Git |
+| PRE-008 | Chốt bộ nhận diện, ảnh và nội dung ban đầu | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §11 | Chờ asset/source và quyền sử dụng được duyệt |
 
 **Gate:** Không triển khai Price Engine, Booking hoặc Payment bằng dữ liệu giả rồi kỳ vọng sửa sau.
 
@@ -198,7 +198,7 @@
 
 | ID | Ngày mở | Liên quan | Mô tả | Ảnh hưởng | Owner | Trạng thái | Quyết định/Ngày đóng |
 |---|---|---|---|---|---|---|---|
-| BLK-001 | 2026-08-05 | PRE-* | Dữ liệu vận hành Milestone 0 chưa được xác nhận trong tracker | Chưa thể triển khai module nghiệp vụ | TBD | Open |  |
+| BLK-001 | 2026-08-05 | PRE-* | Dữ liệu vận hành Milestone 0 chưa được chủ dự án xác nhận | Chưa thể triển khai module nghiệp vụ phụ thuộc | Chủ dự án | Open | Input pack đã tạo tại `docs/09_MILESTONE_0_INPUT_PACK.md`; chờ điền và duyệt, không ghi secret vào Git |
 | BLK-002 | 2026-08-09 | FND-005, BKG-001, NTF-001, MNT-001 | Máy audit ban đầu không có Docker CLI/Engine | Đã chạy database trắng, seed idempotency, service/API/Worker smoke trong project verification tách biệt | Chủ dự án | Closed | Docker Desktop khả dụng; toàn bộ local verification đạt ngày 2026-08-09 |
 | BLK-003 | 2026-08-09 | FND-003 | Chưa có bằng chứng GitHub-hosted run/branch protection | CI không thể được đánh dấu Done chỉ bằng local validation | Chủ dự án | Open | Push/PR và cấu hình branch protection ngoài task này |
 
@@ -257,3 +257,4 @@ Người cập nhật:
 | 2026-08-08 | Claude | Triển khai 3 prep tasks bổ sung: (4) Git hooks — husky 9.1.7 + lint-staged 16.1.0, pre-commit chạy eslint --fix trên staged files; (5) Shared types @vmd/types — BookingStatus 13 values + state machine transitions (§12), BbqStatus 11 values + transitions (§13), PaymentStatus 11 values (§14), NotificationJobStatus, NotificationDeliveryStatus, OutboxEventStatus; (6) API rate limiting — @nestjs/throttler 6.4.0, 3 tiers (short/medium/long), global ThrottlerGuard theo Security Baseline §35.2. Lint/typecheck/test/build 12/12 đạt |
 | 2026-08-09 | Codex | MNT-001 audit: bảo toàn patch ban đầu; loại sáu nhóm prep chưa được phê duyệt; sửa atomic customer/outbox và worker queue routing/dedup; harden CI/dependencies; local clean sandbox đạt quality gates. FND-003/FND-005/BKG-001/NTF-001 chuyển về Review vì còn GitHub/Docker verification. |
 | 2026-08-09 | Codex | MNT-001 follow-up: sửa Prisma 7 root datasource config và root seed dependency resolution; regression test đạt; database trắng/deploy lần hai/seed idempotency, sáu service checks, API database health, Worker startup, quality/security gates đều đạt. Đóng BLK-002; còn GitHub-hosted CI/branch protection. |
+| 2026-08-09 | Codex | Bắt đầu MNT-002 theo phê duyệt chủ dự án: bật Codex auto-review/workspace-write/network; cho phép tối đa 3 luồng độc lập có branch/worktree và file ownership; tạo Milestone 0 input pack, liên kết PRE-001–PRE-008. GitHub plugin/OAuth và dữ liệu vận hành vẫn chờ chủ dự án. |

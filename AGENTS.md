@@ -16,7 +16,7 @@ Thứ tự ưu tiên khi có mâu thuẫn: task hiện tại → Tech Spec Phase
 
 ## 2. Phạm vi công việc
 
-- Mỗi lần chỉ thực hiện một Task ID.
+- Mỗi agent/worktree chỉ thực hiện một Task ID tại một thời điểm. Agent điều phối được phép chạy song song tối đa 3 Task ID độc lập khi dependency đã đạt, mỗi task có branch/worktree riêng và không sửa trùng file.
 - Không sửa module ngoài phạm vi task nếu không thật sự cần thiết.
 - Nếu cần sửa ngoài phạm vi, phải dừng và báo file cần sửa, lý do, ảnh hưởng và phương án thay thế.
 - Không tự tái cấu trúc toàn bộ repository.
@@ -24,6 +24,15 @@ Thứ tự ưu tiên khi có mâu thuẫn: task hiện tại → Tech Spec Phase
 - Không thay công nghệ đã chốt.
 - Không thêm dependency mới nếu chưa nêu rõ lý do và được phê duyệt.
 - Không nâng major version dependency trong task chức năng.
+
+### 2.1 Thực thi song song và quyền tự chủ
+
+- Codex được phép dùng tối đa 3 subagent cho các phần việc độc lập trong cùng Task ID hoặc cho các Task ID độc lập đáp ứng quy tắc branch/worktree ở trên.
+- Trước khi chạy song song, agent điều phối phải xác định dependency, phạm vi file và owner của từng nhánh; không để hai agent đồng thời sửa cùng file.
+- Không chạy song song các task có quan hệ dependency trực tiếp, cùng migration sequence, cùng module nghiệp vụ hoặc cùng tài nguyên database verification.
+- Trong quá trình triển khai được chạy targeted lint/typecheck/test cho phạm vi thay đổi; trước khi tuyên bố hoàn thành mỗi Task ID vẫn phải chạy đầy đủ gate theo mục 15.
+- Codex được tự thực hiện install theo lockfile, Docker local, migration trên database verification tách biệt, lint, typecheck, test, build, commit local và tạo Pull Request trong phạm vi task đã duyệt.
+- Vẫn phải dừng và hỏi trước thao tác production, xóa dữ liệu/volume, force-push, thay đổi lịch sử Git, dùng secret thật, mở rộng nghiệp vụ chưa duyệt hoặc quyết định thuộc mục 16.
 
 ## 3. Quy tắc Git
 
