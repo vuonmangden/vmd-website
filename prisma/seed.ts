@@ -1,12 +1,17 @@
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 
+import { applySyntheticFixtures, authorizeSyntheticData } from '../scripts/synthetic-fixtures-lib.mjs';
+
 const connectionString = process.env['DATABASE_URL'] ?? '';
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString }),
 });
 
 async function main(): Promise<void> {
+  const syntheticAuthorization =
+    process.env['ALLOW_SYNTHETIC_DATA'] === undefined ? null : authorizeSyntheticData(process.env);
+
   await prisma.appSetting.upsert({
     where: { key: 'app.name' },
     update: {},
@@ -19,6 +24,16 @@ async function main(): Promise<void> {
   });
 
   console.log('Seed completed: app_settings smoke record inserted.');
+
+  if (!syntheticAuthorization) {
+    console.log('Synthetic fixtures skipped: set an explicit non-production environment and ALLOW_SYNTHETIC_DATA=true.');
+    return;
+  }
+
+  const result = await applySyntheticFixtures(prisma, syntheticAuthorization);
+  console.log(
+    `Synthetic fixtures applied: marker=${result.marker}, settings=${result.settingCount}, customer=${result.customerCode}.`,
+  );
 }
 
 main()

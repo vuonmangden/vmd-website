@@ -1,0 +1,232 @@
+const authorizationMarker = Symbol('synthetic-fixture-authorization');
+
+export const SYNTHETIC_MARKER = 'SYNTHETIC';
+export const SYNTHETIC_FIXTURE_VERSION = 1;
+
+export const SYNTHETIC_IDS = Object.freeze({
+  customerId: '00000000-0000-4000-8000-000000000001',
+  customerCode: 'SYNTHETIC-CUSTOMER-001',
+  notificationJobId: '00000000-0000-4000-8000-000000000002',
+  notificationDeduplicationKey: 'SYNTHETIC:notification:welcome:001',
+});
+
+const allowedEnvironments = new Set(['development', 'test', 'local', 'demo']);
+const blockedEnvironments = new Set(['production', 'prod', 'staging', 'live']);
+
+export const SYNTHETIC_SETTING_KEYS = Object.freeze([
+  'synthetic.fixture.registry',
+  'synthetic.fixture.room-types',
+  'synthetic.fixture.rate-policy',
+  'synthetic.fixture.roles',
+  'synthetic.fixture.notification-template',
+]);
+
+const normalize = (value) => value?.trim().toLowerCase() ?? '';
+
+const databaseLooksNonProduction = (databaseUrl) => {
+  const parsed = new URL(databaseUrl);
+  const hostname = normalize(parsed.hostname);
+  const database = normalize(parsed.pathname.replace(/^\//, ''));
+  const isLoopback = hostname === '127.0.0.1' || hostname === 'localhost' || hostname === '::1';
+  const hasNonProductionName = /(^|[-_])(dev|test|demo|local)([-_]|$)/.test(database);
+  return isLoopback || hasNonProductionName;
+};
+
+export function authorizeSyntheticData(environment = process.env) {
+  const runtimeEnvironments = ['APP_ENV', 'DEPLOYMENT_ENV', 'NODE_ENV']
+    .map((key) => normalize(environment[key]))
+    .filter(Boolean);
+  const providerEnvironment = normalize(environment['VERCEL_ENV']);
+
+  if (runtimeEnvironments.some((value) => blockedEnvironments.has(value)) || providerEnvironment === 'production') {
+    throw new Error('Synthetic fixtures are forbidden in production-equivalent environments.');
+  }
+
+  if (!runtimeEnvironments.some((value) => allowedEnvironments.has(value))) {
+    throw new Error('Synthetic fixtures require APP_ENV, DEPLOYMENT_ENV or NODE_ENV to be explicitly non-production.');
+  }
+
+  if (environment['ALLOW_SYNTHETIC_DATA'] !== 'true') {
+    throw new Error('Synthetic fixtures require ALLOW_SYNTHETIC_DATA=true.');
+  }
+
+  const connectionString = environment['SYNTHETIC_TEST_DATABASE_URL'] ?? environment['DATABASE_URL'];
+  if (!connectionString) {
+    throw new Error('Synthetic fixtures require an explicit database URL.');
+  }
+
+  let safeDatabase;
+  try {
+    safeDatabase = databaseLooksNonProduction(connectionString);
+  } catch {
+    throw new Error('Synthetic fixture database URL is invalid.');
+  }
+
+  if (!safeDatabase) {
+    throw new Error('Synthetic fixtures require a loopback or explicitly dev/test/demo/local database.');
+  }
+
+  return Object.freeze({
+    connectionString,
+    marker: SYNTHETIC_MARKER,
+    [authorizationMarker]: true,
+  });
+}
+
+const requireAuthorization = (authorization) => {
+  if (authorization?.[authorizationMarker] !== true) {
+    throw new Error('Synthetic fixture operation requires a valid non-production authorization.');
+  }
+};
+
+const appSettings = [
+  {
+    key: 'synthetic.fixture.registry',
+    value: {
+      marker: SYNTHETIC_MARKER,
+      version: SYNTHETIC_FIXTURE_VERSION,
+      purpose: 'LOCAL_DEV_TEST_INTERNAL_DEMO_ONLY',
+      replacesProductionData: false,
+    },
+  },
+  {
+    key: 'synthetic.fixture.room-types',
+    value: {
+      marker: SYNTHETIC_MARKER,
+      items: [
+        { code: 'SYNTHETIC-ROOM-TYPE-001', name: 'SYNTHETIC Room Type 001', capacity: 2 },
+        { code: 'SYNTHETIC-ROOM-TYPE-002', name: 'SYNTHETIC Room Type 002', capacity: 4 },
+      ],
+    },
+  },
+  {
+    key: 'synthetic.fixture.rate-policy',
+    value: {
+      marker: SYNTHETIC_MARKER,
+      currency: 'VND',
+      nightlyAmount: 1000000,
+      depositAmount: 500000,
+      policy: 'SYNTHETIC_NOT_FOR_PRODUCTION',
+    },
+  },
+  {
+    key: 'synthetic.fixture.roles',
+    value: {
+      marker: SYNTHETIC_MARKER,
+      items: ['SYNTHETIC_SUPER_ADMIN', 'SYNTHETIC_OPERATIONS', 'SYNTHETIC_ACCOUNTANT'],
+    },
+  },
+  {
+    key: 'synthetic.fixture.notification-template',
+    value: {
+      marker: SYNTHETIC_MARKER,
+      code: 'SYNTHETIC_BOOKING_CONFIRMATION',
+      recipient: 'synthetic.guest.001@example.com',
+      enabledForExternalDelivery: false,
+    },
+  },
+].map((setting) => ({ ...setting, category: 'synthetic-fixture', isSecretReference: false }));
+
+export async function applySyntheticFixtures(prisma, authorization) {
+  requireAuthorization(authorization);
+
+  return prisma.$transaction(async (transaction) => {
+    for (const setting of appSettings) {
+      await transaction.appSetting.upsert({
+        where: { key: setting.key },
+        update: {
+          value: setting.value,
+          category: setting.category,
+          isSecretReference: setting.isSecretReference,
+        },
+        create: setting,
+      });
+    }
+
+    await transaction.customer.upsert({
+      where: { customerCode: SYNTHETIC_IDS.customerCode },
+      update: {
+        fullName: 'SYNTHETIC Guest 001',
+        emailNormalized: 'synthetic.guest.001@example.com',
+        phoneNormalized: null,
+        source: SYNTHETIC_MARKER,
+        marketingConsent: false,
+        privacyConsentAt: null,
+        notes: 'SYNTHETIC local/dev/test/internal-demo fixture only.',
+        deletedAt: null,
+      },
+      create: {
+        id: SYNTHETIC_IDS.customerId,
+        customerCode: SYNTHETIC_IDS.customerCode,
+        fullName: 'SYNTHETIC Guest 001',
+        emailNormalized: 'synthetic.guest.001@example.com',
+        phoneNormalized: null,
+        source: SYNTHETIC_MARKER,
+        marketingConsent: false,
+        privacyConsentAt: null,
+        notes: 'SYNTHETIC local/dev/test/internal-demo fixture only.',
+      },
+    });
+
+    await transaction.notificationJob.upsert({
+      where: { id: SYNTHETIC_IDS.notificationJobId },
+      update: {
+        payload: { marker: SYNTHETIC_MARKER, deliverExternally: false },
+        status: 'synthetic_fixture',
+      },
+      create: {
+        id: SYNTHETIC_IDS.notificationJobId,
+        templateCode: 'SYNTHETIC_BOOKING_CONFIRMATION',
+        recipientType: 'customer',
+        recipientReferenceId: SYNTHETIC_IDS.customerId,
+        email: 'synthetic.guest.001@example.com',
+        phone: null,
+        payload: { marker: SYNTHETIC_MARKER, deliverExternally: false },
+        scheduledAt: new Date('2099-01-01T00:00:00.000Z'),
+        status: 'synthetic_fixture',
+        deduplicationKey: SYNTHETIC_IDS.notificationDeduplicationKey,
+      },
+    });
+
+    return {
+      marker: SYNTHETIC_MARKER,
+      settingCount: appSettings.length,
+      customerCode: SYNTHETIC_IDS.customerCode,
+      notificationJobId: SYNTHETIC_IDS.notificationJobId,
+    };
+  });
+}
+
+export async function cleanupSyntheticFixtures(prisma, authorization) {
+  requireAuthorization(authorization);
+
+  return prisma.$transaction(async (transaction) => {
+    await transaction.notificationDelivery.deleteMany({
+      where: { jobId: SYNTHETIC_IDS.notificationJobId },
+    });
+    const notificationJobs = await transaction.notificationJob.deleteMany({
+      where: {
+        id: SYNTHETIC_IDS.notificationJobId,
+        deduplicationKey: SYNTHETIC_IDS.notificationDeduplicationKey,
+      },
+    });
+    const customers = await transaction.customer.deleteMany({
+      where: {
+        customerCode: SYNTHETIC_IDS.customerCode,
+        source: SYNTHETIC_MARKER,
+      },
+    });
+    const settings = await transaction.appSetting.deleteMany({
+      where: {
+        key: { in: [...SYNTHETIC_SETTING_KEYS] },
+        category: 'synthetic-fixture',
+      },
+    });
+
+    return {
+      notificationJobs: notificationJobs.count,
+      customers: customers.count,
+      settings: settings.count,
+    };
+  });
+}
