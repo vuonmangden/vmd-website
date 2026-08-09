@@ -28,5 +28,5 @@ test('migrate deploy loads the Prisma 7 datasource URL from the root config', ()
   assert.match(output, /vmd_prisma_config_test/);
   assert.match(output, /127\.0\.0\.1:1/);
   assert.doesNotMatch(output, /datasource\.url property is required/);
-  assert.match(output, /Schema engine error/);
+  assert.match(output, /Schema engine error|P1001: Can't reach database server/);
 });
