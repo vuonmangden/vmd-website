@@ -16,8 +16,8 @@
 | Phase | Phase 1 — MVP |
 | Trạng thái tổng thể | Baseline local và GitHub-hosted đã xác minh; `main` có required CI checks và branch protection |
 | Milestone hiện tại | Milestone 0 — hoàn thiện dữ liệu thật; chuẩn bị Identity/CMS/Notification theo readiness gate |
-| Task đang thực hiện | MNT-003 — In progress |
-| Task hoàn thành | 8 (FND-001–FND-005, BKG-001, NTF-001, MNT-002) |
+| Task đang thực hiện | Không có; TST-001 — Ready là task tiếp theo |
+| Task hoàn thành | 9 (FND-001–FND-005, BKG-001, NTF-001, MNT-002, MNT-003) |
 | Blocker mở | BLK-001 — dữ liệu vận hành thật PRE-001–PRE-008 chưa được duyệt |
 | Cập nhật gần nhất | 2026-08-09 |
 
@@ -199,8 +199,8 @@
 | Task ID | Nội dung | Trạng thái | Dependency | Branch/PR | Evidence/Ghi chú |
 |---|---|---|---|---|---|
 | MNT-002 | Project acceleration và Milestone 0 input pack | Done | MNT-001 | PR #1 / `b02083a` | CI PR và hậu-merge xanh; `main` protected; PRE/BLK-001 tiếp tục độc lập |
-| MNT-003 | Delivery readiness matrix và synthetic fixture handoff | In progress | MNT-002, foundation gates | `codex/mnt-003-readiness-matrix` | Tạo matrix, ownership và task spec TST-001 |
-| TST-001 | Synthetic non-production fixtures | Backlog | MNT-003, FND-005, DEC-004 |  | Chỉ chuyển Ready sau khi MNT-003 merge; production fail-closed |
+| MNT-003 | Delivery readiness matrix và synthetic fixture handoff | Done | MNT-002, foundation gates | `codex/mnt-003-readiness-matrix`; PR #2 | Matrix, ownership và task spec TST-001; hosted CI `31310202234` xanh |
+| TST-001 | Synthetic non-production fixtures | Ready | MNT-003, FND-005, DEC-004 |  | Task tiếp theo; production fail-closed, không migration |
 
 ## 15. Blocker log
 
@@ -271,3 +271,4 @@ Người cập nhật:
 | 2026-08-09 | Chủ dự án/Codex | Đóng DEC-004: cho phép dùng dữ liệu giả lập được gắn nhãn và có production guard cho local/development/test/demo nội bộ cho đến khi chủ dự án cung cấp hoặc yêu cầu dùng dữ liệu thật. PRE-001–PRE-008 và BLK-001 vẫn giữ nguyên trạng thái chờ dữ liệu thật được duyệt. |
 | 2026-08-09 | Codex | Hoàn tất MNT-002/FND verification: tạo `main` làm default branch, retarget PR #1, sửa Prisma regression đa nền tảng và ShellCheck SC2086; GitHub-hosted run `31309744163` đạt Quality + Security. Bật branch protection với hai required checks, strict/up-to-date, admin enforcement, linear history, conversation resolution và chặn force-push/delete. Đóng BLK-003; chuyển FND-003/FND-005/BKG-001/NTF-001 và MNT-002 sang Done. PRE-001–PRE-008/BLK-001 tiếp tục độc lập, không bị synthetic data đóng sai. |
 | 2026-08-09 | Codex | Bắt đầu MNT-003 trên branch `codex/mnt-003-readiness-matrix`: tạo delivery readiness matrix và task spec TST-001 cho synthetic fixtures fail-closed. IAM-001/CMS-005/NTF-002 chỉ `PLANNING_ONLY` cho đến khi PRE tương ứng có dữ liệu thật được duyệt. |
+| 2026-08-09 | Codex | Hoàn tất MNT-003: readiness matrix xác định TST-001 là task duy nhất đủ điều kiện tiếp theo; IAM-001/CMS-005/NTF-002 giữ `PLANNING_ONLY`. PR #2 đạt hosted Quality + Security run `31310202234`; TST-001 chuyển Ready sau merge. |
