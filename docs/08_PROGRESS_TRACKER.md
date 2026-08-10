@@ -16,10 +16,10 @@
 | Phase | Phase 1 — MVP |
 | Trạng thái tổng thể | Baseline local và GitHub-hosted đã xác minh; `main` có required CI checks và branch protection |
 | Milestone hiện tại | Milestone 0 — hoàn thiện dữ liệu thật; chuẩn bị Identity/CMS/Notification theo readiness gate |
-| Task đang thực hiện | Không có; chờ PRE-007 để mở IAM-001/NTF-002 |
-| Task hoàn thành | 14 (FND-001–FND-005, BKG-001, NTF-001, MNT-002–MNT-006, TST-001, CMS-005) |
+| Task đang thực hiện | Không có; PRE-007 đã nhận phần identity development/staging, chờ production để mở IAM-001 |
+| Task hoàn thành | 15 (FND-001–FND-005, BKG-001, NTF-001, MNT-002–MNT-007, TST-001, CMS-005) |
 | Blocker mở | BLK-001 — dữ liệu vận hành thật PRE-001–PRE-008 chưa được duyệt |
-| Cập nhật gần nhất | 2026-08-09 |
+| Cập nhật gần nhất | 2026-08-10 |
 
 ## 3. Milestone 0 — Chốt đầu vào
 
@@ -31,7 +31,7 @@
 | PRE-004 | Chốt khu vực, bàn, khung giờ và combo BBQ | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §7 | Chờ dữ liệu vận hành BBQ được duyệt |
 | PRE-005 | Chốt chính sách hủy, đổi lịch, hoàn tiền | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §8 | P0 blocker cho Booking/Payment |
 | PRE-006 | Chốt vai trò và quyền nhân sự | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §9 | P0 blocker cho RBAC/Admin |
-| PRE-007 | Chuẩn bị domain, Supabase, SePay, email, Zalo | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §10 | Chỉ ghi identifier/reference; không ghi secret vào Git |
+| PRE-007 | Chuẩn bị domain, Supabase, SePay, email, Zalo | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §10 | Đã nhận identity development/staging ngày 2026-08-10; vẫn thiếu Supabase/admin domain production và provider email/from identity; không ghi secret vào Git |
 | PRE-008 | Chốt bộ nhận diện, ảnh và nội dung ban đầu | Ready | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §11 | Đủ phạm vi CMS-005: quyền logo/brand board, photo-free homepage và system-font fallback được duyệt 2026-08-10; legal/CTA và ảnh venue vẫn ngoài phạm vi |
 
 **Gate:** Không triển khai Price Engine, Booking hoặc Payment bằng dữ liệu giả rồi kỳ vọng sửa sau.
@@ -52,7 +52,7 @@
 
 | Task ID | Nội dung | Trạng thái | Dependency | Branch/PR | Tests/Security | Ghi chú |
 |---|---|---|---|---|---|---|
-| IAM-001 | Staff authentication | Backlog | FND-004, FND-005, PRE-007 | Planning-only: `docs/tasks/IAM-001.md` | Chưa chạy; chờ PRE-007 | Supabase Auth; không làm RBAC trong task này |
+| IAM-001 | Staff authentication | Backlog | FND-004, FND-005, PRE-007 | Planning-only: `docs/tasks/IAM-001.md` | Chưa chạy; chờ Supabase/admin domain production được duyệt | Supabase Auth; không làm RBAC trong task này |
 | IAM-002 | Roles và permissions | Backlog | IAM-001, PRE-006 |  |  | Seed permission |
 | IAM-003 | Admin route protection | Backlog | IAM-002 |  |  | Frontend + backend |
 | IAM-004 | Audit service | Backlog | FND-005, IAM-001 |  |  | Immutable operational audit |
@@ -204,6 +204,7 @@
 | MNT-004 | Planning-only feature lane specifications | Done | MNT-003, TST-001 | `codex/mnt-004-lane-planning` | IAM-001/CMS-005/NTF-002 specs; local lint/typecheck/test/build đạt; không production code, migration hoặc dependency |
 | MNT-005 | PRE-008 brand intake and gate review | Done | MNT-004 | `codex/mnt-005-pre008-handoff` | Logo Drive nguồn kiểm tra được; ghi nhận brand/contact/intro; lint/typecheck/test/build đạt; CMS-005 vẫn chờ quyền asset/font và quyết định ảnh |
 | MNT-006 | PRE-008 public link intake | Done | MNT-005 | `codex/mnt-006-pre008-public-links` | Facebook, TikTok, Instagram và Maps do chủ dự án cung cấp; local lint/typecheck/test/build đạt; không có code/asset mới |
+| MNT-007 | PRE-007 identity intake and gate review | Done | MNT-004 | `codex/mnt-007-pre007-auth-intake` | Ghi nhận Supabase/JWT/CORS/auth/session/MFA/secret-management metadata; full lint/typecheck/test/build đạt; không có secret, code, migration hoặc provider configuration |
 
 ## 15. Blocker log
 
@@ -283,3 +284,4 @@ Người cập nhật:
 | 2026-08-10 | Chủ dự án/Codex | Nhận URL public chính thức cho Facebook, TikTok, Instagram và Google Maps; liên kết được ghi vào PRE-008, không suy đoán URL Zalo/website hoặc CTA còn thiếu. |
 | 2026-08-10 | Chủ dự án/Codex | Chủ dự án xác nhận quyền dùng logo/brand board cho website, phê duyệt homepage không dùng ảnh venue và Bahnschrift Condensed system font với fallback. PRE-008 chuyển Ready riêng cho CMS-005; legal/CTA và ảnh venue không tự được coi là đã duyệt. |
 | 2026-08-10 | Codex | Hoàn tất CMS-005 trên branch `codex/cms-005-public-layouts`: public layout mobile-first, logo/palette/font fallback đã duyệt, phone/email/Maps/social links, loading/error/not-found và skip link. Không dùng ảnh venue, API, migration hoặc dependency. Full local quality gate và visual QA desktop/mobile đạt. |
+| 2026-08-10 | Chủ dự án/Codex | Hoàn tất MNT-007: ghi nhận Supabase development/staging, JWT/JWKS, CORS/callback, email/password, session/revoke, MFA và secret-management metadata từ chủ dự án. PRE-007 vẫn partial; thiếu Supabase/admin domain/callback/CORS production nên IAM-001 chưa mở, đồng thời email provider/from identity còn thiếu cho NTF-002. Không có secret, API, migration hoặc production code; full local quality gate đạt. |
