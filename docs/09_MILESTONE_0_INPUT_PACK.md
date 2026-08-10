@@ -43,9 +43,9 @@ Các trạng thái hợp lệ: `Chờ dữ liệu`, `Đang rà soát`, `Đã duy
 
 ## 4. PRE-001 — Loại phòng
 
-**Trạng thái:** Chờ dữ liệu
+**Trạng thái:** Blocked — đã nhận brand intake ngày 2026-08-10; chờ xác nhận quyền asset/font và các đầu vào public còn thiếu
 **Owner:** Chủ dự án
-**Người duyệt:** Chưa xác định
+**Người duyệt:** Chủ dự án — chờ xác nhận cuối
 **Ngày duyệt:** Chưa xác định
 
 Điền một dòng cho mỗi loại phòng:
@@ -222,18 +222,32 @@ Quyết định bổ sung: CORS origins production, email reply-to, Zalo có b�
 **Người duyệt:** Chưa xác định
 **Ngày duyệt:** Chưa xác định
 
-- Logo gốc và biến thể sáng/tối.
-- Bảng màu, typography/font license và quy tắc sử dụng thương hiệu.
-- Ảnh/video đã có quyền sử dụng: homepage, từng loại phòng, BBQ và không gian.
-- Tên pháp nhân, địa chỉ, hotline, email công khai và thông tin footer.
-- Nội dung homepage/about, mô tả phòng, mô tả BBQ, FAQ.
-- Điều khoản sử dụng, chính sách riêng tư, chính sách booking/hủy/hoàn tiền.
-- Nội dung email và Zalo cho xác nhận, payment và reminder T-7/T-3/T-1.
-- Owner nội dung và quy trình duyệt/xuất bản.
+### Dữ liệu đã nhận ngày 2026-08-10
+
+- **Tên thương hiệu:** Vườn Măng Đen — Homestay & BBQ.
+- **Logo nguồn:** [Google Drive PNG](https://drive.google.com/file/d/1QQEWAp26LI5PU3Vp6-mJ1-ALrdRBpcQp/view), Drive ID `1QQEWAp26LI5PU3Vp6-mJ1-ALrdRBpcQp`. Link tải được tại thời điểm intake; file không được commit vào Git trước khi chủ dự án xác nhận quyền dùng trên web.
+- **Brand board:** do chủ dự án gửi qua Codex ngày 2026-08-10. Ý nghĩa hình ảnh: ngôi nhà/tay ấm, rừng thông Măng Đen và ngọn lửa BBQ.
+- **Palette theo brand board:** `#1F3A2E`, `#365442`, `#7A5033`, `#D86B2A`, `#F1E6D2`.
+- **Typography:** Bahnschrift Condensed Regular/SemiBold. Chưa có web-font file, license/source web hoặc quyết định fallback cho thiết bị không có font này.
+- **Thông tin được phép hiển thị public:** hotline `1900 9085`; email `vuongmangden.com@gmail.com`; địa chỉ `26 Đường Phạm Văn Đồng, Măng Đen, Quảng Ngãi`; social handle `@vuonmangden`.
+- **Giới thiệu ngắn:** “Nơi nghỉ dưỡng, giao lưu kết nối bạn bè”.
+
+### Hạng mục vẫn cần chủ dự án xác nhận/cung cấp
+
+1. Xác nhận chủ dự án có quyền cho website dùng logo PNG và brand board nêu trên.
+2. Cung cấp file web-font có license, hoặc phê duyệt dùng Bahnschrift Condensed theo system font với fallback không cùng thiết kế trên một số thiết bị.
+3. Cung cấp ảnh không gian/phòng/BBQ có quyền sử dụng, hoặc phê duyệt homepage giai đoạn đầu không dùng ảnh venue.
+4. Cung cấp URL đầy đủ cho từng kênh social, nếu các link này sẽ xuất hiện trên footer/header.
+5. Cung cấp hoặc tạm hoãn các link pháp lý, navigation labels và CTA/đích đến; không tự tạo link không có trang đích.
 
 | Nhóm asset/nội dung | Nguồn/link | Owner | Quyền sử dụng đã xác nhận | Trạng thái duyệt |
 |---|---|---|---|---|
-| Cần chủ dự án cung cấp |  |  |  |  |
+| Brand board | Chủ dự án gửi qua Codex, 2026-08-10 | Chủ dự án | Chờ xác nhận dùng trên web | Đã nhận, chưa duyệt |
+| Logo PNG | Google Drive ID `1QQEWAp26LI5PU3Vp6-mJ1-ALrdRBpcQp` | Chủ dự án | Chờ xác nhận dùng trên web | Nguồn kiểm tra được |
+| Palette và typography | Brand board ngày 2026-08-10 | Chủ dự án | Palette: nguồn đã nhận; font web license/fallback: chờ | Đã nhận một phần |
+| Thông tin liên hệ và giới thiệu | Tin nhắn chủ dự án ngày 2026-08-10 | Chủ dự án | Được cung cấp để hiển thị public | Đã nhận |
+| Ảnh venue/phòng/BBQ | Chưa cung cấp | Chủ dự án | Chưa xác nhận | Chờ dữ liệu |
+| URL social/link pháp lý/CTA | Chưa cung cấp | Chủ dự án | Chưa xác nhận | Chờ dữ liệu |
 
 ## 12. Điều kiện đóng BLK-001
 

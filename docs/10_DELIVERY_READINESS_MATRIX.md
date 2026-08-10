@@ -31,7 +31,7 @@ Chỉ progress tracker dùng các trạng thái chuẩn `Backlog`, `Ready`, `In 
 |---|---|---|---|---|---|
 | TST-001 | MNT-002, MNT-003, FND-005 | DEC-004 Closed | IMPLEMENTATION_APPROVED sau khi MNT-003 merge | Không dùng dữ liệu thật; production guard bắt buộc | Fixture kỹ thuật cho các lane non-production |
 | IAM-001 | FND-004, FND-005, PRE-007 | PRE-007 Blocked | PLANNING_ONLY | Chưa có Supabase project/environment và provider reference thật được duyệt | IAM-002, IAM-004, IAM-005 |
-| CMS-005 | FND-001, PRE-008 | PRE-008 Blocked | PLANNING_ONLY | Chưa có brand/asset/content source và quyền sử dụng thật | RMS-007, public website |
+| CMS-005 | FND-001, PRE-008 | PRE-008 Blocked | PLANNING_ONLY | Brand/logo/contact/intro đã nhận 2026-08-10; còn thiếu xác nhận quyền asset/font web và quyết định ảnh/social/legal/CTA | RMS-007, public website |
 | NTF-002 | NTF-001, PRE-007 | PRE-007 Blocked | PLANNING_ONLY | Chưa có from address/provider decision thật; Mailpit chỉ cho test | NTF-004 |
 | RMS-001 | FND-005, IAM-002, PRE-001 | PRE-001/PRE-006 Blocked | BLOCKED | IAM-002 và danh sách loại phòng thật chưa đạt | RMS-002, RMS-003, RMS-007 |
 | BBQ-001 | FND-005, PRE-004 | PRE-004 Blocked | BLOCKED | Khu vực/bàn/slot thật chưa được duyệt | BBQ-003 |
