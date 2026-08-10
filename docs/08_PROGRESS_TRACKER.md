@@ -16,8 +16,8 @@
 | Phase | Phase 1 — MVP |
 | Trạng thái tổng thể | Baseline local và GitHub-hosted đã xác minh; `main` có required CI checks và branch protection |
 | Milestone hiện tại | Milestone 0 — hoàn thiện dữ liệu thật; chuẩn bị Identity/CMS/Notification theo readiness gate |
-| Task đang thực hiện | Không có; chờ PRE-007/PRE-008 để mở các feature lane đã có spec |
-| Task hoàn thành | 11 (FND-001–FND-005, BKG-001, NTF-001, MNT-002–MNT-004, TST-001) |
+| Task đang thực hiện | Không có; chờ xác nhận còn thiếu cho PRE-008 hoặc đầu vào PRE-007 |
+| Task hoàn thành | 12 (FND-001–FND-005, BKG-001, NTF-001, MNT-002–MNT-005, TST-001) |
 | Blocker mở | BLK-001 — dữ liệu vận hành thật PRE-001–PRE-008 chưa được duyệt |
 | Cập nhật gần nhất | 2026-08-09 |
 
@@ -32,7 +32,7 @@
 | PRE-005 | Chốt chính sách hủy, đổi lịch, hoàn tiền | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §8 | P0 blocker cho Booking/Payment |
 | PRE-006 | Chốt vai trò và quyền nhân sự | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §9 | P0 blocker cho RBAC/Admin |
 | PRE-007 | Chuẩn bị domain, Supabase, SePay, email, Zalo | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §10 | Chỉ ghi identifier/reference; không ghi secret vào Git |
-| PRE-008 | Chốt bộ nhận diện, ảnh và nội dung ban đầu | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §11 | Chờ asset/source và quyền sử dụng được duyệt |
+| PRE-008 | Chốt bộ nhận diện, ảnh và nội dung ban đầu | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §11 | Brand/logo/contact/intro đã nhận 2026-08-10; chờ quyền asset/font web, ảnh venue và social/legal/CTA links |
 
 **Gate:** Không triển khai Price Engine, Booking hoặc Payment bằng dữ liệu giả rồi kỳ vọng sửa sau.
 
@@ -202,6 +202,7 @@
 | MNT-003 | Delivery readiness matrix và synthetic fixture handoff | Done | MNT-002, foundation gates | `codex/mnt-003-readiness-matrix`; PR #2 | Matrix, ownership và task spec TST-001; hosted CI `31310202234` xanh |
 | TST-001 | Synthetic non-production fixtures | Done | MNT-003, FND-005, DEC-004 | `codex/tst-001-synthetic-fixtures`; PR #3 | 9/9 unit/integration trên `vmd_synthetic_test`; seed x2/cleanup, production rejection, full local gate và hosted run `31312405432` đạt; không migration/dependency |
 | MNT-004 | Planning-only feature lane specifications | Done | MNT-003, TST-001 | `codex/mnt-004-lane-planning` | IAM-001/CMS-005/NTF-002 specs; local lint/typecheck/test/build đạt; không production code, migration hoặc dependency |
+| MNT-005 | PRE-008 brand intake and gate review | Done | MNT-004 | `codex/mnt-005-pre008-handoff` | Logo Drive nguồn kiểm tra được; ghi nhận brand/contact/intro; lint/typecheck/test/build đạt; CMS-005 vẫn chờ quyền asset/font và quyết định ảnh |
 
 ## 15. Blocker log
 
@@ -277,3 +278,4 @@ Người cập nhật:
 | 2026-08-09 | Codex | Hoàn tất TST-001: GitHub-hosted Quality + Security run `31312405432` xanh trên PR #3. Task chuyển Done; PRE-001–PRE-008/BLK-001 không thay đổi và IAM-001/CMS-005/NTF-002 tiếp tục planning-only. |
 | 2026-08-09 | Codex | Bắt đầu MNT-004 trên branch `codex/mnt-004-lane-planning`: khóa contract, file ownership, PRE checklist, security và test plan cho IAM-001/CMS-005/NTF-002; cả ba vẫn planning-only đến khi PRE-007/PRE-008 được duyệt. |
 | 2026-08-09 | Codex | Hoàn tất phạm vi tài liệu MNT-004: ba planning-only spec và readiness/tracker handoff đã khóa; local lint/typecheck/test/build đạt. PRE-007/PRE-008 và BLK-001 giữ nguyên, chưa mở implementation. |
+| 2026-08-10 | Chủ dự án/Codex | Nhận PRE-008 intake: tên thương hiệu, logo Drive PNG, brand board, palette, typography, hotline, email, địa chỉ, social handle và giới thiệu ngắn. Nguồn logo tải được; không commit asset hoặc mở CMS-005 trước khi chủ dự án xác nhận quyền dùng asset/font và quyết định ảnh/social/legal/CTA còn thiếu. |
