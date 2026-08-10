@@ -194,26 +194,40 @@ Quyết định bắt buộc:
 
 ## 10. PRE-007 — Domain và tích hợp
 
-**Trạng thái:** Chờ dữ liệu
+**Trạng thái:** Đã nhận một phần — đủ thông tin xác thực cho development/staging; chưa đủ cấu hình production hoặc provider khác để mở implementation.
 **Owner:** Chủ dự án
-**Người duyệt:** Chưa xác định
-**Ngày duyệt:** Chưa xác định
+**Người duyệt:** Chủ dự án
+**Ngày duyệt:** 2026-08-10 (phạm vi identity development/staging)
 
 Chỉ ghi identifier/reference; không ghi secret.
 
 | Hạng mục | Giá trị không nhạy cảm cần cung cấp | Secret/reference cần tạo | Trạng thái |
 |---|---|---|---|
-| Public domain | Tên miền | DNS credential lưu ngoài repo | Chờ dữ liệu |
-| Admin domain | Tên miền/subdomain | DNS credential lưu ngoài repo | Chờ dữ liệu |
-| Supabase/PostgreSQL | Project/region | `DATABASE_URL`, service credentials trong secret manager | Chờ dữ liệu |
+| Public domain | Chưa cung cấp | DNS credential lưu ngoài repo | Chờ dữ liệu |
+| Admin domain | Development: `http://localhost:3001`; production chưa có | DNS credential lưu ngoài repo | Đã nhận một phần |
+| Supabase/PostgreSQL | Development/staging: project ref `atefkvykvwgtuaiscxnm`, URL `https://atefkvykvwgtuaiscxnm.supabase.co`, Singapore (`ap-southeast-1`); production chưa có | `DATABASE_URL`, service credentials trong secret manager | Đã nhận một phần |
 | SePay | Merchant/account identifier, môi trường test | API/webhook secret trong secret manager | Chờ dữ liệu |
 | Tài khoản ngân hàng | Tên ngân hàng, tên chủ tài khoản, số tài khoản chỉ chia sẻ qua kênh an toàn | Reference secret/config | Chờ dữ liệu |
-| Email | From name, from address, provider | SMTP/API credential trong secret manager | Chờ dữ liệu |
+| Email | Provider, from name/address và reply-to chưa cung cấp | SMTP/API credential trong secret manager | Chờ dữ liệu |
 | Zalo | OA identifier, trạng thái ZNS template | App secret/token trong secret manager | Chờ dữ liệu |
 | Object storage | Provider, region, bucket naming | Access key trong secret manager | Chờ dữ liệu |
-| Hosting | Provider, region, environments | Deploy credential trong secret manager | Chờ dữ liệu |
+| Hosting | Staging: Railway Variables; production: Railway Variables hoặc Vercel Environment Variables (chưa chốt provider) | Deploy credential trong secret manager | Đã nhận một phần |
 
-Quyết định bổ sung: CORS origins production, email reply-to, Zalo có bật ở soft launch hay dùng email fallback, và owner xoay vòng/revoke từng credential.
+### Đầu vào identity đã nhận ngày 2026-08-10
+
+- **Allowed CORS origins:** `http://localhost:3000`, `http://localhost:3001`, `http://localhost:3002`, `https://staging.vuonmangden.vn`.
+- **Callback/redirect URLs:** `http://localhost:3001/auth/callback`, `https://staging.vuonmangden.vn/auth/callback`.
+- **JWT:** issuer `https://atefkvykvwgtuaiscxnm.supabase.co/auth/v1`; audience `authenticated`; JWKS `https://atefkvykvwgtuaiscxnm.supabase.co/auth/v1/.well-known/jwks.json`.
+- **Phương thức đăng nhập:** email/password bật; magic link tắt.
+- **Phiên:** access token TTL 3600 giây; refresh-token rotation bật; logout phải revoke session phía server; khóa tài khoản phải revoke toàn bộ session.
+- **MFA:** TOTP MFA bắt buộc cho Super Admin và Accountant ở production; Phase 1 chỉ enforce sau `IAM-002`; quy trình dự kiến là enroll, verify, sau đó yêu cầu TOTP code khi đăng nhập.
+- **Secret management:** local dùng `.env` đã gitignore; staging dùng Railway Variables; production dùng Railway Variables hoặc Vercel Environment Variables; CI dùng GitHub Secrets; owner là Chủ dự án. Không ghi giá trị secret vào repository.
+
+### Phần còn thiếu và gate
+
+1. Cần Supabase project/environment identifier và admin domain/callback/CORS origin cho production trước khi mở `IAM-001`; không tự dùng development/staging làm production.
+2. Cần chốt provider email, from name/address, reply-to và trạng thái domain/DNS trước khi mở `NTF-002`.
+3. SePay, Zalo, ngân hàng, object storage, public domain và hosting production vẫn chờ dữ liệu; các task Payment/Notification/Deployment tương ứng chưa được mở.
 
 ## 11. PRE-008 — Thương hiệu, asset và nội dung
 
