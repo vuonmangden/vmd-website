@@ -16,8 +16,8 @@
 | Phase | Phase 1 — MVP |
 | Trạng thái tổng thể | Baseline local và GitHub-hosted đã xác minh; `main` có required CI checks và branch protection |
 | Milestone hiện tại | Milestone 0 — hoàn thiện dữ liệu thật; chuẩn bị Identity/CMS/Notification theo readiness gate |
-| Task đang thực hiện | Không có; chờ xác nhận còn thiếu cho PRE-008 hoặc đầu vào PRE-007 |
-| Task hoàn thành | 13 (FND-001–FND-005, BKG-001, NTF-001, MNT-002–MNT-006, TST-001) |
+| Task đang thực hiện | Không có; chờ PRE-007 để mở IAM-001/NTF-002 |
+| Task hoàn thành | 14 (FND-001–FND-005, BKG-001, NTF-001, MNT-002–MNT-006, TST-001, CMS-005) |
 | Blocker mở | BLK-001 — dữ liệu vận hành thật PRE-001–PRE-008 chưa được duyệt |
 | Cập nhật gần nhất | 2026-08-09 |
 
@@ -32,7 +32,7 @@
 | PRE-005 | Chốt chính sách hủy, đổi lịch, hoàn tiền | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §8 | P0 blocker cho Booking/Payment |
 | PRE-006 | Chốt vai trò và quyền nhân sự | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §9 | P0 blocker cho RBAC/Admin |
 | PRE-007 | Chuẩn bị domain, Supabase, SePay, email, Zalo | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §10 | Chỉ ghi identifier/reference; không ghi secret vào Git |
-| PRE-008 | Chốt bộ nhận diện, ảnh và nội dung ban đầu | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §11 | Brand/logo/contact/intro/social/Maps links đã nhận 2026-08-10; chờ quyền asset/font web, ảnh venue và legal/CTA links |
+| PRE-008 | Chốt bộ nhận diện, ảnh và nội dung ban đầu | Ready | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §11 | Đủ phạm vi CMS-005: quyền logo/brand board, photo-free homepage và system-font fallback được duyệt 2026-08-10; legal/CTA và ảnh venue vẫn ngoài phạm vi |
 
 **Gate:** Không triển khai Price Engine, Booking hoặc Payment bằng dữ liệu giả rồi kỳ vọng sửa sau.
 
@@ -68,7 +68,7 @@
 | CMS-002 | Content pages | Backlog | CMS-001 |  |  | Draft/publish |
 | CMS-003 | Media | Backlog | IAM-002, PRE-007 |  |  | Upload security |
 | CMS-004 | Blog | Backlog | CMS-002, CMS-003 |  |  | SEO metadata |
-| CMS-005 | Public layouts | Backlog | FND-001, PRE-008 | Planning-only: `docs/tasks/CMS-005.md` | Chưa chạy; chờ PRE-008 | Mobile-first; asset/content phải có quyền sử dụng |
+| CMS-005 | Public layouts | Done | FND-001, PRE-008 | `codex/cms-005-public-layouts` | 3 web tests, visual QA desktop/mobile, full lint/typecheck/test/build đạt | Mobile-first; logo/link/contact đã duyệt; photo-free homepage; không API/migration/dependency |
 | CMS-006 | Contact | Backlog | FND-004, IAM-002 |  |  | Validation/rate limit |
 | CMS-007 | SEO | Backlog | CMS-002, CMS-004, CMS-005 |  |  | Sitemap, robots, JSON-LD |
 
@@ -281,3 +281,5 @@ Người cập nhật:
 | 2026-08-09 | Codex | Hoàn tất phạm vi tài liệu MNT-004: ba planning-only spec và readiness/tracker handoff đã khóa; local lint/typecheck/test/build đạt. PRE-007/PRE-008 và BLK-001 giữ nguyên, chưa mở implementation. |
 | 2026-08-10 | Chủ dự án/Codex | Nhận PRE-008 intake: tên thương hiệu, logo Drive PNG, brand board, palette, typography, hotline, email, địa chỉ, social handle và giới thiệu ngắn. Nguồn logo tải được; không commit asset hoặc mở CMS-005 trước khi chủ dự án xác nhận quyền dùng asset/font và quyết định ảnh/social/legal/CTA còn thiếu. |
 | 2026-08-10 | Chủ dự án/Codex | Nhận URL public chính thức cho Facebook, TikTok, Instagram và Google Maps; liên kết được ghi vào PRE-008, không suy đoán URL Zalo/website hoặc CTA còn thiếu. |
+| 2026-08-10 | Chủ dự án/Codex | Chủ dự án xác nhận quyền dùng logo/brand board cho website, phê duyệt homepage không dùng ảnh venue và Bahnschrift Condensed system font với fallback. PRE-008 chuyển Ready riêng cho CMS-005; legal/CTA và ảnh venue không tự được coi là đã duyệt. |
+| 2026-08-10 | Codex | Hoàn tất CMS-005 trên branch `codex/cms-005-public-layouts`: public layout mobile-first, logo/palette/font fallback đã duyệt, phone/email/Maps/social links, loading/error/not-found và skip link. Không dùng ảnh venue, API, migration hoặc dependency. Full local quality gate và visual QA desktop/mobile đạt. |

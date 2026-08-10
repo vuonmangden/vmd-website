@@ -43,10 +43,10 @@ Các trạng thái hợp lệ: `Chờ dữ liệu`, `Đang rà soát`, `Đã duy
 
 ## 4. PRE-001 — Loại phòng
 
-**Trạng thái:** Blocked — đã nhận brand intake ngày 2026-08-10; chờ xác nhận quyền asset/font và các đầu vào public còn thiếu
+**Trạng thái:** Ready cho `CMS-005` — chủ dự án đã duyệt phạm vi layout ngày 2026-08-10; dữ liệu legal/CTA ngoài phạm vi vẫn chưa được cung cấp
 **Owner:** Chủ dự án
-**Người duyệt:** Chủ dự án — chờ xác nhận cuối
-**Ngày duyệt:** Chưa xác định
+**Người duyệt:** Chủ dự án
+**Ngày duyệt:** 2026-08-10
 
 Điền một dòng cho mỗi loại phòng:
 
@@ -235,19 +235,23 @@ Quyết định bổ sung: CORS origins production, email reply-to, Zalo có b�
 
 ### Hạng mục vẫn cần chủ dự án xác nhận/cung cấp
 
-1. Xác nhận chủ dự án có quyền cho website dùng logo PNG và brand board nêu trên.
-2. Cung cấp file web-font có license, hoặc phê duyệt dùng Bahnschrift Condensed theo system font với fallback không cùng thiết kế trên một số thiết bị.
-3. Cung cấp ảnh không gian/phòng/BBQ có quyền sử dụng, hoặc phê duyệt homepage giai đoạn đầu không dùng ảnh venue.
-4. Cung cấp hoặc tạm hoãn các link pháp lý, navigation labels và CTA/đích đến; không tự tạo link không có trang đích.
+1. Cung cấp hoặc tạm hoãn các link pháp lý và CTA/đích đến ngoài hotline, email, Maps và social URL đã duyệt; không tự tạo link không có trang đích.
+2. Cung cấp ảnh không gian/phòng/BBQ có quyền sử dụng trước khi thêm ảnh venue vào website.
+
+### Phê duyệt phạm vi CMS-005 ngày 2026-08-10
+
+- Chủ dự án xác nhận có quyền dùng logo PNG và brand board cho website.
+- Homepage giai đoạn đầu được phép không dùng ảnh venue.
+- Dùng `Bahnschrift Condensed` theo system font, với fallback khi thiết bị không có font này.
 
 | Nhóm asset/nội dung | Nguồn/link | Owner | Quyền sử dụng đã xác nhận | Trạng thái duyệt |
 |---|---|---|---|---|
-| Brand board | Chủ dự án gửi qua Codex, 2026-08-10 | Chủ dự án | Chờ xác nhận dùng trên web | Đã nhận, chưa duyệt |
-| Logo PNG | Google Drive ID `1QQEWAp26LI5PU3Vp6-mJ1-ALrdRBpcQp` | Chủ dự án | Chờ xác nhận dùng trên web | Nguồn kiểm tra được |
-| Palette và typography | Brand board ngày 2026-08-10 | Chủ dự án | Palette: nguồn đã nhận; font web license/fallback: chờ | Đã nhận một phần |
+| Brand board | Chủ dự án gửi qua Codex, 2026-08-10 | Chủ dự án | Đã xác nhận dùng trên web | Đã duyệt cho CMS-005 |
+| Logo PNG | Google Drive ID `1QQEWAp26LI5PU3Vp6-mJ1-ALrdRBpcQp` | Chủ dự án | Đã xác nhận dùng trên web | Đã duyệt cho CMS-005 |
+| Palette và typography | Brand board ngày 2026-08-10 | Chủ dự án | Palette đã duyệt; Bahnschrift Condensed system font có fallback được duyệt | Đã duyệt cho CMS-005 |
 | Thông tin liên hệ và giới thiệu | Tin nhắn chủ dự án ngày 2026-08-10 | Chủ dự án | Được cung cấp để hiển thị public | Đã nhận |
 | Facebook/TikTok/Instagram/Google Maps | Tin nhắn chủ dự án ngày 2026-08-10 | Chủ dự án | Được cung cấp để hiển thị public | Đã nhận |
-| Ảnh venue/phòng/BBQ | Chưa cung cấp | Chủ dự án | Chưa xác nhận | Chờ dữ liệu |
+| Ảnh venue/phòng/BBQ | Chưa cung cấp | Chủ dự án | Không dùng trong homepage giai đoạn đầu | Không chặn CMS-005 |
 | Link pháp lý/CTA | Chưa cung cấp | Chủ dự án | Chưa xác nhận | Chờ dữ liệu |
 
 ## 12. Điều kiện đóng BLK-001
