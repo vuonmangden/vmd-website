@@ -231,14 +231,14 @@ Quyết định bổ sung: CORS origins production, email reply-to, Zalo có b�
 - **Typography:** Bahnschrift Condensed Regular/SemiBold. Chưa có web-font file, license/source web hoặc quyết định fallback cho thiết bị không có font này.
 - **Thông tin được phép hiển thị public:** hotline `1900 9085`; email `vuongmangden.com@gmail.com`; địa chỉ `26 Đường Phạm Văn Đồng, Măng Đen, Quảng Ngãi`; social handle `@vuonmangden`.
 - **Giới thiệu ngắn:** “Nơi nghỉ dưỡng, giao lưu kết nối bạn bè”.
+- **URL public do chủ dự án cung cấp ngày 2026-08-10:** [Facebook](https://www.facebook.com/MangDenGarden/); [TikTok](https://www.tiktok.com/@vuonmangden); [Instagram](https://www.instagram.com/vuonmangden); [Google Maps](https://maps.app.goo.gl/DtzdH58QEz2p1iYW8).
 
 ### Hạng mục vẫn cần chủ dự án xác nhận/cung cấp
 
 1. Xác nhận chủ dự án có quyền cho website dùng logo PNG và brand board nêu trên.
 2. Cung cấp file web-font có license, hoặc phê duyệt dùng Bahnschrift Condensed theo system font với fallback không cùng thiết kế trên một số thiết bị.
 3. Cung cấp ảnh không gian/phòng/BBQ có quyền sử dụng, hoặc phê duyệt homepage giai đoạn đầu không dùng ảnh venue.
-4. Cung cấp URL đầy đủ cho từng kênh social, nếu các link này sẽ xuất hiện trên footer/header.
-5. Cung cấp hoặc tạm hoãn các link pháp lý, navigation labels và CTA/đích đến; không tự tạo link không có trang đích.
+4. Cung cấp hoặc tạm hoãn các link pháp lý, navigation labels và CTA/đích đến; không tự tạo link không có trang đích.
 
 | Nhóm asset/nội dung | Nguồn/link | Owner | Quyền sử dụng đã xác nhận | Trạng thái duyệt |
 |---|---|---|---|---|
@@ -246,8 +246,9 @@ Quyết định bổ sung: CORS origins production, email reply-to, Zalo có b�
 | Logo PNG | Google Drive ID `1QQEWAp26LI5PU3Vp6-mJ1-ALrdRBpcQp` | Chủ dự án | Chờ xác nhận dùng trên web | Nguồn kiểm tra được |
 | Palette và typography | Brand board ngày 2026-08-10 | Chủ dự án | Palette: nguồn đã nhận; font web license/fallback: chờ | Đã nhận một phần |
 | Thông tin liên hệ và giới thiệu | Tin nhắn chủ dự án ngày 2026-08-10 | Chủ dự án | Được cung cấp để hiển thị public | Đã nhận |
+| Facebook/TikTok/Instagram/Google Maps | Tin nhắn chủ dự án ngày 2026-08-10 | Chủ dự án | Được cung cấp để hiển thị public | Đã nhận |
 | Ảnh venue/phòng/BBQ | Chưa cung cấp | Chủ dự án | Chưa xác nhận | Chờ dữ liệu |
-| URL social/link pháp lý/CTA | Chưa cung cấp | Chủ dự án | Chưa xác nhận | Chờ dữ liệu |
+| Link pháp lý/CTA | Chưa cung cấp | Chủ dự án | Chưa xác nhận | Chờ dữ liệu |
 
 ## 12. Điều kiện đóng BLK-001
 
