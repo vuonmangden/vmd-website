@@ -68,8 +68,10 @@ async function expectResponse(
   const response = await operation;
   if (response.code !== expectedCode) {
     throw new EmailDeliveryError(
-      response.code >= 500 ? 'provider_unavailable' : 'rejected',
-      response.code >= 500,
+      response.code >= 400 && response.code < 500
+        ? 'provider_unavailable'
+        : 'rejected',
+      response.code >= 400 && response.code < 500,
       'mailpit',
     );
   }

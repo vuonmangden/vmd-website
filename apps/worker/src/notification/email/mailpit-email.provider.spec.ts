@@ -2,7 +2,11 @@ import { createServer } from 'node:net';
 import type { AddressInfo, Server } from 'node:net';
 import type { EmailConfiguration } from './email.configuration';
 import { MailpitEmailProvider } from './mailpit-email.provider';
-import type { EmailMessage } from './email.types';
+import type {
+  EmailDeliveryError,
+  EmailFailureCode,
+  EmailMessage,
+} from './email.types';
 
 const configuration: EmailConfiguration = {
   apiKey: null,
@@ -23,6 +27,13 @@ const message: EmailMessage = {
   subject: 'Synthetic subject',
   text: 'Synthetic body',
 };
+
+const smtpErrorCases = [
+  [421, 'provider_unavailable', true],
+  [450, 'provider_unavailable', true],
+  [550, 'rejected', false],
+  [554, 'rejected', false],
+] as const satisfies ReadonlyArray<readonly [number, EmailFailureCode, boolean]>;
 
 describe('MailpitEmailProvider', () => {
   let server: Server;
@@ -57,6 +68,27 @@ describe('MailpitEmailProvider', () => {
     expect(messageLines.join('\n')).toContain('Subject: Synthetic subject');
     expect(messageLines.join('\n')).toContain('Synthetic body');
   });
+
+  it.each(smtpErrorCases)(
+    'classifies SMTP %s as retryable=%s',
+    async (status, code, retryable) => {
+      const provider = new MailpitEmailProvider(configuration, async () => ({
+        close: jest.fn(),
+        command: async (command: string) => {
+          if (command === 'DATA') return { code: 354, message: 'send data' };
+          if (command.startsWith('RCPT TO')) return { code: status, message: 'response' };
+          if (command === 'QUIT') return { code: 221, message: 'bye' };
+          return { code: 250, message: 'ok' };
+        },
+      }));
+
+      await expect(provider.send(message)).rejects.toMatchObject({
+        code,
+        provider: 'mailpit',
+        retryable,
+      } satisfies Partial<EmailDeliveryError>);
+    },
+  );
 });
 
 function createMailpitCompatibleServer(
