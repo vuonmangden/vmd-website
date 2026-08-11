@@ -210,7 +210,7 @@
 | MNT-010 | PRE-007 staging-only implementation gate | Done | MNT-009 | PR #11 / `codex/mnt-010-pre007-staging-gate` | IAM-001/NTF-002 được Ready staging-only; production fail-closed đến `REL-001` và SPF/DKIM; local full gate và hosted run `31462567769` đạt |
 | MNT-011 | Staging lane completion handoff | Done | MNT-010, NTF-002 | PR #14 / `codex/mnt-011-lane-handoff` | NTF-002 Done; IAM-001 Review chờ Supabase staging E2E; local full gate và hosted run `31468935815` đạt |
 | MNT-012 | PRE-006 decision packet and IAM wave handoff | Done | IAM-001, MNT-011 | PR #15 / `codex/mnt-012-pre006-iam-wave` | IAM-002–IAM-005 planning-only specs; full local gate và hosted run `31484012208` đạt; PRE-006 vẫn chờ owner approval |
-| MNT-013 | PRE-006 owner approval | Review | MNT-012, IAM-001 | `codex/mnt-013-pre006-approval` | Owner duyệt matrix/MFA/owner/SLA; mở IAM-002; full local gate đạt; không code/migration/seed |
+| MNT-013 | PRE-006 owner approval | Done | MNT-012, IAM-001 | PR #16 / `codex/mnt-013-pre006-approval` | Owner duyệt matrix/MFA/owner/SLA; mở IAM-002; full local gate và hosted run `31484717378` đạt; không code/migration/seed |
 
 ## 15. Blocker log
 
