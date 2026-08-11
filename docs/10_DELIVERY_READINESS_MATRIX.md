@@ -30,9 +30,9 @@ Chỉ progress tracker dùng các trạng thái chuẩn `Backlog`, `Ready`, `In 
 | Task | Tracker dependency | PRE/decision evidence | Quyền hiện tại | Lý do/gate còn thiếu | Task mở khóa |
 |---|---|---|---|---|---|
 | TST-001 | MNT-002, MNT-003, FND-005 | DEC-004 Closed | IMPLEMENTATION_APPROVED sau khi MNT-003 merge | Không dùng dữ liệu thật; production guard bắt buộc | Fixture kỹ thuật cho các lane non-production |
-| IAM-001 | FND-004, FND-005, PRE-007 | PRE-007 có development/staging input và production proposal | PLANNING_ONLY | Shared Supabase, admin domain, callback và CORS production mới là đề xuất, chưa được chủ dự án chốt | IAM-002, IAM-004, IAM-005 |
+| IAM-001 | FND-004, FND-005, PRE-007 | PRE-007 chốt admin/CORS/callback production và yêu cầu tách Supabase | PLANNING_ONLY | Thiếu project URL/ref/region riêng cho production; không tự dùng project staging làm production | IAM-002, IAM-004, IAM-005 |
 | CMS-005 | FND-001, PRE-008 | PRE-008 Ready for CMS-005 | DONE | Layout đã hoàn tất theo asset/font/photo-free scope được duyệt ngày 2026-08-10; legal/CTA và ảnh venue không thuộc scope hiện tại | RMS-007, public website |
-| NTF-002 | NTF-001, PRE-007 | PRE-007 có proposal Resend/Mailpit/from | PLANNING_ONLY | Provider, reply-to, DNS verification và secret store production chưa được chốt; Mailpit chỉ cho test | NTF-004 |
+| NTF-002 | NTF-001, PRE-007 | PRE-007 chốt Resend/Mailpit/from/reply-to/DNS/Railway Variables | PLANNING_ONLY | Thiếu Resend API key reference theo environment và quyết định scope webhook/bounce; Mailpit chỉ cho test | NTF-004 |
 | RMS-001 | FND-005, IAM-002, PRE-001 | PRE-001/PRE-006 Blocked | BLOCKED | IAM-002 và danh sách loại phòng thật chưa đạt | RMS-002, RMS-003, RMS-007 |
 | BBQ-001 | FND-005, PRE-004 | PRE-004 Blocked | BLOCKED | Khu vực/bàn/slot thật chưa được duyệt | BBQ-003 |
 | PAY-001 | BKG-004, PRE-003, PRE-007 | PRE-003/PRE-007 Blocked | BLOCKED | Booking, giá/cọc và provider thật chưa đạt | PAY-002 |
