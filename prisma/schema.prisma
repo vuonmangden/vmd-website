@@ -73,6 +73,19 @@ model Customer {
   @@map("customers")
 }
 
+model StaffProfile {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  authUserId  String   @unique @map("auth_user_id") @db.Uuid
+  fullName    String   @map("full_name") @db.VarChar(150)
+  email       String   @db.Citext
+  status      String   @default("INVITED") @db.VarChar(30)
+  lastLoginAt DateTime? @map("last_login_at") @db.Timestamptz()
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@map("staff_profiles")
+}
+
 model NotificationJob {
   id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   templateCode         String    @map("template_code") @db.VarChar(80)

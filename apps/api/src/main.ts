@@ -9,6 +9,15 @@ import { ResponseTransformInterceptor } from './common/interceptors/response-tra
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
 
+  const corsOrigins = corsOriginsForEnvironment();
+  app.enableCors({
+    origin: (
+      origin: string | undefined,
+      callback: (error: Error | null, allow?: boolean) => void,
+    ) => callback(null, origin === undefined || corsOrigins.has(origin)),
+    methods: ['GET', 'POST', 'OPTIONS'],
+  });
+
   app.setGlobalPrefix('api/v1');
 
   app.useGlobalPipes(
@@ -30,6 +39,7 @@ async function bootstrap(): Promise<void> {
     .setTitle('VMD API')
     .setDescription('Villa Mộc Đà Lạt API')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api/docs', app, document);
@@ -39,3 +49,22 @@ async function bootstrap(): Promise<void> {
 }
 
 void bootstrap();
+
+function corsOriginsForEnvironment(): Set<string> {
+  const configured = process.env['CORS_ALLOWED_ORIGINS']
+    ?.split(',')
+    .map((origin) => origin.trim())
+    .filter((origin) => origin.length > 0);
+  const environment = process.env['APP_ENV'] ?? process.env['NODE_ENV'] ?? 'development';
+
+  if (environment === 'production' && (!configured || configured.length === 0)) {
+    throw new Error('CORS_ALLOWED_ORIGINS is required in production');
+  }
+
+  return new Set(configured ?? [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:3002',
+    'https://staging.vuonmangden.vn',
+  ]);
+}

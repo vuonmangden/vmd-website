@@ -3,3 +3,11 @@
 :root { color-scheme: light; font-family: system-ui, sans-serif; --vmd-color-surface: #ffffff; --vmd-color-text: #17211b; }
 body { margin: 0; }
 main { margin: 4rem auto; max-width: 48rem; padding: 1.5rem; background: var(--vmd-color-surface); color: var(--vmd-color-text); }
+.auth-page { max-width: 28rem; }
+.auth-eyebrow { color: #71553b; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.auth-form { display: grid; gap: .65rem; margin-top: 1.5rem; }
+.auth-form input, .auth-form button { border: 1px solid #365442; border-radius: .35rem; font: inherit; min-height: 2.75rem; padding: .5rem .75rem; }
+.auth-form button { background: #1f3a2e; color: #fff; cursor: pointer; }
+.auth-form button:disabled, .auth-form input:disabled { cursor: wait; opacity: .65; }
+.auth-error { color: #9d2d20; margin: 0; }
+.auth-success { color: #1f3a2e; font-weight: 600; }
