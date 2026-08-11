@@ -3,6 +3,8 @@ export interface AuthenticatedActor {
   authUserId: string;
   fullName: string;
   email: string;
+  roles: string[];
+  permissions: string[];
 }
 
 export interface AuthSession {
@@ -21,7 +23,13 @@ interface ApiEnvelope<T> {
   data: T;
 }
 
-export class AuthClientError extends Error {}
+export type AuthFailureKind = 'unauthorized' | 'forbidden' | 'unavailable' | 'unknown';
+
+export class AuthClientError extends Error {
+  constructor(message: string, readonly kind: AuthFailureKind = 'unknown') {
+    super(message);
+  }
+}
 
 let currentSession: AuthSession | undefined;
 
@@ -55,6 +63,26 @@ export async function me(): Promise<AuthenticatedActor> {
   return result.actor;
 }
 
+export async function meWithRefresh(): Promise<AuthenticatedActor> {
+  try {
+    return await me();
+  } catch (error) {
+    if (!(error instanceof AuthClientError) || error.kind !== 'unauthorized') throw error;
+  }
+
+  try {
+    await refresh();
+    return await me();
+  } catch (error) {
+    clearSession();
+    throw error;
+  }
+}
+
+export function hasSession(): boolean {
+  return currentSession !== undefined;
+}
+
 export async function logout(): Promise<void> {
   const session = requireSession();
   try {
@@ -79,12 +107,15 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
       headers: { 'content-type': 'application/json', ...init.headers },
     });
   } catch {
-    throw new AuthClientError('Authentication service is unavailable');
+    throw new AuthClientError('Authentication service is unavailable', 'unavailable');
   }
 
   const payload = await readPayload(response);
   if (!response.ok || !isApiEnvelope<T>(payload)) {
-    throw new AuthClientError('Authentication failed');
+    const kind = response.status === 401 ? 'unauthorized'
+      : response.status === 403 ? 'forbidden'
+        : response.status >= 500 ? 'unavailable' : 'unknown';
+    throw new AuthClientError('Authentication failed', kind);
   }
 
   return payload.data;

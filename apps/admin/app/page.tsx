@@ -1,3 +1,5 @@
+import { AdminRoute } from './admin-route';
+
 export default function Page() {
-  return <main><h1>VMD Admin Web</h1><p>Non-production shell. Authentication and server-side authorization are not implemented.</p></main>;
+  return <AdminRoute><main><h1>VMD Admin</h1><p>Trang quản trị được bảo vệ bằng phiên đăng nhập và quyền từ máy chủ.</p></main></AdminRoute>;
 }

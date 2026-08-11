@@ -3,11 +3,11 @@ import { describe, expect, it } from 'vitest';
 import Page from './page';
 
 describe('admin shell', () => {
-  it('renders its non-production authentication and authorization warning', () => {
+  it('starts in an accessible protected-route loading state', () => {
     const markup = renderToStaticMarkup(<Page />);
 
-    expect(markup).toContain('Non-production shell');
-    expect(markup).toContain('Authentication');
-    expect(markup).toContain('server-side authorization');
+    expect(markup).toContain('aria-busy="true"');
+    expect(markup).toContain('role="status"');
+    expect(markup).toContain('Đang kiểm tra phiên đăng nhập');
   });
 });
