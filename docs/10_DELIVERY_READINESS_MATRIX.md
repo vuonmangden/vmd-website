@@ -30,9 +30,9 @@ Chỉ progress tracker dùng các trạng thái chuẩn `Backlog`, `Ready`, `In 
 | Task | Tracker dependency | PRE/decision evidence | Quyền hiện tại | Lý do/gate còn thiếu | Task mở khóa |
 |---|---|---|---|---|---|
 | TST-001 | MNT-002, MNT-003, FND-005 | DEC-004 Closed | IMPLEMENTATION_APPROVED sau khi MNT-003 merge | Không dùng dữ liệu thật; production guard bắt buộc | Fixture kỹ thuật cho các lane non-production |
-| IAM-001 | FND-004, FND-005, PRE-007 | Staging Supabase/JWT/CORS/callback đã nhận; Chủ dự án cho phép staging-only ngày 2026-08-11 | IMPLEMENTATION_APPROVED (STAGING_ONLY) | Production phải fail-closed; `REL-001` tạo Supabase project riêng trước go-live | IAM-002, IAM-004, IAM-005 |
+| IAM-001 | FND-004, FND-005, PRE-007 | PR #13; local migration/constraints, API/Admin tests và hosted CI đạt | IN_PROGRESS (STAGING_ONLY) | Còn Supabase staging sandbox login/refresh/revoke/me E2E; production hard-disabled đến `REL-001` | IAM-002, IAM-004, IAM-005 |
 | CMS-005 | FND-001, PRE-008 | PRE-008 Ready for CMS-005 | DONE | Layout đã hoàn tất theo asset/font/photo-free scope được duyệt ngày 2026-08-10; legal/CTA và ảnh venue không thuộc scope hiện tại | RMS-007, public website |
-| NTF-002 | NTF-001, PRE-007 | Resend, from/reply-to, `RESEND_API_KEY`, staging test mode/Mailpit và webhook scope đã nhận; Chủ dự án cho phép staging-only ngày 2026-08-11 | IMPLEMENTATION_APPROVED (STAGING_ONLY) | Production gửi mail fail-closed đến khi SPF/DKIM domain được xác minh; bounce/complaint thuộc `NTF-007`/OPS | NTF-004 |
+| NTF-002 | NTF-001, PRE-007 | PR #12; Worker 27/27; PR và post-merge main CI đạt | DONE (STAGING_ONLY) | Production hard-disabled đến SPF/DKIM/REL-001; bounce/complaint thuộc `NTF-007`/OPS | NTF-004 |
 | RMS-001 | FND-005, IAM-002, PRE-001 | PRE-001/PRE-006 Blocked | BLOCKED | IAM-002 và danh sách loại phòng thật chưa đạt | RMS-002, RMS-003, RMS-007 |
 | BBQ-001 | FND-005, PRE-004 | PRE-004 Blocked | BLOCKED | Khu vực/bàn/slot thật chưa được duyệt | BBQ-003 |
 | PAY-001 | BKG-004, PRE-003, PRE-007 | PRE-003/PRE-007 Blocked | BLOCKED | Booking, giá/cọc và provider thật chưa đạt | PAY-002 |
@@ -65,8 +65,8 @@ Nếu hai task cần cùng file shared/config, task bắt đầu sau phải ch�
 
 ## 8. Thứ tự được phép hiện tại
 
-1. MNT-010 ghi nhận exception staging-only và CI xanh.
-2. Mở đồng thời `IAM-001` và `NTF-002` theo owner/file scope ở trên; không có migration, DB verification hay shared production config đồng thời.
+1. NTF-002 đã Done; không bật production hoặc mở webhook/bounce trong scope này.
+2. Hoàn tất Supabase staging sandbox E2E cho IAM-001, sau đó mới chuyển Done/merge và mở dependency tiếp theo nếu PRE-006 cho phép.
 3. `REL-001` tạo Supabase production project riêng và DNS xác minh trước go-live; production luôn fail-closed trước các gate đó.
 4. Không mở RMS/Booking/Payment/BBQ trước các gate tương ứng.
 
@@ -75,4 +75,4 @@ Nếu hai task cần cùng file shared/config, task bắt đầu sau phải ch�
 - `IAM-001`: contract, PRE checklist và ownership tại `docs/tasks/IAM-001.md`.
 - `CMS-005`: layout/accessibility/asset gate tại `docs/tasks/CMS-005.md`.
 - `NTF-002`: provider/Mailpit/security contract tại `docs/tasks/NTF-002.md`.
-- `IAM-001` và `NTF-002` đã `IMPLEMENTATION_APPROVED (STAGING_ONLY)` sau MNT-010; CMS-005 đã Done. Không task nào được xem là được duyệt production chỉ từ trạng thái này.
+- `NTF-002` đã Done staging-only; `IAM-001` đang Review staging-only. CMS-005 đã Done. Không task nào được xem là được duyệt production chỉ từ các trạng thái này.
