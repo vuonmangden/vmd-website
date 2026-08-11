@@ -204,14 +204,14 @@ Chỉ ghi identifier/reference; không ghi secret.
 | Hạng mục | Giá trị không nhạy cảm cần cung cấp | Secret/reference cần tạo | Trạng thái |
 |---|---|---|---|
 | Public domain | Chưa cung cấp | DNS credential lưu ngoài repo | Chờ dữ liệu |
-| Admin domain | Development: `http://localhost:3001`; production đề xuất `admin.vuonmangden.vn`, chưa chốt | DNS credential lưu ngoài repo | Đã nhận một phần |
-| Supabase/PostgreSQL | Project ref `atefkvykvwgtuaiscxnm`, URL `https://atefkvykvwgtuaiscxnm.supabase.co`, Singapore (`ap-southeast-1`); chủ dự án cho biết đang dùng chung cho staging và production, chờ xác nhận chính thức | `DATABASE_URL`, service credentials trong secret manager | Đã nhận một phần |
+| Admin domain | Development: `http://localhost:3001`; production `https://admin.vuonmangden.vn` đã chốt | DNS credential lưu ngoài repo | Đã nhận |
+| Supabase/PostgreSQL | Staging: project ref `atefkvykvwgtuaiscxnm`, URL `https://atefkvykvwgtuaiscxnm.supabase.co`, Singapore (`ap-southeast-1`); production phải dùng project riêng, identifier chưa cung cấp | `DATABASE_URL`, service credentials trong secret manager | Đã nhận một phần |
 | SePay | Merchant/account identifier, môi trường test | API/webhook secret trong secret manager | Chờ dữ liệu |
 | Tài khoản ngân hàng | Tên ngân hàng, tên chủ tài khoản, số tài khoản chỉ chia sẻ qua kênh an toàn | Reference secret/config | Chờ dữ liệu |
-| Email | Đề xuất Resend; staging dùng Mailpit; from `Vườn Măng Đen <noreply@vuonmangden.vn>`; reply-to chưa chốt giữa `info@vuonmangden.vn` và `hotro@vuonmangden.vn`; domain chưa xác minh | SMTP/API credential trong secret manager | Đã nhận một phần |
+| Email | Resend đã chốt; staging dùng Mailpit; from `Vườn Măng Đen <noreply@vuonmangden.vn>`; reply-to `info@vuonmangden.vn`; SPF/DKIM/DMARC do Chủ dự án xác nhận đã xác minh | Railway Variables production: reference secret chưa cung cấp | Đã nhận một phần |
 | Zalo | OA identifier, trạng thái ZNS template | App secret/token trong secret manager | Chờ dữ liệu |
 | Object storage | Provider, region, bucket naming | Access key trong secret manager | Chờ dữ liệu |
-| Hosting | Staging: Railway Variables; production: Railway Variables hoặc Vercel Environment Variables (chưa chốt provider) | Deploy credential trong secret manager | Đã nhận một phần |
+| Hosting | Staging: Railway Variables; production secret store: Railway Variables đã chốt | Deploy credential trong secret manager | Đã nhận |
 
 ### Đầu vào identity đã nhận ngày 2026-08-10
 
@@ -232,12 +232,19 @@ Chỉ ghi identifier/reference; không ghi secret.
 - **DNS gửi mail:** chưa xác minh; cần thêm SPF, DKIM và DMARC sau khi provider/identity được phê duyệt.
 - **Secret management:** local `.env` (gitignored); staging Railway Variables của service `vmd-api`; production Railway Variables project riêng hoặc Vercel Environment Variables, chưa chốt provider; CI GitHub Secrets; owner là Chủ dự án.
 
+### Xác nhận bổ sung ngày 2026-08-11
+
+- **Tách môi trường Supabase:** Chủ dự án không chấp nhận dùng chung Supabase project cho staging và production. Project production phải là project riêng; URL/ref/region chưa được cung cấp.
+- **Admin/CORS/callback production:** admin `https://admin.vuonmangden.vn`; CORS chính thức gồm `https://vuonmangden.vn`, `https://www.vuonmangden.vn`, `https://admin.vuonmangden.vn`; callback chính thức `https://admin.vuonmangden.vn/auth/callback`.
+- **Email:** chốt Resend; Mailpit chỉ staging; from `Vườn Măng Đen <noreply@vuonmangden.vn>`; reply-to `info@vuonmangden.vn`; Chủ dự án xác nhận SPF, DKIM và DMARC đã xác minh.
+- **Secret store production:** Railway Variables đã chốt; CI tiếp tục dùng GitHub Secrets.
+- **Provider limits:** kế hoạch dùng free tier Resend 100 email/ngày theo intake; khi triển khai cần kiểm tra lại limit của plan đang đăng ký và đặt rate-limit/timeout theo tài liệu provider.
+
 ### Phần còn thiếu và gate
 
-1. Chủ dự án cần xác nhận rõ việc dùng chung Supabase project cho staging/production, admin production domain, callback và danh sách CORS production cuối cùng trước khi mở `IAM-001`.
-2. Chủ dự án cần chốt Resend, một địa chỉ reply-to và owner/trạng thái xác minh DNS trước khi mở `NTF-002`; không phát email production khi SPF/DKIM/DMARC chưa được xác minh.
-3. Cần chốt một nơi lưu secret production (Railway Variables hoặc Vercel Environment Variables) và project/provider hosting tương ứng.
-4. SePay, Zalo, ngân hàng, object storage và public domain vẫn chờ dữ liệu; các task Payment/Notification/Deployment tương ứng chưa được mở.
+1. Cần Supabase project URL/ref/region riêng cho production trước khi mở `IAM-001`; không tự dùng project staging làm production.
+2. Cần reference (tên biến) của Resend API key theo từng environment và quyết định scope webhook/bounce trước khi mở `NTF-002`; không ghi key vào Git.
+3. SePay, Zalo, ngân hàng, object storage và public domain vẫn chờ dữ liệu; các task Payment/Notification/Deployment tương ứng chưa được mở.
 
 ## 11. PRE-008 — Thương hiệu, asset và nội dung
 
