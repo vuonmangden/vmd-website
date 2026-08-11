@@ -192,6 +192,26 @@ Quyết định bắt buộc:
 - MFA bắt buộc cho Super Admin và Accountant ở production; xác nhận có áp dụng thêm cho Manager không.
 - SLA nội bộ cho booking mới, payment exception và notification failure.
 
+### Gói đề xuất chờ Chủ dự án duyệt — 2026-08-11
+
+Trạng thái: `AWAITING_OWNER_APPROVAL`. Bảng này chỉ là decision packet để rút ngắn thời gian chốt PRE-006; không được seed hoặc dùng làm quyền production trước khi Chủ dự án xác nhận bằng văn bản.
+
+| Chức năng | Super Admin | Manager | Reception/Operations | Accountant | Marketing/Content |
+|---|---|---|---|---|---|
+| Xem booking | Toàn bộ | Toàn bộ | Toàn bộ | Chỉ đọc | Không |
+| Tạo/sửa booking | Có | Có | Có | Không | Không |
+| Hủy/đổi lịch | Có | Phê duyệt/thực hiện | Thực hiện theo chính sách đã duyệt | Không | Không |
+| Quản lý phòng/bàn | Có | Có | Có | Không | Không |
+| Quản lý giá/chính sách | Có | Có | Không | Chỉ đọc | Không |
+| Xem giao dịch | Có | Có | Chỉ trạng thái cần vận hành, che PII | Có | Không |
+| Đối soát/điều chỉnh tài chính | Có | Phê duyệt | Không | Tạo/xử lý hồ sơ | Không |
+| Hoàn tiền Phase 1 | Phê duyệt | Phê duyệt | Không | Đề xuất/thực hiện thủ công sau duyệt | Không |
+| Xuất bản nội dung | Có | Có | Không | Không | Có |
+| Quản lý user/role | Có | Không | Không | Không | Không |
+| Xem audit | Toàn bộ | Toàn bộ | Không | Audit tài chính | Không |
+
+Đề xuất bổ sung đang chờ duyệt: MFA production bắt buộc cho Super Admin, Manager và Accountant; Reception/Operations xử lý booking chính, Manager dự phòng; Accountant trực payment reconciliation; Accountant đề xuất và Manager/Super Admin phê duyệt refund/điều chỉnh; SLA giờ vận hành lần lượt là 15 phút cho booking mới, 30 phút cho payment exception và 2 giờ cho notification failure.
+
 ## 10. PRE-007 — Domain và tích hợp
 
 **Trạng thái:** Đã nhận một phần — đủ để mở `IAM-001` và `NTF-002` theo phạm vi staging-only; production vẫn bị chặn đến các gate riêng trước go-live.
