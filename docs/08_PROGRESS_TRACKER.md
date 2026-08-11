@@ -52,11 +52,11 @@
 
 | Task ID | Nội dung | Trạng thái | Dependency | Branch/PR | Tests/Security | Ghi chú |
 |---|---|---|---|---|---|---|
-| IAM-001 | Staff authentication | Review | FND-004, FND-005, PRE-007 | PR #13 / `codex/iam-001-staging-auth` | Local DB migration/deploy x2, API 51, Admin 4 và hosted run `31468324567` đạt; chờ Supabase staging login/refresh/revoke/me E2E | Production hard-disabled đến `REL-001`; không RBAC trong task này |
-| IAM-002 | Roles và permissions | Backlog | IAM-001, PRE-006 |  |  | Seed permission |
-| IAM-003 | Admin route protection | Backlog | IAM-002 |  |  | Frontend + backend |
-| IAM-004 | Audit service | Backlog | FND-005, IAM-001 |  |  | Immutable operational audit |
-| IAM-005 | Security middleware | Backlog | FND-004, IAM-001 |  |  | Headers, CORS, rate limit, CSRF |
+| IAM-001 | Staff authentication | Done | FND-004, FND-005, PRE-007 | PR #13 / merge `4f341fd` | Supabase staging login/me/refresh rotation/logout/revoke E2E; PR CI `31483277392` và main CI `31483454326` đạt | Production hard-disabled đến `REL-001`; không RBAC trong task này |
+| IAM-002 | Roles và permissions | Blocked | IAM-001, PRE-006 | `docs/tasks/IAM-002.md` | Planning-only contract đã có | Chờ Chủ dự án duyệt PRE-006; không seed quyền trước gate |
+| IAM-003 | Admin route protection | Backlog | IAM-002 | `docs/tasks/IAM-003.md` | Planning-only contract đã có | Frontend + backend |
+| IAM-004 | Audit service | Backlog | FND-005, IAM-001 | `docs/tasks/IAM-004.md` | Planning-only contract đã có | Immutable operational audit; viewer cần IAM-002 |
+| IAM-005 | Security middleware | Backlog | FND-004, IAM-001 | `docs/tasks/IAM-005.md` | Planning-only contract đã có | Headers, CORS, rate limit, CSRF decision |
 
 **Gate:** Authorization hoạt động trước Payment hoặc Admin nghiệp vụ.
 
@@ -209,6 +209,7 @@
 | MNT-009 | PRE-007 confirmation intake | Done | MNT-008 | `codex/mnt-009-pre007-finalization-intake` | Ghi nhận quyết định tách Supabase, CORS/callback, Resend/email DNS và Railway Variables; full lint/typecheck/test/build đạt; không có secret, code, migration hoặc provider configuration |
 | MNT-010 | PRE-007 staging-only implementation gate | Done | MNT-009 | PR #11 / `codex/mnt-010-pre007-staging-gate` | IAM-001/NTF-002 được Ready staging-only; production fail-closed đến `REL-001` và SPF/DKIM; local full gate và hosted run `31462567769` đạt |
 | MNT-011 | Staging lane completion handoff | Done | MNT-010, NTF-002 | PR #14 / `codex/mnt-011-lane-handoff` | NTF-002 Done; IAM-001 Review chờ Supabase staging E2E; local full gate và hosted run `31468935815` đạt |
+| MNT-012 | PRE-006 decision packet and IAM wave handoff | Done | IAM-001, MNT-011 | PR #15 / `codex/mnt-012-pre006-iam-wave` | IAM-002–IAM-005 planning-only specs; full local gate và hosted run `31484012208` đạt; PRE-006 vẫn chờ owner approval |
 
 ## 15. Blocker log
 
