@@ -16,8 +16,8 @@
 | Phase | Phase 1 — MVP |
 | Trạng thái tổng thể | Baseline local và GitHub-hosted đã xác minh; `main` có required CI checks và branch protection |
 | Milestone hiện tại | Milestone 0 — hoàn thiện dữ liệu thật; chuẩn bị Identity/CMS/Notification theo readiness gate |
-| Task đang thực hiện | Không có; IAM-001 và NTF-002 sẵn sàng triển khai song song theo gate staging-only |
-| Task hoàn thành | 18 (FND-001–FND-005, BKG-001, NTF-001, MNT-002–MNT-010, TST-001, CMS-005) |
+| Task đang thực hiện | IAM-001 Review trên PR #13, chờ Supabase staging sandbox E2E |
+| Task hoàn thành | 20 (FND-001–FND-005, BKG-001, NTF-001–NTF-002, MNT-002–MNT-011, TST-001, CMS-005) |
 | Blocker mở | BLK-001 — dữ liệu vận hành thật PRE-001–PRE-008 chưa được duyệt |
 | Cập nhật gần nhất | 2026-08-11 |
 
@@ -52,7 +52,7 @@
 
 | Task ID | Nội dung | Trạng thái | Dependency | Branch/PR | Tests/Security | Ghi chú |
 |---|---|---|---|---|---|---|
-| IAM-001 | Staff authentication | Ready | FND-004, FND-005, PRE-007 | Staging-only: `docs/tasks/IAM-001.md` | Mở sau MNT-010 CI; staging project `atefkvykvwgtuaiscxnm`; production fail-closed đến `REL-001` | Supabase Auth; không làm RBAC trong task này |
+| IAM-001 | Staff authentication | Review | FND-004, FND-005, PRE-007 | PR #13 / `codex/iam-001-staging-auth` | Local DB migration/deploy x2, API 51, Admin 4 và hosted run `31468324567` đạt; chờ Supabase staging login/refresh/revoke/me E2E | Production hard-disabled đến `REL-001`; không RBAC trong task này |
 | IAM-002 | Roles và permissions | Backlog | IAM-001, PRE-006 |  |  | Seed permission |
 | IAM-003 | Admin route protection | Backlog | IAM-002 |  |  | Frontend + backend |
 | IAM-004 | Audit service | Backlog | FND-005, IAM-001 |  |  | Immutable operational audit |
@@ -135,7 +135,7 @@
 | Task ID | Nội dung | Trạng thái | Dependency | Branch/PR | Tests | Ghi chú |
 |---|---|---|---|---|---|---|
 | NTF-001 | Queue và Outbox | Done | FND-005 | `chore/fnd-005-database-foundation`; audit MNT-001; PR #1 hosted verification | Worker 8/8 tests đạt; queue registration, fail-closed route và event-id job dedup regression đạt | Redis/PostgreSQL healthy; Worker startup smoke đạt với `Outbox processor started`; hosted CI đạt ngày 2026-08-09 |
-| NTF-002 | Email Adapter | Ready | NTF-001, PRE-007 | Staging-only: `docs/tasks/NTF-002.md` | Mở sau MNT-010 CI; Resend test mode/Mailpit local; production fail-closed đến SPF/DKIM | Không webhook/bounce; `sent`/`rejected` response only |
+| NTF-002 | Email Adapter | Done | NTF-001, PRE-007 | PR #12 / `codex/ntf-002-staging-email` | Worker 27/27; PR run `31463984180` và post-merge main run `31468483338` đạt | Resend staging/Mailpit local; production hard-disabled; webhook/bounce ngoài scope |
 | NTF-003 | Zalo Adapter | Backlog | NTF-001, PRE-007 |  |  | Template được duyệt |
 | NTF-004 | Booking Notifications | Backlog | NTF-002, NTF-003, BKG-005, PAY-003 |  |  |  |
 | NTF-005 | Reminders | Backlog | NTF-004, PRE-005 |  |  | T-7/T-3/T-1 |
@@ -208,6 +208,7 @@
 | MNT-008 | PRE-007 production and email proposal intake | Done | MNT-007 | `codex/mnt-008-pre007-production-intake` | Ghi nhận cấu hình production/email ở trạng thái đề xuất; full lint/typecheck/test/build đạt; không có secret, code, migration hoặc provider configuration |
 | MNT-009 | PRE-007 confirmation intake | Done | MNT-008 | `codex/mnt-009-pre007-finalization-intake` | Ghi nhận quyết định tách Supabase, CORS/callback, Resend/email DNS và Railway Variables; full lint/typecheck/test/build đạt; không có secret, code, migration hoặc provider configuration |
 | MNT-010 | PRE-007 staging-only implementation gate | Done | MNT-009 | PR #11 / `codex/mnt-010-pre007-staging-gate` | IAM-001/NTF-002 được Ready staging-only; production fail-closed đến `REL-001` và SPF/DKIM; local full gate và hosted run `31462567769` đạt |
+| MNT-011 | Staging lane completion handoff | Done | MNT-010, NTF-002 | PR #14 / `codex/mnt-011-lane-handoff` | NTF-002 Done; IAM-001 Review chờ Supabase staging E2E; local full gate và hosted run `31468935815` đạt |
 
 ## 15. Blocker log
 
@@ -290,3 +291,4 @@ Người cập nhật:
 | 2026-08-10 | Chủ dự án/Codex | Hoàn tất MNT-007: ghi nhận Supabase development/staging, JWT/JWKS, CORS/callback, email/password, session/revoke, MFA và secret-management metadata từ chủ dự án. PRE-007 vẫn partial; thiếu Supabase/admin domain/callback/CORS production nên IAM-001 chưa mở, đồng thời email provider/from identity còn thiếu cho NTF-002. Không có secret, API, migration hoặc production code; full local quality gate đạt. |
 | 2026-08-10 | Chủ dự án/Codex | Hoàn tất MNT-008: ghi nhận shared Supabase, admin/CORS/callback production và Resend/Mailpit/from/reply-to/DNS/secret-store ở trạng thái đề xuất. Không tự xem proposal là cấu hình production đã duyệt; IAM-001 và NTF-002 tiếp tục planning-only đến khi chủ dự án chốt. Không có secret, API, migration hoặc production code; full local quality gate đạt. |
 | 2026-08-11 | Chủ dự án/Codex | Hoàn tất MNT-009: chốt tách Supabase staging/production, admin/CORS/callback production, Railway Variables, Resend, email identity và DNS verified. IAM-001 vẫn chờ project Supabase production riêng; NTF-002 chờ Resend secret reference và scope webhook/bounce. Không có secret, API, migration hoặc production code; full local quality gate đạt. |
+| 2026-08-11 | Chủ dự án/Codex | NTF-002 hoàn tất qua PR #12 với Resend staging/Mailpit, Worker 27/27 và main CI `31468483338`. IAM-001 trên PR #13 đã đạt migration local, full/hosted gates nhưng giữ Review đến Supabase staging sandbox E2E; production vẫn hard-disabled đến REL-001. |
