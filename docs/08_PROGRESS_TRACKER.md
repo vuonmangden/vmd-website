@@ -16,8 +16,8 @@
 | Phase | Phase 1 — MVP |
 | Trạng thái tổng thể | Baseline local và GitHub-hosted đã xác minh; `main` có required CI checks và branch protection |
 | Milestone hiện tại | Milestone 0 — hoàn thiện dữ liệu thật; chuẩn bị Identity/CMS/Notification theo readiness gate |
-| Task đang thực hiện | MNT-011 Review; IAM-001 Review trên PR #13, chờ Supabase staging sandbox E2E |
-| Task hoàn thành | 19 (FND-001–FND-005, BKG-001, NTF-001–NTF-002, MNT-002–MNT-010, TST-001, CMS-005) |
+| Task đang thực hiện | IAM-001 Review trên PR #13, chờ Supabase staging sandbox E2E |
+| Task hoàn thành | 20 (FND-001–FND-005, BKG-001, NTF-001–NTF-002, MNT-002–MNT-011, TST-001, CMS-005) |
 | Blocker mở | BLK-001 — dữ liệu vận hành thật PRE-001–PRE-008 chưa được duyệt |
 | Cập nhật gần nhất | 2026-08-11 |
 
@@ -208,7 +208,7 @@
 | MNT-008 | PRE-007 production and email proposal intake | Done | MNT-007 | `codex/mnt-008-pre007-production-intake` | Ghi nhận cấu hình production/email ở trạng thái đề xuất; full lint/typecheck/test/build đạt; không có secret, code, migration hoặc provider configuration |
 | MNT-009 | PRE-007 confirmation intake | Done | MNT-008 | `codex/mnt-009-pre007-finalization-intake` | Ghi nhận quyết định tách Supabase, CORS/callback, Resend/email DNS và Railway Variables; full lint/typecheck/test/build đạt; không có secret, code, migration hoặc provider configuration |
 | MNT-010 | PRE-007 staging-only implementation gate | Done | MNT-009 | PR #11 / `codex/mnt-010-pre007-staging-gate` | IAM-001/NTF-002 được Ready staging-only; production fail-closed đến `REL-001` và SPF/DKIM; local full gate và hosted run `31462567769` đạt |
-| MNT-011 | Staging lane completion handoff | Review | MNT-010, NTF-002 | `codex/mnt-011-lane-handoff` | NTF-002 Done; IAM-001 Review chờ Supabase staging E2E; local/hosted evidence được đồng bộ |
+| MNT-011 | Staging lane completion handoff | Done | MNT-010, NTF-002 | PR #14 / `codex/mnt-011-lane-handoff` | NTF-002 Done; IAM-001 Review chờ Supabase staging E2E; local full gate và hosted run `31468935815` đạt |
 
 ## 15. Blocker log
 
