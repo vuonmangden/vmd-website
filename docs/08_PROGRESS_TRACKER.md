@@ -16,8 +16,8 @@
 | Phase | Phase 1 — MVP |
 | Trạng thái tổng thể | Baseline local và GitHub-hosted đã xác minh; `main` có required CI checks và branch protection |
 | Milestone hiện tại | Milestone 0 — hoàn thiện dữ liệu thật; chuẩn bị Identity/CMS/Notification theo readiness gate |
-| Task đang thực hiện | MNT-010 — Review; chờ required GitHub checks trước khi mở IAM-001/NTF-002 |
-| Task hoàn thành | 17 (FND-001–FND-005, BKG-001, NTF-001, MNT-002–MNT-009, TST-001, CMS-005) |
+| Task đang thực hiện | Không có; IAM-001 và NTF-002 sẵn sàng triển khai song song theo gate staging-only |
+| Task hoàn thành | 18 (FND-001–FND-005, BKG-001, NTF-001, MNT-002–MNT-010, TST-001, CMS-005) |
 | Blocker mở | BLK-001 — dữ liệu vận hành thật PRE-001–PRE-008 chưa được duyệt |
 | Cập nhật gần nhất | 2026-08-11 |
 
@@ -207,7 +207,7 @@
 | MNT-007 | PRE-007 identity intake and gate review | Done | MNT-004 | `codex/mnt-007-pre007-auth-intake` | Ghi nhận Supabase/JWT/CORS/auth/session/MFA/secret-management metadata; full lint/typecheck/test/build đạt; không có secret, code, migration hoặc provider configuration |
 | MNT-008 | PRE-007 production and email proposal intake | Done | MNT-007 | `codex/mnt-008-pre007-production-intake` | Ghi nhận cấu hình production/email ở trạng thái đề xuất; full lint/typecheck/test/build đạt; không có secret, code, migration hoặc provider configuration |
 | MNT-009 | PRE-007 confirmation intake | Done | MNT-008 | `codex/mnt-009-pre007-finalization-intake` | Ghi nhận quyết định tách Supabase, CORS/callback, Resend/email DNS và Railway Variables; full lint/typecheck/test/build đạt; không có secret, code, migration hoặc provider configuration |
-| MNT-010 | PRE-007 staging-only implementation gate | Review | MNT-009 | `codex/mnt-010-pre007-staging-gate` | IAM-001/NTF-002 được Ready staging-only; production fail-closed đến `REL-001` và SPF/DKIM; local full gate đạt, chờ GitHub checks |
+| MNT-010 | PRE-007 staging-only implementation gate | Done | MNT-009 | PR #11 / `codex/mnt-010-pre007-staging-gate` | IAM-001/NTF-002 được Ready staging-only; production fail-closed đến `REL-001` và SPF/DKIM; local full gate và hosted run `31462567769` đạt |
 
 ## 15. Blocker log
 
