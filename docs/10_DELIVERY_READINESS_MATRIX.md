@@ -31,7 +31,7 @@ Chỉ progress tracker dùng các trạng thái chuẩn `Backlog`, `Ready`, `In 
 |---|---|---|---|---|---|
 | TST-001 | MNT-002, MNT-003, FND-005 | DEC-004 Closed | IMPLEMENTATION_APPROVED sau khi MNT-003 merge | Không dùng dữ liệu thật; production guard bắt buộc | Fixture kỹ thuật cho các lane non-production |
 | IAM-001 | FND-004, FND-005, PRE-007 | PR #13 merge `4f341fd`; Supabase staging E2E; PR CI `31483277392`; main CI `31483454326` | DONE (STAGING_ONLY) | Production hard-disabled đến `REL-001`; MFA/RBAC thuộc task sau | IAM-002, IAM-004, IAM-005 |
-| IAM-002 | IAM-001, PRE-006 | RBAC migration/seed, local PostgreSQL verification, API 61 tests và Supabase staging trusted actor E2E | IN_REVIEW | Chờ hosted CI/PR; production MFA vẫn cần REL-001 | IAM-003, CMS/RMS/Admin dependencies |
+| IAM-002 | IAM-001, PRE-006 | PR #17; RBAC migration/seed, local PostgreSQL verification, API 61 tests, Supabase staging trusted actor E2E và hosted run `31486190686` đạt | DONE (STAGING_ONLY) | Production MFA vẫn cần REL-001 | IAM-003, CMS/RMS/Admin dependencies |
 | IAM-004 | FND-005, IAM-001 | Planning-only contract tại `docs/tasks/IAM-004.md` | PLANNING_ONLY | Audit viewer cần permission từ IAM-002; migration ownership phải tách wave | Admin/business audit |
 | IAM-005 | FND-004, IAM-001 | Planning-only contract tại `docs/tasks/IAM-005.md` | PLANNING_ONLY | Permission-failure integration cần IAM-002 | Payment/security gate |
 | CMS-005 | FND-001, PRE-008 | PRE-008 Ready for CMS-005 | DONE | Layout đã hoàn tất theo asset/font/photo-free scope được duyệt ngày 2026-08-10; legal/CTA và ảnh venue không thuộc scope hiện tại | RMS-007, public website |
