@@ -1,5 +1,5 @@
 import type { Request } from 'express';
-import { AuthService } from './auth.service';
+import { AuthService, enforceMfaPolicy } from './auth.service';
 import type { AuthConfigService } from './auth.config';
 import type { SupabaseJwtVerifier } from './supabase-jwt-verifier.service';
 import type { PrismaService } from '../../prisma/prisma.service';
@@ -30,12 +30,48 @@ describe('AuthService actor context', () => {
       authUserId,
       fullName: 'Nhân viên thử nghiệm',
       email: 'staff@example.test',
+      roles: ['RECEPTION'],
+      permissions: ['booking.read'],
     });
     expect((request as Request & { actor?: unknown }).actor).toBeDefined();
     expect(prisma.staffProfile.findUnique).toHaveBeenCalledWith({
       where: { authUserId },
-      select: { id: true, authUserId: true, fullName: true, email: true, status: true },
+      select: {
+        id: true, authUserId: true, fullName: true, email: true, status: true,
+        roleAssignments: {
+          select: {
+            role: {
+              select: {
+                code: true, isSystem: true,
+                permissions: { select: { permission: { select: { code: true } } } },
+              },
+            },
+          },
+        },
+      },
     });
+  });
+
+  it('denies an ACTIVE profile without an approved role', async () => {
+    prisma.staffProfile.findUnique.mockResolvedValue(activeProfile('ACTIVE', []));
+    await expect(service.getActorForRequest(requestWithBearer(), 'correlation-id')).rejects.toMatchObject({ status: 401 });
+  });
+
+  it('unions and sorts trusted permissions from multiple database roles', async () => {
+    prisma.staffProfile.findUnique.mockResolvedValue(activeProfile('ACTIVE', [
+      roleAssignment('MARKETING', ['report.read', 'content.manage']),
+      roleAssignment('ACCOUNTANT', ['payment.read', 'report.read']),
+    ]));
+    await expect(service.getActorForRequest(requestWithBearer(), 'correlation-id')).resolves.toMatchObject({
+      roles: ['ACCOUNTANT', 'MARKETING'],
+      permissions: ['content.manage', 'payment.read', 'report.read'],
+    });
+  });
+
+  it('fails closed for privileged MFA enforcement without aal2', () => {
+    expect(() => enforceMfaPolicy(['MANAGER'], { aal: 'aal1' }, 'staging', true)).toThrow();
+    expect(() => enforceMfaPolicy(['MANAGER'], { aal: 'aal2' }, 'staging', true)).not.toThrow();
+    expect(() => enforceMfaPolicy(['RECEPTION'], { aal: 'aal1' }, 'production')).not.toThrow();
   });
 
   it('denies a verified token when no application staff profile exists', async () => {
@@ -102,13 +138,24 @@ function requestWithBearer(): Request {
   return { headers: { authorization: 'Bearer test.header.signature' } } as Request;
 }
 
-function activeProfile(status = 'ACTIVE') {
+function activeProfile(status = 'ACTIVE', roleAssignments = [roleAssignment('RECEPTION', ['booking.read'])]) {
   return {
     id: '64d51c11-8e51-47c4-aedc-4c4e1895ab6d',
     authUserId,
     fullName: 'Nhân viên thử nghiệm',
     email: 'staff@example.test',
     status,
+    roleAssignments,
+  };
+}
+
+function roleAssignment(code: string, permissions: string[]) {
+  return {
+    role: {
+      code,
+      isSystem: true,
+      permissions: permissions.map((permissionCode) => ({ permission: { code: permissionCode } })),
+    },
   };
 }
 

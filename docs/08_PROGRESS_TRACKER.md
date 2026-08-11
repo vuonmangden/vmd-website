@@ -53,7 +53,7 @@
 | Task ID | Nội dung | Trạng thái | Dependency | Branch/PR | Tests/Security | Ghi chú |
 |---|---|---|---|---|---|---|
 | IAM-001 | Staff authentication | Done | FND-004, FND-005, PRE-007 | PR #13 / merge `4f341fd` | Supabase staging login/me/refresh rotation/logout/revoke E2E; PR CI `31483277392` và main CI `31483454326` đạt | Production hard-disabled đến `REL-001`; không RBAC trong task này |
-| IAM-002 | Roles và permissions | Ready | IAM-001, PRE-006 | `docs/tasks/IAM-002.md` | PRE-006 owner approval đạt ngày 2026-08-11 | Migration/DB owner độc quyền task tiếp theo |
+| IAM-002 | Roles và permissions | Done | IAM-001, PRE-006 | PR #17 / `codex/iam-002-rbac` | Migration blank/deploy x2, seed x2 5/15/46, API 61 tests, full local gate, Supabase staging RBAC E2E và hosted run `31486190686` đạt | Production/MFA go-live vẫn blocked đến REL-001 |
 | IAM-003 | Admin route protection | Backlog | IAM-002 | `docs/tasks/IAM-003.md` | Planning-only contract đã có | Frontend + backend |
 | IAM-004 | Audit service | Backlog | FND-005, IAM-001 | `docs/tasks/IAM-004.md` | Planning-only contract đã có | Immutable operational audit; viewer cần IAM-002 |
 | IAM-005 | Security middleware | Backlog | FND-004, IAM-001 | `docs/tasks/IAM-005.md` | Planning-only contract đã có | Headers, CORS, rate limit, CSRF decision |

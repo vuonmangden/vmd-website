@@ -25,7 +25,17 @@ interface StaffProfileActorRecord {
   fullName: string;
   email: string;
   status: string;
+  roleAssignments: Array<{
+    role: {
+      code: string;
+      isSystem: boolean;
+      permissions: Array<{ permission: { code: string } }>;
+    };
+  }>;
 }
+
+const APPROVED_ROLE_CODES = new Set(['SUPER_ADMIN', 'MANAGER', 'RECEPTION', 'ACCOUNTANT', 'MARKETING']);
+const PRODUCTION_MFA_ROLES = new Set(['SUPER_ADMIN', 'MANAGER', 'ACCOUNTANT']);
 
 @Injectable()
 export class AuthService {
@@ -94,7 +104,24 @@ export class AuthService {
     try {
       profile = await this.prisma.staffProfile.findUnique({
         where: { authUserId: verified.authUserId },
-        select: { id: true, authUserId: true, fullName: true, email: true, status: true },
+        select: {
+          id: true,
+          authUserId: true,
+          fullName: true,
+          email: true,
+          status: true,
+          roleAssignments: {
+            select: {
+              role: {
+                select: {
+                  code: true,
+                  isSystem: true,
+                  permissions: { select: { permission: { select: { code: true } } } },
+                },
+              },
+            },
+          },
+        },
       });
     } catch {
       this.logFailure(correlationId, 'profile_lookup_unavailable');
@@ -106,11 +133,28 @@ export class AuthService {
       throw authenticationFailed();
     }
 
+    const roles = [...new Set(profile.roleAssignments.map(({ role }) => role.code))].sort();
+    if (
+      roles.length === 0 ||
+      profile.roleAssignments.some(({ role }) => !role.isSystem || !APPROVED_ROLE_CODES.has(role.code))
+    ) {
+      this.logFailure(correlationId, 'invalid_role_assignment');
+      throw authenticationFailed();
+    }
+
+    enforceMfaPolicy(roles, verified.claims);
+
+    const permissions = [...new Set(
+      profile.roleAssignments.flatMap(({ role }) => role.permissions.map(({ permission }) => permission.code)),
+    )].sort();
+
     const actor: AuthenticatedActor = {
       staffProfileId: profile.id,
       authUserId: profile.authUserId,
       fullName: profile.fullName,
       email: profile.email,
+      roles,
+      permissions,
     };
     (request as AuthenticatedRequest).actor = actor;
     return actor;
@@ -194,6 +238,21 @@ export class AuthService {
 
   private logFailure(correlationId: string, reason: string): void {
     this.logger.warn({ correlationId, event: 'auth_failure', reason });
+  }
+}
+
+export function enforceMfaPolicy(
+  roles: readonly string[],
+  claims: Record<string, unknown>,
+  environment = process.env['APP_ENV'] ?? process.env['NODE_ENV'] ?? 'development',
+  stagingEnforcement = process.env['ENFORCE_PRIVILEGED_MFA'] === 'true',
+): void {
+  if (
+    (environment === 'production' || stagingEnforcement) &&
+    roles.some((role) => PRODUCTION_MFA_ROLES.has(role)) &&
+    claims['aal'] !== 'aal2'
+  ) {
+    throw authenticationFailed();
   }
 }
 

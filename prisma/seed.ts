@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 
 import { applySyntheticFixtures, authorizeSyntheticData } from '../scripts/synthetic-fixtures-lib.mjs';
+import { seedRbac } from './rbac-seed';
 
 const connectionString = process.env['DATABASE_URL'] ?? '';
 const prisma = new PrismaClient({
@@ -23,7 +24,9 @@ async function main(): Promise<void> {
     },
   });
 
-  console.log('Seed completed: app_settings smoke record inserted.');
+  await seedRbac(prisma);
+
+  console.log('Seed completed: app_settings smoke record and approved RBAC matrix inserted.');
 
   if (!syntheticAuthorization) {
     console.log('Synthetic fixtures skipped: set an explicit non-production environment and ALLOW_SYNTHETIC_DATA=true.');

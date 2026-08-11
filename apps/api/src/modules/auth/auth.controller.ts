@@ -1,11 +1,12 @@
 import { Body, Controller, Get, HttpCode, Post, Req } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { CORRELATION_ID_HEADER } from '../../common/interceptors/correlation-id.interceptor';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RefreshDto } from './dto/refresh.dto';
+import { MeResponseDto } from './dto/me-response.dto';
 import type { AuthenticatedActor, AuthSessionResponse } from './auth.types';
 
 @ApiTags('Authentication')
@@ -45,7 +46,7 @@ export class AuthController {
   @Get('me')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get the trusted staff actor for the current access token' })
-  @ApiResponse({ status: 200, description: 'Authenticated staff actor' })
+  @ApiOkResponse({ description: 'Authenticated staff actor with trusted database roles and permissions', type: MeResponseDto })
   @ApiResponse({ status: 401, description: 'Missing, invalid, inactive, or unknown staff identity' })
   async me(@Req() request: Request): Promise<{ actor: AuthenticatedActor }> {
     return { actor: await this.authService.getActorForRequest(request, correlationId(request)) };
