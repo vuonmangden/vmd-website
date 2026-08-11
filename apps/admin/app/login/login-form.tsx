@@ -21,6 +21,7 @@ export function LoginForm() {
       const result = await login(String(form.get('email') ?? ''), String(form.get('password') ?? ''));
       setName(result.actor.fullName);
       setState('authenticated');
+      window.location.assign('/');
     } catch {
       setState('idle');
       setError('Không thể đăng nhập. Vui lòng kiểm tra thông tin và thử lại.');
