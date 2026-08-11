@@ -16,10 +16,10 @@
 | Phase | Phase 1 — MVP |
 | Trạng thái tổng thể | Baseline local và GitHub-hosted đã xác minh; `main` có required CI checks và branch protection |
 | Milestone hiện tại | Milestone 0 — hoàn thiện dữ liệu thật; chuẩn bị Identity/CMS/Notification theo readiness gate |
-| Task đang thực hiện | Không có; PRE-007 đã chốt phần domain/email, chờ project Supabase production và Resend reference/scope để mở IAM-001/NTF-002 |
+| Task đang thực hiện | MNT-010 — Review; chờ required GitHub checks trước khi mở IAM-001/NTF-002 |
 | Task hoàn thành | 17 (FND-001–FND-005, BKG-001, NTF-001, MNT-002–MNT-009, TST-001, CMS-005) |
 | Blocker mở | BLK-001 — dữ liệu vận hành thật PRE-001–PRE-008 chưa được duyệt |
-| Cập nhật gần nhất | 2026-08-10 |
+| Cập nhật gần nhất | 2026-08-11 |
 
 ## 3. Milestone 0 — Chốt đầu vào
 
@@ -31,7 +31,7 @@
 | PRE-004 | Chốt khu vực, bàn, khung giờ và combo BBQ | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §7 | Chờ dữ liệu vận hành BBQ được duyệt |
 | PRE-005 | Chốt chính sách hủy, đổi lịch, hoàn tiền | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §8 | P0 blocker cho Booking/Payment |
 | PRE-006 | Chốt vai trò và quyền nhân sự | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §9 | P0 blocker cho RBAC/Admin |
-| PRE-007 | Chuẩn bị domain, Supabase, SePay, email, Zalo | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §10 | Đã chốt CORS/callback, Resend/email DNS và Railway Variables ngày 2026-08-11; còn thiếu Supabase project production riêng cho IAM và Resend secret reference/webhook-bounce scope cho NTF; không ghi secret vào Git |
+| PRE-007 | Chuẩn bị domain, Supabase, SePay, email, Zalo | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §10 | IAM-001/NTF-002 được mở staging-only ngày 2026-08-11; production vẫn chờ Supabase project riêng (`REL-001`) và SPF/DKIM. SePay/Zalo/object storage vẫn blocked; không ghi secret vào Git |
 | PRE-008 | Chốt bộ nhận diện, ảnh và nội dung ban đầu | Ready | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §11 | Đủ phạm vi CMS-005: quyền logo/brand board, photo-free homepage và system-font fallback được duyệt 2026-08-10; legal/CTA và ảnh venue vẫn ngoài phạm vi |
 
 **Gate:** Không triển khai Price Engine, Booking hoặc Payment bằng dữ liệu giả rồi kỳ vọng sửa sau.
@@ -52,7 +52,7 @@
 
 | Task ID | Nội dung | Trạng thái | Dependency | Branch/PR | Tests/Security | Ghi chú |
 |---|---|---|---|---|---|---|
-| IAM-001 | Staff authentication | Backlog | FND-004, FND-005, PRE-007 | Planning-only: `docs/tasks/IAM-001.md` | Chưa chạy; chờ Supabase/admin domain production được duyệt | Supabase Auth; không làm RBAC trong task này |
+| IAM-001 | Staff authentication | Ready | FND-004, FND-005, PRE-007 | Staging-only: `docs/tasks/IAM-001.md` | Mở sau MNT-010 CI; staging project `atefkvykvwgtuaiscxnm`; production fail-closed đến `REL-001` | Supabase Auth; không làm RBAC trong task này |
 | IAM-002 | Roles và permissions | Backlog | IAM-001, PRE-006 |  |  | Seed permission |
 | IAM-003 | Admin route protection | Backlog | IAM-002 |  |  | Frontend + backend |
 | IAM-004 | Audit service | Backlog | FND-005, IAM-001 |  |  | Immutable operational audit |
@@ -135,7 +135,7 @@
 | Task ID | Nội dung | Trạng thái | Dependency | Branch/PR | Tests | Ghi chú |
 |---|---|---|---|---|---|---|
 | NTF-001 | Queue và Outbox | Done | FND-005 | `chore/fnd-005-database-foundation`; audit MNT-001; PR #1 hosted verification | Worker 8/8 tests đạt; queue registration, fail-closed route và event-id job dedup regression đạt | Redis/PostgreSQL healthy; Worker startup smoke đạt với `Outbox processor started`; hosted CI đạt ngày 2026-08-09 |
-| NTF-002 | Email Adapter | Backlog | NTF-001, PRE-007 | Planning-only: `docs/tasks/NTF-002.md` | Chưa chạy; chờ PRE-007 | Mailpit/sandbox; production fail-closed |
+| NTF-002 | Email Adapter | Ready | NTF-001, PRE-007 | Staging-only: `docs/tasks/NTF-002.md` | Mở sau MNT-010 CI; Resend test mode/Mailpit local; production fail-closed đến SPF/DKIM | Không webhook/bounce; `sent`/`rejected` response only |
 | NTF-003 | Zalo Adapter | Backlog | NTF-001, PRE-007 |  |  | Template được duyệt |
 | NTF-004 | Booking Notifications | Backlog | NTF-002, NTF-003, BKG-005, PAY-003 |  |  |  |
 | NTF-005 | Reminders | Backlog | NTF-004, PRE-005 |  |  | T-7/T-3/T-1 |
@@ -207,6 +207,7 @@
 | MNT-007 | PRE-007 identity intake and gate review | Done | MNT-004 | `codex/mnt-007-pre007-auth-intake` | Ghi nhận Supabase/JWT/CORS/auth/session/MFA/secret-management metadata; full lint/typecheck/test/build đạt; không có secret, code, migration hoặc provider configuration |
 | MNT-008 | PRE-007 production and email proposal intake | Done | MNT-007 | `codex/mnt-008-pre007-production-intake` | Ghi nhận cấu hình production/email ở trạng thái đề xuất; full lint/typecheck/test/build đạt; không có secret, code, migration hoặc provider configuration |
 | MNT-009 | PRE-007 confirmation intake | Done | MNT-008 | `codex/mnt-009-pre007-finalization-intake` | Ghi nhận quyết định tách Supabase, CORS/callback, Resend/email DNS và Railway Variables; full lint/typecheck/test/build đạt; không có secret, code, migration hoặc provider configuration |
+| MNT-010 | PRE-007 staging-only implementation gate | Review | MNT-009 | `codex/mnt-010-pre007-staging-gate` | IAM-001/NTF-002 được Ready staging-only; production fail-closed đến `REL-001` và SPF/DKIM; local full gate đạt, chờ GitHub checks |
 
 ## 15. Blocker log
 

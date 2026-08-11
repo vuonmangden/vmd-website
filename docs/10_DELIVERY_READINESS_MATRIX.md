@@ -30,9 +30,9 @@ Chỉ progress tracker dùng các trạng thái chuẩn `Backlog`, `Ready`, `In 
 | Task | Tracker dependency | PRE/decision evidence | Quyền hiện tại | Lý do/gate còn thiếu | Task mở khóa |
 |---|---|---|---|---|---|
 | TST-001 | MNT-002, MNT-003, FND-005 | DEC-004 Closed | IMPLEMENTATION_APPROVED sau khi MNT-003 merge | Không dùng dữ liệu thật; production guard bắt buộc | Fixture kỹ thuật cho các lane non-production |
-| IAM-001 | FND-004, FND-005, PRE-007 | PRE-007 chốt admin/CORS/callback production và yêu cầu tách Supabase | PLANNING_ONLY | Thiếu project URL/ref/region riêng cho production; không tự dùng project staging làm production | IAM-002, IAM-004, IAM-005 |
+| IAM-001 | FND-004, FND-005, PRE-007 | Staging Supabase/JWT/CORS/callback đã nhận; Chủ dự án cho phép staging-only ngày 2026-08-11 | IMPLEMENTATION_APPROVED (STAGING_ONLY) | Production phải fail-closed; `REL-001` tạo Supabase project riêng trước go-live | IAM-002, IAM-004, IAM-005 |
 | CMS-005 | FND-001, PRE-008 | PRE-008 Ready for CMS-005 | DONE | Layout đã hoàn tất theo asset/font/photo-free scope được duyệt ngày 2026-08-10; legal/CTA và ảnh venue không thuộc scope hiện tại | RMS-007, public website |
-| NTF-002 | NTF-001, PRE-007 | PRE-007 chốt Resend/Mailpit/from/reply-to/DNS/Railway Variables | PLANNING_ONLY | Thiếu Resend API key reference theo environment và quyết định scope webhook/bounce; Mailpit chỉ cho test | NTF-004 |
+| NTF-002 | NTF-001, PRE-007 | Resend, from/reply-to, `RESEND_API_KEY`, staging test mode/Mailpit và webhook scope đã nhận; Chủ dự án cho phép staging-only ngày 2026-08-11 | IMPLEMENTATION_APPROVED (STAGING_ONLY) | Production gửi mail fail-closed đến khi SPF/DKIM domain được xác minh; bounce/complaint thuộc `NTF-007`/OPS | NTF-004 |
 | RMS-001 | FND-005, IAM-002, PRE-001 | PRE-001/PRE-006 Blocked | BLOCKED | IAM-002 và danh sách loại phòng thật chưa đạt | RMS-002, RMS-003, RMS-007 |
 | BBQ-001 | FND-005, PRE-004 | PRE-004 Blocked | BLOCKED | Khu vực/bàn/slot thật chưa được duyệt | BBQ-003 |
 | PAY-001 | BKG-004, PRE-003, PRE-007 | PRE-003/PRE-007 Blocked | BLOCKED | Booking, giá/cọc và provider thật chưa đạt | PAY-002 |
@@ -41,9 +41,9 @@ Chỉ progress tracker dùng các trạng thái chuẩn `Backlog`, `Ready`, `In 
 
 | Lane | Task đầu | File/module owner | Migration/DB owner | Không được chạm |
 |---|---|---|---|---|
-| A — Identity | IAM-001 | `apps/api` auth module, `packages/auth`, auth tests/config được task duyệt | IAM giữ độc quyền migration sequence và DB verification trong wave | `apps/web`, worker notification implementation |
+| A — Identity | IAM-001 | `apps/api` auth module, `packages/auth`, auth tests/config được task duyệt | IAM giữ độc quyền migration sequence và DB verification trong wave | `apps/web`, worker notification implementation; shared production config |
 | B — Public UI | CMS-005 | `apps/web`, public-only components/assets; `packages/ui` chỉ khi task scope ghi rõ | Không migration, không DB verification | API auth, Prisma, worker |
-| C — Email | NTF-002 | worker notification adapter/tests và Mailpit-only config được task duyệt | Không migration; integration resources riêng | Prisma schema/seed, public web, IAM |
+| C — Email | NTF-002 | worker notification adapter/tests, Resend staging path và Mailpit local/test config được task duyệt | Không migration; integration resources riêng | Prisma schema/seed, public web, IAM, shared production config |
 
 Nếu hai task cần cùng file shared/config, task bắt đầu sau phải chờ merge task trước hoặc điều phối lại ownership; không cho phép concurrent edit.
 
@@ -65,15 +65,14 @@ Nếu hai task cần cùng file shared/config, task bắt đầu sau phải ch�
 
 ## 8. Thứ tự được phép hiện tại
 
-1. Merge MNT-003.
-2. Triển khai TST-001 một mình trên migration/database verification lane.
-3. Song song thu thập dữ liệu thật PRE-006/PRE-007 và PRE-008; đây là công việc owner, không phải synthetic implementation.
-4. Sau khi từng PRE đạt, mở tối đa ba lane IAM-001, CMS-005, NTF-002 theo ownership ở trên.
-5. Không mở RMS/Booking/Payment/BBQ trước các gate tương ứng.
+1. MNT-010 ghi nhận exception staging-only và CI xanh.
+2. Mở đồng thời `IAM-001` và `NTF-002` theo owner/file scope ở trên; không có migration, DB verification hay shared production config đồng thời.
+3. `REL-001` tạo Supabase production project riêng và DNS xác minh trước go-live; production luôn fail-closed trước các gate đó.
+4. Không mở RMS/Booking/Payment/BBQ trước các gate tương ứng.
 
 ## 9. Planning handoff
 
 - `IAM-001`: contract, PRE checklist và ownership tại `docs/tasks/IAM-001.md`.
 - `CMS-005`: layout/accessibility/asset gate tại `docs/tasks/CMS-005.md`.
 - `NTF-002`: provider/Mailpit/security contract tại `docs/tasks/NTF-002.md`.
-- Ba spec trên không thay đổi quyền `PLANNING_ONLY`; chỉ mở branch implementation sau khi PRE tương ứng được duyệt và matrix được cập nhật.
+- `IAM-001` và `NTF-002` đã `IMPLEMENTATION_APPROVED (STAGING_ONLY)` sau MNT-010; CMS-005 đã Done. Không task nào được xem là được duyệt production chỉ từ trạng thái này.

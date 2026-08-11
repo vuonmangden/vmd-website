@@ -194,7 +194,7 @@ Quyết định bắt buộc:
 
 ## 10. PRE-007 — Domain và tích hợp
 
-**Trạng thái:** Đã nhận một phần — đủ thông tin xác thực cho development/staging; chưa đủ cấu hình production hoặc provider khác để mở implementation.
+**Trạng thái:** Đã nhận một phần — đủ để mở `IAM-001` và `NTF-002` theo phạm vi staging-only; production vẫn bị chặn đến các gate riêng trước go-live.
 **Owner:** Chủ dự án
 **Người duyệt:** Chủ dự án
 **Ngày duyệt:** 2026-08-10 (phạm vi identity development/staging)
@@ -205,10 +205,10 @@ Chỉ ghi identifier/reference; không ghi secret.
 |---|---|---|---|
 | Public domain | Chưa cung cấp | DNS credential lưu ngoài repo | Chờ dữ liệu |
 | Admin domain | Development: `http://localhost:3001`; production `https://admin.vuonmangden.vn` đã chốt | DNS credential lưu ngoài repo | Đã nhận |
-| Supabase/PostgreSQL | Staging: project ref `atefkvykvwgtuaiscxnm`, URL `https://atefkvykvwgtuaiscxnm.supabase.co`, Singapore (`ap-southeast-1`); production phải dùng project riêng, identifier chưa cung cấp | `DATABASE_URL`, service credentials trong secret manager | Đã nhận một phần |
+| Supabase/PostgreSQL | Staging: project ref `atefkvykvwgtuaiscxnm`, URL `https://atefkvykvwgtuaiscxnm.supabase.co`, Singapore (`ap-southeast-1`); production chưa tạo và phải dùng project riêng trong `REL-001` trước go-live | `DATABASE_URL`, service credentials trong secret manager | Đủ staging-only |
 | SePay | Merchant/account identifier, môi trường test | API/webhook secret trong secret manager | Chờ dữ liệu |
 | Tài khoản ngân hàng | Tên ngân hàng, tên chủ tài khoản, số tài khoản chỉ chia sẻ qua kênh an toàn | Reference secret/config | Chờ dữ liệu |
-| Email | Resend đã chốt; staging dùng Mailpit; from `Vườn Măng Đen <noreply@vuonmangden.vn>`; reply-to `info@vuonmangden.vn`; SPF/DKIM/DMARC do Chủ dự án xác nhận đã xác minh | Railway Variables production: reference secret chưa cung cấp | Đã nhận một phần |
+| Email | Resend đã chốt; staging dùng Resend test mode hoặc Mailpit local; from `Vườn Măng Đen <noreply@vuonmangden.vn>`; reply-to `info@vuonmangden.vn`; domain `vuonmangden.vn` cần xác minh SPF/DKIM trước gửi production | Railway Variables: `RESEND_API_KEY` | Đủ staging-only |
 | Zalo | OA identifier, trạng thái ZNS template | App secret/token trong secret manager | Chờ dữ liệu |
 | Object storage | Provider, region, bucket naming | Access key trong secret manager | Chờ dữ liệu |
 | Hosting | Staging: Railway Variables; production secret store: Railway Variables đã chốt | Deploy credential trong secret manager | Đã nhận |
@@ -240,10 +240,18 @@ Chỉ ghi identifier/reference; không ghi secret.
 - **Secret store production:** Railway Variables đã chốt; CI tiếp tục dùng GitHub Secrets.
 - **Provider limits:** kế hoạch dùng free tier Resend 100 email/ngày theo intake; khi triển khai cần kiểm tra lại limit của plan đang đăng ký và đặt rate-limit/timeout theo tài liệu provider.
 
+### Xác nhận staging-only ngày 2026-08-11 (ưu tiên hiện hành)
+
+- **Supabase:** production chưa được tạo. `IAM-001` được phép triển khai trên staging project `atefkvykvwgtuaiscxnm` ở Singapore; staging không được dùng làm production. `REL-001` phải tạo project Supabase production riêng trước go-live.
+- **Email:** `RESEND_API_KEY` là tên biến secret trong Railway Variables; không ghi giá trị vào Git. Tài khoản được đăng ký tại Resend; staging dùng Resend test mode hoặc Mailpit local.
+- **DNS gửi mail:** trạng thái hiện hành là domain `vuonmangden.vn` cần xác minh SPF/DKIM trước gửi production. Bất kỳ xác nhận DNS trước đó đều được thay thế bởi trạng thái này.
+- **Webhook/bounce:** ngoài phạm vi `NTF-002`. Task này chỉ gửi qua Resend API và lưu trạng thái kỹ thuật `sent`/`rejected` từ response; bounce/complaint tách sang `NTF-007` hoặc OPS task sau.
+- **Production guard:** `IAM-001` và `NTF-002` chỉ được mở implementation cho staging; không cấu hình/deploy production, không gửi email production, và phải fail-closed khi thiếu cấu hình hợp lệ.
+
 ### Phần còn thiếu và gate
 
-1. Cần Supabase project URL/ref/region riêng cho production trước khi mở `IAM-001`; không tự dùng project staging làm production.
-2. Cần reference (tên biến) của Resend API key theo từng environment và quyết định scope webhook/bounce trước khi mở `NTF-002`; không ghi key vào Git.
+1. `IAM-001` được mở staging-only. Cần Supabase production URL/ref/region riêng trong `REL-001` trước go-live; không tự dùng project staging làm production.
+2. `NTF-002` được mở staging-only với reference `RESEND_API_KEY`. Xác minh SPF/DKIM cho production vẫn do Chủ dự án thực hiện; không ghi key vào Git. Bounce/complaint webhook là `NTF-007` hoặc OPS task sau.
 3. SePay, Zalo, ngân hàng, object storage và public domain vẫn chờ dữ liệu; các task Payment/Notification/Deployment tương ứng chưa được mở.
 
 ## 11. PRE-008 — Thương hiệu, asset và nội dung
@@ -301,3 +309,4 @@ Chỉ ghi identifier/reference; không ghi secret.
 | Ngày | Nhóm | Người duyệt | Quyết định/thay đổi | Bằng chứng |
 |---|---|---|---|---|
 | Chờ cập nhật |  |  |  |  |
+| 2026-08-11 | PRE-007 staging-only | Chủ dự án | Cho phép `IAM-001` và `NTF-002` triển khai trên staging; production fail-closed đến `REL-001` và DNS verification | Tin nhắn chủ dự án ngày 2026-08-11 |
