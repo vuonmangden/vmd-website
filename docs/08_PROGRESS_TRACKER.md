@@ -30,7 +30,7 @@
 | PRE-003 | Chốt bảng giá, phụ thu và cọc | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §6 | P0 blocker cho Price Engine/Booking |
 | PRE-004 | Chốt khu vực, bàn, khung giờ và combo BBQ | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §7 | Chờ dữ liệu vận hành BBQ được duyệt |
 | PRE-005 | Chốt chính sách hủy, đổi lịch, hoàn tiền | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §8 | P0 blocker cho Booking/Payment |
-| PRE-006 | Chốt vai trò và quyền nhân sự | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §9 | P0 blocker cho RBAC/Admin |
+| PRE-006 | Chốt vai trò và quyền nhân sự | Ready | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §9 | Duyệt toàn bộ decision packet ngày 2026-08-11; mở IAM-002 |
 | PRE-007 | Chuẩn bị domain, Supabase, SePay, email, Zalo | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §10 | IAM-001/NTF-002 được mở staging-only ngày 2026-08-11; production vẫn chờ Supabase project riêng (`REL-001`) và SPF/DKIM. SePay/Zalo/object storage vẫn blocked; không ghi secret vào Git |
 | PRE-008 | Chốt bộ nhận diện, ảnh và nội dung ban đầu | Ready | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §11 | Đủ phạm vi CMS-005: quyền logo/brand board, photo-free homepage và system-font fallback được duyệt 2026-08-10; legal/CTA và ảnh venue vẫn ngoài phạm vi |
 
@@ -53,7 +53,7 @@
 | Task ID | Nội dung | Trạng thái | Dependency | Branch/PR | Tests/Security | Ghi chú |
 |---|---|---|---|---|---|---|
 | IAM-001 | Staff authentication | Done | FND-004, FND-005, PRE-007 | PR #13 / merge `4f341fd` | Supabase staging login/me/refresh rotation/logout/revoke E2E; PR CI `31483277392` và main CI `31483454326` đạt | Production hard-disabled đến `REL-001`; không RBAC trong task này |
-| IAM-002 | Roles và permissions | Blocked | IAM-001, PRE-006 | `docs/tasks/IAM-002.md` | Planning-only contract đã có | Chờ Chủ dự án duyệt PRE-006; không seed quyền trước gate |
+| IAM-002 | Roles và permissions | Ready | IAM-001, PRE-006 | `docs/tasks/IAM-002.md` | PRE-006 owner approval đạt ngày 2026-08-11 | Migration/DB owner độc quyền task tiếp theo |
 | IAM-003 | Admin route protection | Backlog | IAM-002 | `docs/tasks/IAM-003.md` | Planning-only contract đã có | Frontend + backend |
 | IAM-004 | Audit service | Backlog | FND-005, IAM-001 | `docs/tasks/IAM-004.md` | Planning-only contract đã có | Immutable operational audit; viewer cần IAM-002 |
 | IAM-005 | Security middleware | Backlog | FND-004, IAM-001 | `docs/tasks/IAM-005.md` | Planning-only contract đã có | Headers, CORS, rate limit, CSRF decision |
@@ -210,6 +210,7 @@
 | MNT-010 | PRE-007 staging-only implementation gate | Done | MNT-009 | PR #11 / `codex/mnt-010-pre007-staging-gate` | IAM-001/NTF-002 được Ready staging-only; production fail-closed đến `REL-001` và SPF/DKIM; local full gate và hosted run `31462567769` đạt |
 | MNT-011 | Staging lane completion handoff | Done | MNT-010, NTF-002 | PR #14 / `codex/mnt-011-lane-handoff` | NTF-002 Done; IAM-001 Review chờ Supabase staging E2E; local full gate và hosted run `31468935815` đạt |
 | MNT-012 | PRE-006 decision packet and IAM wave handoff | Done | IAM-001, MNT-011 | PR #15 / `codex/mnt-012-pre006-iam-wave` | IAM-002–IAM-005 planning-only specs; full local gate và hosted run `31484012208` đạt; PRE-006 vẫn chờ owner approval |
+| MNT-013 | PRE-006 owner approval | Review | MNT-012, IAM-001 | `codex/mnt-013-pre006-approval` | Owner duyệt matrix/MFA/owner/SLA; mở IAM-002; full local gate đạt; không code/migration/seed |
 
 ## 15. Blocker log
 
