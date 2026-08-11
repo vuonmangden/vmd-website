@@ -165,10 +165,10 @@ Quyết định bổ sung: quy tắc ghép bàn, giới hạn đặt trước, m
 
 ## 9. PRE-006 — Vai trò, quyền và trách nhiệm
 
-**Trạng thái:** Chờ dữ liệu
+**Trạng thái:** Ready — Chủ dự án đã duyệt toàn bộ decision packet ngày 2026-08-11
 **Owner:** Chủ dự án
-**Người duyệt:** Chưa xác định
-**Ngày duyệt:** Chưa xác định
+**Người duyệt:** Chủ dự án
+**Ngày duyệt:** 2026-08-11
 
 Các vai trò trong tài liệu kiến trúc cần chủ dự án xác nhận: Super Admin, Manager, Receptionist/Operations, Accountant, Marketing/Content.
 
@@ -194,7 +194,7 @@ Quyết định bắt buộc:
 
 ### Gói đề xuất chờ Chủ dự án duyệt — 2026-08-11
 
-Trạng thái: `AWAITING_OWNER_APPROVAL`. Bảng này chỉ là decision packet để rút ngắn thời gian chốt PRE-006; không được seed hoặc dùng làm quyền production trước khi Chủ dự án xác nhận bằng văn bản.
+Trạng thái: `APPROVED_BY_OWNER` ngày 2026-08-11. Chủ dự án xác nhận bằng văn bản: `Duyệt PRE-006 theo đề xuất`. Bảng này là nguồn chuẩn để IAM-002 seed và kiểm thử quyền; production vẫn phải đạt MFA/REL-001 trước go-live.
 
 | Chức năng | Super Admin | Manager | Reception/Operations | Accountant | Marketing/Content |
 |---|---|---|---|---|---|
@@ -210,7 +210,7 @@ Trạng thái: `AWAITING_OWNER_APPROVAL`. Bảng này chỉ là decision packet 
 | Quản lý user/role | Có | Không | Không | Không | Không |
 | Xem audit | Toàn bộ | Toàn bộ | Không | Audit tài chính | Không |
 
-Đề xuất bổ sung đang chờ duyệt: MFA production bắt buộc cho Super Admin, Manager và Accountant; Reception/Operations xử lý booking chính, Manager dự phòng; Accountant trực payment reconciliation; Accountant đề xuất và Manager/Super Admin phê duyệt refund/điều chỉnh; SLA giờ vận hành lần lượt là 15 phút cho booking mới, 30 phút cho payment exception và 2 giờ cho notification failure.
+Quyết định bổ sung đã duyệt: MFA production bắt buộc cho Super Admin, Manager và Accountant; Reception/Operations xử lý booking chính, Manager dự phòng; Accountant trực payment reconciliation; Accountant đề xuất và Manager/Super Admin phê duyệt refund/điều chỉnh; SLA giờ vận hành lần lượt là 15 phút cho booking mới, 30 phút cho payment exception và 2 giờ cho notification failure.
 
 ## 10. PRE-007 — Domain và tích hợp
 
