@@ -92,8 +92,29 @@ model RoomType {
   updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
   deletedAt       DateTime? @map("deleted_at") @db.Timestamptz()
 
+  rooms           Room[]
+
   @@index([status, sortOrder])
   @@map("room_types")
+}
+
+model Room {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  roomTypeId       String    @map("room_type_id") @db.Uuid
+  code             String    @unique @db.VarChar(50)
+  name             String    @db.VarChar(100)
+  floor            String?   @db.VarChar(50)
+  areaZone         String?   @map("area_zone") @db.VarChar(100)
+  status           String    @default("INACTIVE") @db.VarChar(30)
+  maintenanceNotes String?   @map("maintenance_notes") @db.Text
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt        DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+  deletedAt        DateTime? @map("deleted_at") @db.Timestamptz()
+
+  roomType         RoomType  @relation(fields: [roomTypeId], references: [id], onDelete: Restrict)
+
+  @@index([roomTypeId, status])
+  @@map("rooms")
 }
 
 model StaffProfile {
