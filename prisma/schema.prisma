@@ -73,6 +73,29 @@ model Customer {
   @@map("customers")
 }
 
+model RoomType {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code            String    @unique @db.VarChar(50)
+  name            String    @db.VarChar(150)
+  slug            String    @unique @db.VarChar(180)
+  shortDescription String?  @map("short_description") @db.Text
+  description     String?   @db.Text
+  standardAdults  Int       @map("standard_adults")
+  maxAdults       Int       @map("max_adults")
+  maxChildren     Int       @default(0) @map("max_children")
+  maxTotalGuests  Int       @map("max_total_guests")
+  bedConfiguration Json     @default("[]") @map("bed_configuration") @db.JsonB
+  amenities       Json     @default("[]") @db.JsonB
+  status          String   @default("DRAFT") @db.VarChar(30)
+  sortOrder       Int      @default(0) @map("sort_order")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+  deletedAt       DateTime? @map("deleted_at") @db.Timestamptz()
+
+  @@index([status, sortOrder])
+  @@map("room_types")
+}
+
 model StaffProfile {
   id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   authUserId  String   @unique @map("auth_user_id") @db.Uuid
