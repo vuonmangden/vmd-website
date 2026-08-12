@@ -94,7 +94,7 @@
 |---|---|---|---|---|---|---|
 | BKG-001 | Customer Core | Done | FND-005 | `chore/fnd-005-database-foundation`; audit MNT-001; PR #1 hosted verification | API 32/32 tests đạt; customer + outbox cùng transaction, có rollback regression | Migration `20260808000000_add_customers` áp dụng thành công trên PostgreSQL verification trắng; hosted CI đạt ngày 2026-08-09 |
 | BKG-002 | Occupancy Model | In progress | RMS-002, MNT-014 | `codex/bkg-002-occupancy-sandbox` | Unique `(room_id, stay_date)` | Synthetic-only; booking FK deferred to BKG-004 |
-| BKG-003 | Resource Hold | Backlog | BKG-002 |  |  | TTL/expiry/retry |
+| BKG-003 | Resource Hold | In progress | BKG-002, MNT-014 | `codex/bkg-003-resource-holds-sandbox` | TTL/expiry/retry | Synthetic-only; booking lifecycle deferred to BKG-004 |
 | BKG-004 | Booking Creation | Backlog | BKG-001, BKG-003, RMS-005 |  |  | Idempotency bắt buộc |
 | BKG-005 | Booking State Machine | Backlog | BKG-004 |  |  | Status history |
 | BKG-006 | Booking Checkout UI | Backlog | BKG-004, RMS-007 |  |  | Mobile/loading/error |
