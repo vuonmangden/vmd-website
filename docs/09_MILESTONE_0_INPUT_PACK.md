@@ -21,6 +21,10 @@ Dữ liệu giả lập phải tuân thủ toàn bộ điều kiện sau:
 
 Quyết định này không chuyển PRE-001 đến PRE-008 sang `Đã duyệt`, không đóng `BLK-001` và không tự động mở production readiness cho các task phụ thuộc.
 
+### Bổ sung phê duyệt synthetic booking lane — 2026-08-12
+
+Chủ dự án cho phép phát triển RMS → Booking → Payment sandbox bằng dữ liệu mẫu. Giá, cọc, phụ thu, hold TTL production, hủy/đổi/hoàn tiền, cấu hình SePay/bank và mọi giá trị thương mại vẫn là cấu hình chờ dữ liệu thật; không được phát hành production hoặc dùng làm căn cứ vận hành.
+
 ## 2. Cách duyệt nhanh
 
 1. Điền các ô `Cần chủ dự án cung cấp`.
