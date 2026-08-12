@@ -78,7 +78,7 @@
 
 | Task ID | Nội dung | Trạng thái | Dependency | Branch/PR | Tests | Ghi chú |
 |---|---|---|---|---|---|---|
-| RMS-001 | Room Types | Review | FND-005, IAM-002, MNT-014 | `codex/rms-001-room-types-implementation` | Migration blank/deploy x2, seed x2, API 68/68, fixture 8/8 và full local gate đạt; chờ hosted CI/PR | Synthetic/staging-only; PRE-001 vẫn Blocked, không production |
+| RMS-001 | Room Types | Done | FND-005, IAM-002, MNT-014 | PR #20 / `codex/rms-001-room-types-implementation` | Migration blank/deploy x2, seed x2, API 68/68, fixture 8/8, full local gate và hosted run `31593218934` đạt | Synthetic/staging-only; PRE-001 vẫn Blocked, không production |
 | RMS-002 | Physical Rooms | Backlog | RMS-001, PRE-002 |  |  |  |
 | RMS-003 | Rate Rules | Backlog | RMS-001, PRE-003 |  |  | Tiền integer VND |
 | RMS-004 | Room Blocks | Backlog | RMS-002 |  |  |  |
