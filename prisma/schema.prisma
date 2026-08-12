@@ -156,6 +156,24 @@ model RoomOccupancy {
   @@map("room_occupancies")
 }
 
+model ResourceHold {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  resourceType   String    @map("resource_type") @db.VarChar(30)
+  resourceId     String    @map("resource_id") @db.Uuid
+  referenceType  String    @map("reference_type") @db.VarChar(30)
+  referenceId    String    @map("reference_id") @db.Uuid
+  startAt        DateTime  @map("start_at") @db.Timestamptz()
+  endAt          DateTime  @map("end_at") @db.Timestamptz()
+  expiresAt      DateTime  @map("expires_at") @db.Timestamptz()
+  status         String    @db.VarChar(30)
+  idempotencyKey String    @unique @map("idempotency_key") @db.VarChar(150)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  confirmedAt    DateTime? @map("confirmed_at") @db.Timestamptz()
+  releasedAt     DateTime? @map("released_at") @db.Timestamptz()
+  @@index([resourceType, resourceId, status, expiresAt])
+  @@map("resource_holds")
+}
+
 model RoomBlock {
   id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   roomId      String    @map("room_id") @db.Uuid
