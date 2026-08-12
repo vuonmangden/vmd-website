@@ -137,9 +137,23 @@ model Room {
 
   roomType         RoomType  @relation(fields: [roomTypeId], references: [id], onDelete: Restrict)
   blocks           RoomBlock[]
+  occupancies      RoomOccupancy[]
 
   @@index([roomTypeId, status])
   @@map("rooms")
+}
+
+model RoomOccupancy {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  roomId    String   @map("room_id") @db.Uuid
+  bookingId String   @map("booking_id") @db.Uuid
+  stayDate  DateTime @map("stay_date") @db.Date
+  status    String   @db.VarChar(30)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  @@unique([roomId, stayDate])
+  @@index([bookingId])
+  @@map("room_occupancies")
 }
 
 model RoomBlock {

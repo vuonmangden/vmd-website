@@ -13,6 +13,7 @@ import { RoomPricingService } from './room-pricing.service';
 import { RoomPricingController } from './room-pricing.controller';
 import { AvailabilityService } from './availability.service';
 import { AvailabilityController } from './availability.controller';
+import { OccupancyService } from './occupancy.service';
 
-@Module({ imports: [AuthModule], controllers: [RoomTypesController, RoomsController, RoomRateRulesController, RoomBlocksController, RoomPricingController, AvailabilityController], providers: [RoomTypesService, RoomsService, RoomRateRulesService, RoomBlocksService, PriceEngineService, RoomPricingService, AvailabilityService], exports: [RoomTypesService, RoomsService, RoomRateRulesService, RoomBlocksService, PriceEngineService, RoomPricingService, AvailabilityService] })
+@Module({ imports: [AuthModule], controllers: [RoomTypesController, RoomsController, RoomRateRulesController, RoomBlocksController, RoomPricingController, AvailabilityController], providers: [RoomTypesService, RoomsService, RoomRateRulesService, RoomBlocksService, PriceEngineService, RoomPricingService, AvailabilityService, OccupancyService], exports: [RoomTypesService, RoomsService, RoomRateRulesService, RoomBlocksService, PriceEngineService, RoomPricingService, AvailabilityService, OccupancyService] })
 export class RoomsModule {}
