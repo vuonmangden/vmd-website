@@ -10,6 +10,7 @@ export const SYNTHETIC_IDS = Object.freeze({
   notificationDeduplicationKey: 'SYNTHETIC:notification:welcome:001',
   roomTypeId: '00000000-0000-4000-8000-000000000003',
   roomId: '00000000-0000-4000-8000-000000000004',
+  roomRateRuleId: '00000000-0000-4000-8000-000000000005',
 });
 
 const allowedEnvironments = new Set(['development', 'test', 'local', 'demo']);
@@ -200,6 +201,11 @@ export async function applySyntheticFixtures(prisma, authorization) {
       update: syntheticRoom(),
       create: { id: SYNTHETIC_IDS.roomId, ...syntheticRoom() },
     });
+    await transaction.roomRateRule.upsert({
+      where: { id: SYNTHETIC_IDS.roomRateRuleId },
+      update: syntheticRoomRateRule(),
+      create: { id: SYNTHETIC_IDS.roomRateRuleId, ...syntheticRoomRateRule() },
+    });
 
     return {
       marker: SYNTHETIC_MARKER,
@@ -208,6 +214,7 @@ export async function applySyntheticFixtures(prisma, authorization) {
       notificationJobId: SYNTHETIC_IDS.notificationJobId,
       roomTypeCode: 'SYNTHETIC-ROOM-TYPE-001',
       roomCode: 'SYNTHETIC-ROOM-001',
+      roomRateRuleId: SYNTHETIC_IDS.roomRateRuleId,
     };
   });
 }
@@ -216,6 +223,9 @@ export async function cleanupSyntheticFixtures(prisma, authorization) {
   requireAuthorization(authorization);
 
   return prisma.$transaction(async (transaction) => {
+    const roomRateRules = await transaction.roomRateRule.deleteMany({
+      where: { id: SYNTHETIC_IDS.roomRateRuleId, roomTypeId: SYNTHETIC_IDS.roomTypeId },
+    });
     const rooms = await transaction.room.deleteMany({
       where: { code: 'SYNTHETIC-ROOM-001', roomTypeId: SYNTHETIC_IDS.roomTypeId },
     });
@@ -249,6 +259,7 @@ export async function cleanupSyntheticFixtures(prisma, authorization) {
       customers: customers.count,
       roomTypes: roomTypes.count,
       rooms: rooms.count,
+      roomRateRules: roomRateRules.count,
       settings: settings.count,
     };
   });
@@ -281,5 +292,16 @@ function syntheticRoom() {
     floor: 'SYNTHETIC', areaZone: 'SYNTHETIC', status: 'INACTIVE',
     maintenanceNotes: 'SYNTHETIC local/dev/test/internal-demo fixture only.',
     deletedAt: null,
+  };
+}
+
+function syntheticRoomRateRule() {
+  return {
+    roomTypeId: SYNTHETIC_IDS.roomTypeId,
+    name: 'SYNTHETIC sandbox rate rule',
+    dateFrom: new Date('2099-01-01T00:00:00.000Z'),
+    dateTo: new Date('2099-02-01T00:00:00.000Z'),
+    daysOfWeek: [], nightlyPrice: 1000000n, extraAdultPrice: 0n, extraChildPrice: 0n,
+    minNights: 1, maxNights: null, priority: 0, status: 'DRAFT',
   };
 }
