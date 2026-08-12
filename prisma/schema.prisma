@@ -136,9 +136,28 @@ model Room {
   deletedAt        DateTime? @map("deleted_at") @db.Timestamptz()
 
   roomType         RoomType  @relation(fields: [roomTypeId], references: [id], onDelete: Restrict)
+  blocks           RoomBlock[]
 
   @@index([roomTypeId, status])
   @@map("rooms")
+}
+
+model RoomBlock {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  roomId      String    @map("room_id") @db.Uuid
+  startDate   DateTime  @map("start_date") @db.Date
+  endDate     DateTime  @map("end_date") @db.Date
+  reason      String    @db.Text
+  blockType   String    @map("block_type") @db.VarChar(30)
+  createdBy   String    @map("created_by") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  cancelledAt DateTime? @map("cancelled_at") @db.Timestamptz()
+
+  room      Room         @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  creator   StaffProfile @relation(fields: [createdBy], references: [id], onDelete: Restrict)
+
+  @@index([roomId, startDate, endDate])
+  @@map("room_blocks")
 }
 
 model StaffProfile {
@@ -150,6 +169,8 @@ model StaffProfile {
   lastLoginAt DateTime? @map("last_login_at") @db.Timestamptz()
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  roomBlocksCreated RoomBlock[]
 
   roleAssignments         StaffRoleAssignment[] @relation("StaffRoles")
   assignedRoleAssignments StaffRoleAssignment[] @relation("RoleAssignedBy")
