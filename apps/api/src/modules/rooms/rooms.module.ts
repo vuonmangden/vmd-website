@@ -8,6 +8,9 @@ import { RoomRateRulesController } from './room-rate-rules.controller';
 import { RoomRateRulesService } from './room-rate-rules.service';
 import { RoomBlocksController } from './room-blocks.controller';
 import { RoomBlocksService } from './room-blocks.service';
+import { PriceEngineService } from './price-engine.service';
+import { RoomPricingService } from './room-pricing.service';
+import { RoomPricingController } from './room-pricing.controller';
 
-@Module({ imports: [AuthModule], controllers: [RoomTypesController, RoomsController, RoomRateRulesController, RoomBlocksController], providers: [RoomTypesService, RoomsService, RoomRateRulesService, RoomBlocksService], exports: [RoomTypesService, RoomsService, RoomRateRulesService, RoomBlocksService] })
+@Module({ imports: [AuthModule], controllers: [RoomTypesController, RoomsController, RoomRateRulesController, RoomBlocksController, RoomPricingController], providers: [RoomTypesService, RoomsService, RoomRateRulesService, RoomBlocksService, PriceEngineService, RoomPricingService], exports: [RoomTypesService, RoomsService, RoomRateRulesService, RoomBlocksService, PriceEngineService, RoomPricingService] })
 export class RoomsModule {}
