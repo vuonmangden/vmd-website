@@ -16,6 +16,7 @@ import { AvailabilityController } from './availability.controller';
 import { OccupancyService } from './occupancy.service';
 import { ResourceHoldsService } from './resource-holds.service';
 import { BookingCreationService } from './booking-creation.service';
+import { BookingStateService } from './booking-state.service';
 
-@Module({ imports: [AuthModule], controllers: [RoomTypesController, RoomsController, RoomRateRulesController, RoomBlocksController, RoomPricingController, AvailabilityController], providers: [RoomTypesService, RoomsService, RoomRateRulesService, RoomBlocksService, PriceEngineService, RoomPricingService, AvailabilityService, OccupancyService, ResourceHoldsService, BookingCreationService], exports: [RoomTypesService, RoomsService, RoomRateRulesService, RoomBlocksService, PriceEngineService, RoomPricingService, AvailabilityService, OccupancyService, ResourceHoldsService, BookingCreationService] })
+@Module({ imports: [AuthModule], controllers: [RoomTypesController, RoomsController, RoomRateRulesController, RoomBlocksController, RoomPricingController, AvailabilityController], providers: [RoomTypesService, RoomsService, RoomRateRulesService, RoomBlocksService, PriceEngineService, RoomPricingService, AvailabilityService, OccupancyService, ResourceHoldsService, BookingCreationService, BookingStateService], exports: [RoomTypesService, RoomsService, RoomRateRulesService, RoomBlocksService, PriceEngineService, RoomPricingService, AvailabilityService, OccupancyService, ResourceHoldsService, BookingCreationService, BookingStateService] })
 export class RoomsModule {}
