@@ -37,7 +37,7 @@ Chỉ progress tracker dùng các trạng thái chuẩn `Backlog`, `Ready`, `In 
 | IAM-005 | FND-004, IAM-001 | Planning-only contract tại `docs/tasks/IAM-005.md` | PLANNING_ONLY | Permission-failure integration cần IAM-002 | Payment/security gate |
 | CMS-005 | FND-001, PRE-008 | PRE-008 Ready for CMS-005 | DONE | Layout đã hoàn tất theo asset/font/photo-free scope được duyệt ngày 2026-08-10; legal/CTA và ảnh venue không thuộc scope hiện tại | RMS-007, public website |
 | NTF-002 | NTF-001, PRE-007 | PR #12; Worker 27/27; PR và post-merge main CI đạt | DONE (STAGING_ONLY) | Production hard-disabled đến SPF/DKIM/REL-001; bounce/complaint thuộc `NTF-007`/OPS | NTF-004 |
-| RMS-001 | FND-005, IAM-002, PRE-001 | PRE-001/PRE-006 Blocked | BLOCKED | IAM-002 và danh sách loại phòng thật chưa đạt | RMS-002, RMS-003, RMS-007 |
+| RMS-001 | FND-005, IAM-002, MNT-014 | Chủ dự án duyệt synthetic lane ngày 2026-08-12; task spec `docs/tasks/RMS-001.md` | READY (SYNTHETIC_ONLY) | PRE-001 vẫn Blocked; production/data thật phải chờ owner approval | RMS-002, RMS-003, RMS-007 |
 | BBQ-001 | FND-005, PRE-004 | PRE-004 Blocked | BLOCKED | Khu vực/bàn/slot thật chưa được duyệt | BBQ-003 |
 | PAY-001 | BKG-004, PRE-003, PRE-007 | PRE-003/PRE-007 Blocked | BLOCKED | Booking, giá/cọc và provider thật chưa đạt | PAY-002 |
 
