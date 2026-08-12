@@ -9,6 +9,7 @@ export const SYNTHETIC_IDS = Object.freeze({
   notificationJobId: '00000000-0000-4000-8000-000000000002',
   notificationDeduplicationKey: 'SYNTHETIC:notification:welcome:001',
   roomTypeId: '00000000-0000-4000-8000-000000000003',
+  roomId: '00000000-0000-4000-8000-000000000004',
 });
 
 const allowedEnvironments = new Set(['development', 'test', 'local', 'demo']);
@@ -194,6 +195,11 @@ export async function applySyntheticFixtures(prisma, authorization) {
       update: syntheticRoomType(),
       create: { id: SYNTHETIC_IDS.roomTypeId, ...syntheticRoomType() },
     });
+    await transaction.room.upsert({
+      where: { code: 'SYNTHETIC-ROOM-001' },
+      update: syntheticRoom(),
+      create: { id: SYNTHETIC_IDS.roomId, ...syntheticRoom() },
+    });
 
     return {
       marker: SYNTHETIC_MARKER,
@@ -201,6 +207,7 @@ export async function applySyntheticFixtures(prisma, authorization) {
       customerCode: SYNTHETIC_IDS.customerCode,
       notificationJobId: SYNTHETIC_IDS.notificationJobId,
       roomTypeCode: 'SYNTHETIC-ROOM-TYPE-001',
+      roomCode: 'SYNTHETIC-ROOM-001',
     };
   });
 }
@@ -209,6 +216,9 @@ export async function cleanupSyntheticFixtures(prisma, authorization) {
   requireAuthorization(authorization);
 
   return prisma.$transaction(async (transaction) => {
+    const rooms = await transaction.room.deleteMany({
+      where: { code: 'SYNTHETIC-ROOM-001', roomTypeId: SYNTHETIC_IDS.roomTypeId },
+    });
     await transaction.notificationDelivery.deleteMany({
       where: { jobId: SYNTHETIC_IDS.notificationJobId },
     });
@@ -238,6 +248,7 @@ export async function cleanupSyntheticFixtures(prisma, authorization) {
       notificationJobs: notificationJobs.count,
       customers: customers.count,
       roomTypes: roomTypes.count,
+      rooms: rooms.count,
       settings: settings.count,
     };
   });
@@ -258,6 +269,17 @@ function syntheticRoomType() {
     amenities: ['SYNTHETIC amenity'],
     status: 'DRAFT',
     sortOrder: 1,
+    deletedAt: null,
+  };
+}
+
+function syntheticRoom() {
+  return {
+    roomTypeId: SYNTHETIC_IDS.roomTypeId,
+    code: 'SYNTHETIC-ROOM-001',
+    name: 'SYNTHETIC Room 001',
+    floor: 'SYNTHETIC', areaZone: 'SYNTHETIC', status: 'INACTIVE',
+    maintenanceNotes: 'SYNTHETIC local/dev/test/internal-demo fixture only.',
     deletedAt: null,
   };
 }

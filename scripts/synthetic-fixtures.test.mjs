@@ -60,12 +60,13 @@ test('fixture operations reject calls without authorization', async () => {
 });
 
 test('apply is deterministic and uses only upserts inside one transaction', async () => {
-  const calls = { settings: [], customers: [], notifications: [], roomTypes: [] };
+  const calls = { settings: [], customers: [], notifications: [], roomTypes: [], rooms: [] };
   const transaction = {
     appSetting: { upsert: async (value) => calls.settings.push(value) },
     customer: { upsert: async (value) => calls.customers.push(value) },
     notificationJob: { upsert: async (value) => calls.notifications.push(value) },
     roomType: { upsert: async (value) => calls.roomTypes.push(value) },
+    room: { upsert: async (value) => calls.rooms.push(value) },
   };
   const prisma = { $transaction: async (operation) => operation(transaction) };
   const authorization = authorizeSyntheticData(safeEnvironment);
@@ -78,6 +79,7 @@ test('apply is deterministic and uses only upserts inside one transaction', asyn
   assert.equal(calls.customers.length, 2);
   assert.equal(calls.notifications.length, 2);
   assert.equal(calls.roomTypes.length, 2);
+  assert.equal(calls.rooms.length, 2);
   assert.equal(calls.roomTypes[0].where.code, 'SYNTHETIC-ROOM-TYPE-001');
   assert.equal(calls.customers[0].where.customerCode, SYNTHETIC_IDS.customerCode);
   assert.equal(calls.notifications[0].where.id, SYNTHETIC_IDS.notificationJobId);
@@ -93,6 +95,7 @@ test('cleanup targets exact synthetic markers and cannot delete unrelated rows',
     notificationDelivery: { deleteMany: deleted('delivery') },
     notificationJob: { deleteMany: deleted('job') },
     customer: { deleteMany: deleted('customer') },
+    room: { deleteMany: deleted('room') },
     roomType: { deleteMany: deleted('roomType') },
     appSetting: { deleteMany: deleted('setting') },
   };
@@ -100,20 +103,21 @@ test('cleanup targets exact synthetic markers and cannot delete unrelated rows',
 
   await cleanupSyntheticFixtures(prisma, authorizeSyntheticData(safeEnvironment));
 
-  assert.deepEqual(calls[0].input.where, { jobId: SYNTHETIC_IDS.notificationJobId });
-  assert.deepEqual(calls[1].input.where, {
+  assert.deepEqual(calls[0].input.where, { code: 'SYNTHETIC-ROOM-001', roomTypeId: SYNTHETIC_IDS.roomTypeId });
+  assert.deepEqual(calls[1].input.where, { jobId: SYNTHETIC_IDS.notificationJobId });
+  assert.deepEqual(calls[2].input.where, {
     id: SYNTHETIC_IDS.notificationJobId,
     deduplicationKey: SYNTHETIC_IDS.notificationDeduplicationKey,
   });
-  assert.deepEqual(calls[2].input.where, {
+  assert.deepEqual(calls[3].input.where, {
     customerCode: SYNTHETIC_IDS.customerCode,
     source: 'SYNTHETIC',
   });
-  assert.deepEqual(calls[3].input.where, {
+  assert.deepEqual(calls[4].input.where, {
     code: 'SYNTHETIC-ROOM-TYPE-001',
     slug: 'synthetic-room-type-001',
   });
-  assert.deepEqual(calls[4].input.where, {
+  assert.deepEqual(calls[5].input.where, {
     key: { in: [...SYNTHETIC_SETTING_KEYS] },
     category: 'synthetic-fixture',
   });
