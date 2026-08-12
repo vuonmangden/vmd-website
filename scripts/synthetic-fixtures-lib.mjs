@@ -11,6 +11,9 @@ export const SYNTHETIC_IDS = Object.freeze({
   roomTypeId: '00000000-0000-4000-8000-000000000003',
   roomId: '00000000-0000-4000-8000-000000000004',
   roomRateRuleId: '00000000-0000-4000-8000-000000000005',
+  staffProfileId: '00000000-0000-4000-8000-000000000006',
+  staffAuthUserId: '00000000-0000-4000-8000-000000000007',
+  roomBlockId: '00000000-0000-4000-8000-000000000008',
 });
 
 const allowedEnvironments = new Set(['development', 'test', 'local', 'demo']);
@@ -206,6 +209,16 @@ export async function applySyntheticFixtures(prisma, authorization) {
       update: syntheticRoomRateRule(),
       create: { id: SYNTHETIC_IDS.roomRateRuleId, ...syntheticRoomRateRule() },
     });
+    await transaction.staffProfile.upsert({
+      where: { authUserId: SYNTHETIC_IDS.staffAuthUserId },
+      update: syntheticStaffProfile(),
+      create: { id: SYNTHETIC_IDS.staffProfileId, ...syntheticStaffProfile() },
+    });
+    await transaction.roomBlock.upsert({
+      where: { id: SYNTHETIC_IDS.roomBlockId },
+      update: syntheticRoomBlock(),
+      create: { id: SYNTHETIC_IDS.roomBlockId, ...syntheticRoomBlock() },
+    });
 
     return {
       marker: SYNTHETIC_MARKER,
@@ -215,6 +228,7 @@ export async function applySyntheticFixtures(prisma, authorization) {
       roomTypeCode: 'SYNTHETIC-ROOM-TYPE-001',
       roomCode: 'SYNTHETIC-ROOM-001',
       roomRateRuleId: SYNTHETIC_IDS.roomRateRuleId,
+      roomBlockId: SYNTHETIC_IDS.roomBlockId,
     };
   });
 }
@@ -223,6 +237,9 @@ export async function cleanupSyntheticFixtures(prisma, authorization) {
   requireAuthorization(authorization);
 
   return prisma.$transaction(async (transaction) => {
+    const roomBlocks = await transaction.roomBlock.deleteMany({
+      where: { id: SYNTHETIC_IDS.roomBlockId, roomId: SYNTHETIC_IDS.roomId, createdBy: SYNTHETIC_IDS.staffProfileId },
+    });
     const roomRateRules = await transaction.roomRateRule.deleteMany({
       where: { id: SYNTHETIC_IDS.roomRateRuleId, roomTypeId: SYNTHETIC_IDS.roomTypeId },
     });
@@ -253,6 +270,9 @@ export async function cleanupSyntheticFixtures(prisma, authorization) {
         category: 'synthetic-fixture',
       },
     });
+    const staffProfiles = await transaction.staffProfile.deleteMany({
+      where: { id: SYNTHETIC_IDS.staffProfileId, authUserId: SYNTHETIC_IDS.staffAuthUserId, email: 'synthetic.staff.001@example.com' },
+    });
 
     return {
       notificationJobs: notificationJobs.count,
@@ -260,6 +280,8 @@ export async function cleanupSyntheticFixtures(prisma, authorization) {
       roomTypes: roomTypes.count,
       rooms: rooms.count,
       roomRateRules: roomRateRules.count,
+      roomBlocks: roomBlocks.count,
+      staffProfiles: staffProfiles.count,
       settings: settings.count,
     };
   });
@@ -304,4 +326,12 @@ function syntheticRoomRateRule() {
     daysOfWeek: [], nightlyPrice: 1000000n, extraAdultPrice: 0n, extraChildPrice: 0n,
     minNights: 1, maxNights: null, priority: 0, status: 'DRAFT',
   };
+}
+
+function syntheticStaffProfile() {
+  return { authUserId: SYNTHETIC_IDS.staffAuthUserId, fullName: 'SYNTHETIC Staff 001', email: 'synthetic.staff.001@example.com', status: 'ACTIVE', lastLoginAt: null };
+}
+
+function syntheticRoomBlock() {
+  return { roomId: SYNTHETIC_IDS.roomId, startDate: new Date('2099-03-01T00:00:00.000Z'), endDate: new Date('2099-03-03T00:00:00.000Z'), reason: 'SYNTHETIC maintenance block', blockType: 'MAINTENANCE', createdBy: SYNTHETIC_IDS.staffProfileId, cancelledAt: null };
 }
