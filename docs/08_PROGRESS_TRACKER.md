@@ -96,7 +96,7 @@
 | BKG-002 | Occupancy Model | In progress | RMS-002, MNT-014 | `codex/bkg-002-occupancy-sandbox` | Unique `(room_id, stay_date)` | Synthetic-only; booking FK deferred to BKG-004 |
 | BKG-003 | Resource Hold | In progress | BKG-002, MNT-014 | `codex/bkg-003-resource-holds-sandbox` | TTL/expiry/retry | Synthetic-only; booking lifecycle deferred to BKG-004 |
 | BKG-004 | Booking Creation | Backlog | BKG-001, BKG-003, RMS-005 |  |  | Idempotency bắt buộc |
-| BKG-005 | Booking State Machine | Backlog | BKG-004 |  |  | Status history |
+| BKG-005 | Booking State Machine | In progress | BKG-004, MNT-014 | `codex/bkg-005-booking-state-sandbox` | Status history | Synthetic-only; no payment/refund policy |
 | BKG-006 | Booking Checkout UI | Backlog | BKG-004, RMS-007 |  |  | Mobile/loading/error |
 | BKG-007 | Booking Lookup | Backlog | BKG-004 |  |  | Rate limit/IDOR |
 | BKG-008 | Admin Booking | Backlog | BKG-005, IAM-003 |  |  | Permission/audit |

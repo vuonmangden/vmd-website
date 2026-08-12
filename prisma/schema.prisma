@@ -91,8 +91,21 @@ model Booking {
   customer     Customer     @relation(fields: [customerId], references: [id], onDelete: Restrict)
   rooms        BookingRoom[]
   occupancies  RoomOccupancy[]
+  statusHistory BookingStatusHistory[]
   @@index([status, checkInDate])
   @@map("bookings")
+}
+
+model BookingStatusHistory {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bookingId  String   @map("booking_id") @db.Uuid
+  fromStatus String?  @map("from_status") @db.VarChar(40)
+  toStatus   String   @map("to_status") @db.VarChar(40)
+  reason     String?  @db.Text
+  changedAt  DateTime @default(now()) @map("changed_at") @db.Timestamptz()
+  booking    Booking  @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  @@index([bookingId, changedAt])
+  @@map("booking_status_history")
 }
 
 model BookingRoom {
