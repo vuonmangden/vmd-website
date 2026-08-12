@@ -8,6 +8,7 @@ export const SYNTHETIC_IDS = Object.freeze({
   customerCode: 'SYNTHETIC-CUSTOMER-001',
   notificationJobId: '00000000-0000-4000-8000-000000000002',
   notificationDeduplicationKey: 'SYNTHETIC:notification:welcome:001',
+  roomTypeId: '00000000-0000-4000-8000-000000000003',
 });
 
 const allowedEnvironments = new Set(['development', 'test', 'local', 'demo']);
@@ -188,11 +189,18 @@ export async function applySyntheticFixtures(prisma, authorization) {
       },
     });
 
+    await transaction.roomType.upsert({
+      where: { code: 'SYNTHETIC-ROOM-TYPE-001' },
+      update: syntheticRoomType(),
+      create: { id: SYNTHETIC_IDS.roomTypeId, ...syntheticRoomType() },
+    });
+
     return {
       marker: SYNTHETIC_MARKER,
       settingCount: appSettings.length,
       customerCode: SYNTHETIC_IDS.customerCode,
       notificationJobId: SYNTHETIC_IDS.notificationJobId,
+      roomTypeCode: 'SYNTHETIC-ROOM-TYPE-001',
     };
   });
 }
@@ -216,6 +224,9 @@ export async function cleanupSyntheticFixtures(prisma, authorization) {
         source: SYNTHETIC_MARKER,
       },
     });
+    const roomTypes = await transaction.roomType.deleteMany({
+      where: { code: 'SYNTHETIC-ROOM-TYPE-001', slug: 'synthetic-room-type-001' },
+    });
     const settings = await transaction.appSetting.deleteMany({
       where: {
         key: { in: [...SYNTHETIC_SETTING_KEYS] },
@@ -226,7 +237,27 @@ export async function cleanupSyntheticFixtures(prisma, authorization) {
     return {
       notificationJobs: notificationJobs.count,
       customers: customers.count,
+      roomTypes: roomTypes.count,
       settings: settings.count,
     };
   });
+}
+
+function syntheticRoomType() {
+  return {
+    code: 'SYNTHETIC-ROOM-TYPE-001',
+    name: 'SYNTHETIC Room Type 001',
+    slug: 'synthetic-room-type-001',
+    shortDescription: 'SYNTHETIC local/dev/test/internal-demo fixture only.',
+    description: 'SYNTHETIC fixture; not an offer, rate, policy or production room inventory.',
+    standardAdults: 2,
+    maxAdults: 2,
+    maxChildren: 0,
+    maxTotalGuests: 2,
+    bedConfiguration: ['SYNTHETIC bed configuration'],
+    amenities: ['SYNTHETIC amenity'],
+    status: 'DRAFT',
+    sortOrder: 1,
+    deletedAt: null,
+  };
 }

@@ -60,11 +60,12 @@ test('fixture operations reject calls without authorization', async () => {
 });
 
 test('apply is deterministic and uses only upserts inside one transaction', async () => {
-  const calls = { settings: [], customers: [], notifications: [] };
+  const calls = { settings: [], customers: [], notifications: [], roomTypes: [] };
   const transaction = {
     appSetting: { upsert: async (value) => calls.settings.push(value) },
     customer: { upsert: async (value) => calls.customers.push(value) },
     notificationJob: { upsert: async (value) => calls.notifications.push(value) },
+    roomType: { upsert: async (value) => calls.roomTypes.push(value) },
   };
   const prisma = { $transaction: async (operation) => operation(transaction) };
   const authorization = authorizeSyntheticData(safeEnvironment);
@@ -76,6 +77,8 @@ test('apply is deterministic and uses only upserts inside one transaction', asyn
   assert.equal(calls.settings.length, SYNTHETIC_SETTING_KEYS.length * 2);
   assert.equal(calls.customers.length, 2);
   assert.equal(calls.notifications.length, 2);
+  assert.equal(calls.roomTypes.length, 2);
+  assert.equal(calls.roomTypes[0].where.code, 'SYNTHETIC-ROOM-TYPE-001');
   assert.equal(calls.customers[0].where.customerCode, SYNTHETIC_IDS.customerCode);
   assert.equal(calls.notifications[0].where.id, SYNTHETIC_IDS.notificationJobId);
 });
@@ -90,6 +93,7 @@ test('cleanup targets exact synthetic markers and cannot delete unrelated rows',
     notificationDelivery: { deleteMany: deleted('delivery') },
     notificationJob: { deleteMany: deleted('job') },
     customer: { deleteMany: deleted('customer') },
+    roomType: { deleteMany: deleted('roomType') },
     appSetting: { deleteMany: deleted('setting') },
   };
   const prisma = { $transaction: async (operation) => operation(transaction) };
@@ -106,6 +110,10 @@ test('cleanup targets exact synthetic markers and cannot delete unrelated rows',
     source: 'SYNTHETIC',
   });
   assert.deepEqual(calls[3].input.where, {
+    code: 'SYNTHETIC-ROOM-TYPE-001',
+    slug: 'synthetic-room-type-001',
+  });
+  assert.deepEqual(calls[4].input.where, {
     key: { in: [...SYNTHETIC_SETTING_KEYS] },
     category: 'synthetic-fixture',
   });
