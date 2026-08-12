@@ -66,11 +66,50 @@ model Customer {
   lastBookingAt     DateTime? @map("last_booking_at") @db.Timestamptz()
   createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt         DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+  bookings          Booking[]
   deletedAt         DateTime? @map("deleted_at") @db.Timestamptz()
 
   @@index([phoneNormalized])
   @@index([emailNormalized])
   @@map("customers")
+}
+
+model Booking {
+  id           String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bookingCode  String       @unique @map("booking_code") @db.VarChar(30)
+  customerId   String       @map("customer_id") @db.Uuid
+  checkInDate  DateTime     @map("check_in_date") @db.Date
+  checkOutDate DateTime     @map("check_out_date") @db.Date
+  adults       Int
+  children     Int          @default(0)
+  status       String       @db.VarChar(40)
+  source       String       @db.VarChar(50)
+  totalAmount  BigInt       @map("total_amount")
+  currency     String       @default("VND") @db.Char(3)
+  createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt    DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+  customer     Customer     @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  rooms        BookingRoom[]
+  occupancies  RoomOccupancy[]
+  @@index([status, checkInDate])
+  @@map("bookings")
+}
+
+model BookingRoom {
+  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bookingId           String   @map("booking_id") @db.Uuid
+  roomId              String   @map("room_id") @db.Uuid
+  roomTypeId          String   @map("room_type_id") @db.Uuid
+  nightlyRateSnapshot Json     @map("nightly_rate_snapshot")
+  amount              BigInt
+  adults              Int
+  children            Int      @default(0)
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  booking             Booking  @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  room                Room     @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  roomType            RoomType @relation(fields: [roomTypeId], references: [id], onDelete: Restrict)
+  @@index([bookingId])
+  @@map("booking_rooms")
 }
 
 model RoomType {
@@ -94,6 +133,7 @@ model RoomType {
 
   rooms           Room[]
   rateRules       RoomRateRule[]
+  bookingRooms    BookingRoom[]
 
   @@index([status, sortOrder])
   @@map("room_types")
@@ -138,6 +178,7 @@ model Room {
   roomType         RoomType  @relation(fields: [roomTypeId], references: [id], onDelete: Restrict)
   blocks           RoomBlock[]
   occupancies      RoomOccupancy[]
+  bookingRooms     BookingRoom[]
 
   @@index([roomTypeId, status])
   @@map("rooms")
@@ -151,6 +192,7 @@ model RoomOccupancy {
   status    String   @db.VarChar(30)
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
   room      Room     @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Restrict)
   @@unique([roomId, stayDate])
   @@index([bookingId])
   @@map("room_occupancies")
