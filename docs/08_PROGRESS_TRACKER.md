@@ -81,7 +81,7 @@
 | RMS-001 | Room Types | Done | FND-005, IAM-002, MNT-014 | PR #20 / `codex/rms-001-room-types-implementation` | Migration blank/deploy x2, seed x2, API 68/68, fixture 8/8, full local gate và hosted run `31593218934` đạt | Synthetic/staging-only; PRE-001 vẫn Blocked, không production |
 | RMS-002 | Physical Rooms | Done | RMS-001, MNT-014 | PR #21 / `codex/rms-002-physical-rooms-synthetic` | Migration blank/deploy x2, seed x2, API 68/68, fixture 8/8, full local gate và hosted run `31594299696` đạt | Synthetic/staging-only; PRE-002 vẫn Blocked, không production |
 | RMS-003 | Rate Rules | Done | RMS-001, MNT-014 | PR #22 / `codex/rms-003-rate-rules-sandbox` | Migration blank/deploy x2, seed x2, API 72/72, fixture 8/8, hosted run `31598071210` đạt | Synthetic-only; PRE-003/PRE-005 vẫn Blocked, không public price hoặc production policy |
-| RMS-004 | Room Blocks | Review | RMS-002, MNT-014 | `codex/rms-004-room-blocks-sandbox` | Migration blank/deploy x2, seed x2, API 76/76, fixture 8/8, full local gate; chờ hosted CI | Synthetic-only; không thay `PRE-002`, không public booking |
+| RMS-004 | Room Blocks | Done | RMS-002, MNT-014 | PR #23 / `codex/rms-004-room-blocks-sandbox` | Migration blank/deploy x2, seed x2, API 76/76, fixture 8/8, hosted run `31599535588` đạt | Synthetic-only; không thay `PRE-002`, không public booking |
 | RMS-005 | Price Engine | Backlog | RMS-003, PRE-003, PRE-005 |  |  | Unit test bắt buộc |
 | RMS-006 | Availability Search | Backlog | RMS-002, RMS-004 |  |  | Integration/concurrency |
 | RMS-007 | Public room pages | Backlog | RMS-001, RMS-005, RMS-006, CMS-005 |  |  |  |
