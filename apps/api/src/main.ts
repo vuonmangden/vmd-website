@@ -1,21 +1,30 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { json } from 'express';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { CorrelationIdInterceptor } from './common/interceptors/correlation-id.interceptor';
 import { ResponseTransformInterceptor } from './common/interceptors/response-transform.interceptor';
+import { SecurityConfigService } from './common/security/security.config';
+import { requireJsonForAuth, securityHeadersMiddleware } from './common/security/security.middleware';
 
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bodyParser: false });
+  const securityConfig = new SecurityConfigService().get();
 
-  const corsOrigins = corsOriginsForEnvironment();
+  app.getHttpAdapter().getInstance().set('trust proxy', (address: string) => securityConfig.trustedProxyIps.has(address));
+  app.use(securityHeadersMiddleware(securityConfig));
+  app.use(requireJsonForAuth);
+  app.use(json({ limit: securityConfig.requestBodyLimit, type: 'application/json' }));
   app.enableCors({
     origin: (
       origin: string | undefined,
       callback: (error: Error | null, allow?: boolean) => void,
-    ) => callback(null, origin === undefined || corsOrigins.has(origin)),
-    methods: ['GET', 'POST', 'OPTIONS'],
+    ) => callback(null, origin === undefined || securityConfig.corsOrigins.has(origin)),
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Authorization', 'Content-Type', 'Idempotency-Key', 'X-Correlation-Id'],
+    maxAge: 600,
   });
 
   app.setGlobalPrefix('api/v1');
@@ -49,22 +58,3 @@ async function bootstrap(): Promise<void> {
 }
 
 void bootstrap();
-
-function corsOriginsForEnvironment(): Set<string> {
-  const configured = process.env['CORS_ALLOWED_ORIGINS']
-    ?.split(',')
-    .map((origin) => origin.trim())
-    .filter((origin) => origin.length > 0);
-  const environment = process.env['APP_ENV'] ?? process.env['NODE_ENV'] ?? 'development';
-
-  if (environment === 'production' && (!configured || configured.length === 0)) {
-    throw new Error('CORS_ALLOWED_ORIGINS is required in production');
-  }
-
-  return new Set(configured ?? [
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'http://localhost:3002',
-    'https://staging.vuonmangden.vn',
-  ]);
-}

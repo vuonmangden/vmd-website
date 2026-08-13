@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Post, Req, UnauthorizedException } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { CORRELATION_ID_HEADER } from '../../common/interceptors/correlation-id.interceptor';
@@ -8,11 +8,20 @@ import { LoginDto } from './dto/login.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import { MeResponseDto } from './dto/me-response.dto';
 import type { AuthenticatedActor, AuthSessionResponse } from './auth.types';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import { LoginRateLimitService } from './login-rate-limit.service';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import { SecurityConfigService } from '../../common/security/security.config';
+import { clientIp } from '../../common/security/security.middleware';
 
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly loginRateLimit: LoginRateLimitService,
+    private readonly securityConfig: SecurityConfigService,
+  ) {}
 
   @Post('login')
   @HttpCode(200)
@@ -20,8 +29,19 @@ export class AuthController {
   @ApiBody({ type: LoginDto })
   @ApiResponse({ status: 200, description: 'Authenticated staff session' })
   @ApiResponse({ status: 401, description: 'Invalid credentials or inactive staff profile' })
+  @ApiResponse({ status: 429, description: 'Too many failed login attempts' })
   async login(@Body() dto: LoginDto, @Req() request: Request): Promise<AuthSessionResponse> {
-    return this.authService.login(dto.email, dto.password, correlationId(request));
+    const email = dto.email.trim().toLowerCase();
+    const ipAddress = clientIp(request, this.securityConfig.get().trustedProxyIps);
+    this.loginRateLimit.assertAllowed(email, ipAddress);
+    try {
+      const session = await this.authService.login(email, dto.password, correlationId(request));
+      this.loginRateLimit.resetAccount(email);
+      return session;
+    } catch (error) {
+      if (error instanceof UnauthorizedException) this.loginRateLimit.recordFailure(email, ipAddress);
+      throw error;
+    }
   }
 
   @Post('refresh')

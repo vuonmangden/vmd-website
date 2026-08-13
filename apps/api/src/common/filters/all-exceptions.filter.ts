@@ -49,6 +49,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
             ? exceptionResponse
             : exception.message;
       }
+    } else if (isRequestBodyTooLarge(exception)) {
+      status = HttpStatus.PAYLOAD_TOO_LARGE;
+      code = 'REQUEST_BODY_TOO_LARGE';
+      message = 'Request body is too large';
     } else {
       status = HttpStatus.INTERNAL_SERVER_ERROR;
       code = 'INTERNAL_ERROR';
@@ -78,6 +82,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     res.status(status).json(body);
   }
+}
+
+function isRequestBodyTooLarge(exception: unknown): boolean {
+  if (typeof exception !== 'object' || exception === null) return false;
+  const candidate = exception as { status?: unknown; type?: unknown };
+  return candidate.status === HttpStatus.PAYLOAD_TOO_LARGE && candidate.type === 'entity.too.large';
 }
 
 function httpStatusToCode(status: number): string {

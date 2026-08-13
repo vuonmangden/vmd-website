@@ -55,4 +55,12 @@ describe('AllExceptionsFilter', () => {
     expect(body.error.code).toBe('VALIDATION_ERROR');
     expect(body.error.details.fields).toHaveLength(2);
   });
+
+  it('returns a stable error for an oversized parsed request body', () => {
+    const { host, res } = createMockHost();
+    filter.catch(Object.assign(new Error('too large'), { status: 413, type: 'entity.too.large' }), host);
+    const body = (res.status.mock.results[0]!.value as { json: jest.Mock }).json.mock.calls[0][0];
+    expect(res.status).toHaveBeenCalledWith(413);
+    expect(body.error).toMatchObject({ code: 'REQUEST_BODY_TOO_LARGE', message: 'Request body is too large' });
+  });
 });
