@@ -56,7 +56,7 @@
 | IAM-002 | Roles và permissions | Done | IAM-001, PRE-006 | PR #17 / `codex/iam-002-rbac` | Migration blank/deploy x2, seed x2 5/15/46, API 61 tests, full local gate, Supabase staging RBAC E2E và hosted run `31486190686` đạt | Production/MFA go-live vẫn blocked đến REL-001 |
 | IAM-003 | Admin route protection | Done | IAM-002 | PR #18 / `codex/iam-003-admin-route-protection` | Admin 11/11, API 63/63; full local gate và hosted run `31487239678` đạt | Backend auth+permission guard; frontend trusted `/auth/me`, refresh-once và 401/403/unavailable states |
 | IAM-004 | Audit service | Done | FND-005, IAM-001, IAM-002 | `codex/iam-004-audit-service-v2` | Hosted CI 31666735501 pass (secret/dependency; quality/schema/Compose) | Immutable operational audit; viewer cần `audit.read`, không có API sửa/xóa |
-| IAM-005 | Security middleware | Review | FND-004, IAM-001 | `codex/iam-005-security-middleware` | Scoped security implementation and regression tests in progress | Headers, CORS, rate limit, CSRF decision |
+| IAM-005 | Security middleware | Done | FND-004, IAM-001 | `codex/iam-005-security-middleware` | Hosted CI 31667308607 pass (secret/dependency; quality/schema/Compose) | Headers, CORS, rate limit, Bearer-only CSRF decision |
 
 **Gate:** Authorization hoạt động trước Payment hoặc Admin nghiệp vụ.
 
