@@ -92,8 +92,45 @@ model Booking {
   rooms        BookingRoom[]
   occupancies  RoomOccupancy[]
   statusHistory BookingStatusHistory[]
+  paymentIntents PaymentIntent[]
   @@index([status, checkInDate])
   @@map("bookings")
+}
+
+model PaymentIntent {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bookingId       String   @map("booking_id") @db.Uuid
+  provider        String   @default("SEPAY_TEST") @db.VarChar(50)
+  status          String   @default("PENDING") @db.VarChar(30)
+  amount          BigInt
+  paidAmount      BigInt   @default(0) @map("paid_amount")
+  currency        String   @default("VND") @db.Char(3)
+  transferContent String   @unique @map("transfer_content") @db.VarChar(25)
+  qrPayload       String   @map("qr_payload") @db.Text
+  expiresAt       DateTime @map("expires_at") @db.Timestamptz()
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+  booking         Booking  @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  reconciliationCases ReconciliationCase[]
+
+  @@index([status, expiresAt])
+  @@index([bookingId, status])
+  @@map("payment_intents")
+}
+
+model ReconciliationCase {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  paymentIntentId String   @map("payment_intent_id") @db.Uuid
+  status          String   @default("OPEN") @db.VarChar(30)
+  reason          String   @db.VarChar(100)
+  expectedAmount  BigInt   @map("expected_amount")
+  receivedAmount  BigInt   @map("received_amount")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  resolvedAt      DateTime? @map("resolved_at") @db.Timestamptz()
+  paymentIntent   PaymentIntent @relation(fields: [paymentIntentId], references: [id], onDelete: Restrict)
+
+  @@index([status, createdAt])
+  @@map("reconciliation_cases")
 }
 
 model BookingStatusHistory {
