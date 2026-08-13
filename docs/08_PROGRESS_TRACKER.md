@@ -55,7 +55,7 @@
 | IAM-001 | Staff authentication | Done | FND-004, FND-005, PRE-007 | PR #13 / merge `4f341fd` | Supabase staging login/me/refresh rotation/logout/revoke E2E; PR CI `31483277392` và main CI `31483454326` đạt | Production hard-disabled đến `REL-001`; không RBAC trong task này |
 | IAM-002 | Roles và permissions | Done | IAM-001, PRE-006 | PR #17 / `codex/iam-002-rbac` | Migration blank/deploy x2, seed x2 5/15/46, API 61 tests, full local gate, Supabase staging RBAC E2E và hosted run `31486190686` đạt | Production/MFA go-live vẫn blocked đến REL-001 |
 | IAM-003 | Admin route protection | Done | IAM-002 | PR #18 / `codex/iam-003-admin-route-protection` | Admin 11/11, API 63/63; full local gate và hosted run `31487239678` đạt | Backend auth+permission guard; frontend trusted `/auth/me`, refresh-once và 401/403/unavailable states |
-| IAM-004 | Audit service | Backlog | FND-005, IAM-001 | `docs/tasks/IAM-004.md` | Planning-only contract đã có | Immutable operational audit; viewer cần IAM-002 |
+| IAM-004 | Audit service | Review | FND-005, IAM-001, IAM-002 | `codex/iam-004-audit-service-v2` | API lint/typecheck, audit test 2/2; chờ hosted CI | Immutable operational audit; viewer cần `audit.read`, không có API sửa/xóa |
 | IAM-005 | Security middleware | Backlog | FND-004, IAM-001 | `docs/tasks/IAM-005.md` | Planning-only contract đã có | Headers, CORS, rate limit, CSRF decision |
 
 **Gate:** Authorization hoạt động trước Payment hoặc Admin nghiệp vụ.
