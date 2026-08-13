@@ -36,6 +36,47 @@ test('rejects production when another environment variable claims test', () => {
   );
 });
 
+test('permits only the explicitly approved staging demo project', () => {
+  const authorization = authorizeSyntheticData({
+    APP_ENV: 'staging',
+    ALLOW_SYNTHETIC_DATA: 'true',
+    SYNTHETIC_STAGING_DEMO_APPROVED: 'true',
+    SYNTHETIC_TARGET_PROJECT_REF: 'atefkvykvwgtuaiscxnm',
+    DATABASE_URL: 'postgresql://synthetic:synthetic@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres',
+  });
+
+  assert.equal(authorization.marker, 'SYNTHETIC');
+});
+
+test('rejects staging without the complete approved-demo acknowledgement', () => {
+  assert.throws(
+    () =>
+      authorizeSyntheticData({
+        APP_ENV: 'staging',
+        ALLOW_SYNTHETIC_DATA: 'true',
+        SYNTHETIC_STAGING_DEMO_APPROVED: 'true',
+        SYNTHETIC_TARGET_PROJECT_REF: 'another-project',
+        DATABASE_URL: 'postgresql://synthetic:synthetic@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres',
+      }),
+    /forbidden in production-equivalent environments/,
+  );
+});
+
+test('rejects a staging demo request when Vercel identifies the deployment as production', () => {
+  assert.throws(
+    () =>
+      authorizeSyntheticData({
+        APP_ENV: 'staging',
+        VERCEL_ENV: 'production',
+        ALLOW_SYNTHETIC_DATA: 'true',
+        SYNTHETIC_STAGING_DEMO_APPROVED: 'true',
+        SYNTHETIC_TARGET_PROJECT_REF: 'atefkvykvwgtuaiscxnm',
+        DATABASE_URL: 'postgresql://synthetic:synthetic@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres',
+      }),
+    /forbidden in production-equivalent environments/,
+  );
+});
+
 test('rejects remote database without a non-production database name', () => {
   assert.throws(
     () =>
