@@ -95,8 +95,29 @@ model Booking {
   occupancies  RoomOccupancy[]
   statusHistory BookingStatusHistory[]
   paymentIntents PaymentIntent[]
+  guestRequests BookingGuestRequest[]
   @@index([status, checkInDate])
   @@map("bookings")
+}
+
+model BookingGuestRequest {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bookingId       String   @map("booking_id") @db.Uuid
+  requestType     String   @map("request_type") @db.VarChar(30)
+  status          String   @default("PENDING_REVIEW") @db.VarChar(30)
+  requestedData   Json     @map("requested_data") @db.JsonB
+  guestNote       String?  @map("guest_note") @db.Text
+  receptionNote   String?  @map("reception_note") @db.Text
+  reviewedBy      String?  @map("reviewed_by") @db.Uuid
+  reviewedAt      DateTime? @map("reviewed_at") @db.Timestamptz()
+  decidedBy       String?  @map("decided_by") @db.Uuid
+  decidedAt       DateTime? @map("decided_at") @db.Timestamptz()
+  decisionNote    String?  @map("decision_note") @db.Text
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  booking         Booking  @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+
+  @@index([bookingId, status, createdAt])
+  @@map("booking_guest_requests")
 }
 
 model PaymentIntent {
