@@ -110,7 +110,7 @@
 |---|---|---|---|---|---|---|
 | PAY-001 | Payment Intent | Review | BKG-004, synthetic lane authorization | `codex/pay-001-payment-intent-sandbox` | API lint/typecheck, payment unit tests 6/6, Prisma validation; hosted CI pending | Sandbox-only: no provider secret, bank data, webhook, or public confirmation |
 | PAY-002 | SePay Webhook Ingestion | Review | PAY-001, IAM-005 | `codex/pay-002-sepay-webhook` | API lint/typecheck, webhook unit tests, Prisma validation; hosted CI pending | Test Mode only; raw event before queue; production fail-closed |
-| PAY-003 | Idempotent Payment Processing | Backlog | PAY-002 |  |  | Unique provider transaction |
+| PAY-003 | Idempotent Payment Processing | Review | PAY-002 | `codex/pay-003-payment-processing` | API lint/typecheck, 16 payment tests; hosted CI pending | Exact amount + reference only; unique provider transaction |
 | PAY-004 | Reconciliation | Backlog | PAY-003, PRE-005 |  |  | Mismatch/late payment |
 | PAY-005 | Admin Payment | Backlog | PAY-004, IAM-003, IAM-004 |  |  | Financial audit |
 | PAY-006 | Payment Status UI | Backlog | PAY-003, BKG-006 |  |  | Client không tự xác nhận |

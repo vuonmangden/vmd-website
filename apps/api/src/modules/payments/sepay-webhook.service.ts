@@ -32,6 +32,7 @@ export class SePayWebhookService {
         data: {
           provider: PROVIDER,
           providerEventId: payload.id,
+          providerTransactionId: providerTransactionId(payload),
           signatureValid: true,
           payload: payload as unknown as Prisma.InputJsonValue,
           headers: sanitizedHeaders(correlationId),
@@ -45,8 +46,12 @@ export class SePayWebhookService {
       return { received: true, duplicate: false };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-        const existing = await this.prisma.paymentWebhookEvent.findUnique({
+        const existingByEvent = await this.prisma.paymentWebhookEvent.findUnique({
           where: { provider_providerEventId: { provider: PROVIDER, providerEventId: payload.id } },
+          select: { id: true, processingStatus: true },
+        });
+        const existing = existingByEvent ?? await this.prisma.paymentWebhookEvent.findUnique({
+          where: { provider_providerTransactionId: { provider: PROVIDER, providerTransactionId: providerTransactionId(payload) } },
           select: { id: true, processingStatus: true },
         });
         if (existing?.processingStatus === 'RECEIVED') {
@@ -70,4 +75,8 @@ function matchesApiKey(authorization: string | undefined, apiKey: string): boole
 
 function sanitizedHeaders(correlationId: string | undefined): Prisma.InputJsonValue {
   return correlationId ? { correlationId } : {};
+}
+
+function providerTransactionId(payload: SePayWebhookDto): string {
+  return (payload.referenceCode.trim() || payload.id).slice(0, 150);
 }
