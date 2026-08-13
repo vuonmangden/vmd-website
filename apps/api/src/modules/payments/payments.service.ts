@@ -58,6 +58,23 @@ export class PaymentsService {
     return intent;
   }
 
+  /** Used by the public room checkout while its booking transaction is still open. */
+  async createSandboxIntentForCheckout(
+    tx: Prisma.TransactionClient,
+    booking: { id: string; totalAmount: bigint; currency: string; createdAt: Date },
+    holdId: string,
+    actor: PaymentActor,
+  ): Promise<PaymentIntentResponse> {
+    const now = this.now();
+    const expiryHours = await readExpiryHours(tx.appSetting, ROOM_EXPIRY_SETTING);
+    const expiresAt = new Date(now.getTime() + expiryHours * 3_600_000);
+    const response = await this.createWithUniqueTransferContent(tx, booking, expiresAt, now);
+    await tx.resourceHold.update({ where: { id: holdId }, data: { expiresAt } });
+    await tx.outboxEvent.create({ data: { aggregateType: 'PAYMENT_INTENT', aggregateId: response.paymentIntentId, eventType: 'payment.intent.created.sandbox', payload: response } });
+    await tx.auditLog.create({ data: auditData(actor, 'payment.intent.created', response.paymentIntentId, { bookingId: booking.id, status: 'PENDING', transferContent: response.transferContent }) });
+    return response;
+  }
+
   async expireDue() {
     const now = this.now();
     const due = await this.prisma.paymentIntent.findMany({ where: { status: 'PENDING', expiresAt: { lte: now } }, select: { id: true } });

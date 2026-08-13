@@ -19,6 +19,9 @@ import { BookingCreationService } from './booking-creation.service';
 import { BookingStateService } from './booking-state.service';
 import { PublicRoomsController } from './public-rooms.controller';
 import { PublicRoomsService } from './public-rooms.service';
+import { PaymentsModule } from '../payments/payments.module';
+import { PublicBookingsController } from './public-bookings.controller';
+import { PublicBookingsService } from './public-bookings.service';
 
-@Module({ imports: [AuthModule], controllers: [RoomTypesController, RoomsController, RoomRateRulesController, RoomBlocksController, RoomPricingController, AvailabilityController, PublicRoomsController], providers: [RoomTypesService, RoomsService, RoomRateRulesService, RoomBlocksService, PriceEngineService, RoomPricingService, AvailabilityService, OccupancyService, ResourceHoldsService, BookingCreationService, BookingStateService, PublicRoomsService], exports: [RoomTypesService, RoomsService, RoomRateRulesService, RoomBlocksService, PriceEngineService, RoomPricingService, AvailabilityService, OccupancyService, ResourceHoldsService, BookingCreationService, BookingStateService, PublicRoomsService] })
+@Module({ imports: [AuthModule, PaymentsModule], controllers: [RoomTypesController, RoomsController, RoomRateRulesController, RoomBlocksController, RoomPricingController, AvailabilityController, PublicRoomsController, PublicBookingsController], providers: [RoomTypesService, RoomsService, RoomRateRulesService, RoomBlocksService, PriceEngineService, RoomPricingService, AvailabilityService, OccupancyService, ResourceHoldsService, BookingCreationService, BookingStateService, PublicRoomsService, PublicBookingsService], exports: [RoomTypesService, RoomsService, RoomRateRulesService, RoomBlocksService, PriceEngineService, RoomPricingService, AvailabilityService, OccupancyService, ResourceHoldsService, BookingCreationService, BookingStateService, PublicRoomsService, PublicBookingsService] })
 export class RoomsModule {}
