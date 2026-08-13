@@ -9,11 +9,12 @@ import { SePayWebhookService } from './sepay-webhook.service';
 import { PaymentWebhookProcessor } from './payment-webhook.processor';
 import { PaymentProcessingService } from './payment-processing.service';
 import { PublicPaymentStatusController } from './public-payment-status.controller';
+import { PublicPaymentStatusRateLimitService } from './public-payment-status-rate-limit.service';
 
 @Module({
   imports: [AuthModule, QueueModule],
   controllers: [PaymentsController, SePayWebhookController, PublicPaymentStatusController],
-  providers: [PaymentsService, SePayWebhookConfigService, SePayWebhookService, PaymentProcessingService, PaymentWebhookProcessor],
+  providers: [PaymentsService, SePayWebhookConfigService, SePayWebhookService, PaymentProcessingService, PaymentWebhookProcessor, PublicPaymentStatusRateLimitService],
   exports: [PaymentsService],
 })
 export class PaymentsModule {}

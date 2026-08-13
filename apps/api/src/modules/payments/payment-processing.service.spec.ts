@@ -60,8 +60,8 @@ describe('PaymentProcessingService', () => {
 
   it('returns a stable customer-safe status without booking, provider, account or raw webhook fields', async () => {
     const { prisma } = fixture();
-    prisma.paymentIntent.findUnique.mockResolvedValue({ id: intent.id, status: 'PENDING', amount: intent.amount, currency: 'VND', expiresAt: intent.expiresAt, reconciliationCases: [{ id: 'case' }] });
-    await expect(new PaymentProcessingService(prisma as never, () => now).publicStatus(intent.id)).resolves.toEqual({ paymentIntentId: intent.id, status: 'RECONCILIATION_REQUIRED', amount: '2500000', currency: 'VND', expiresAt: intent.expiresAt.toISOString() });
+    prisma.paymentIntent.findUnique.mockResolvedValue({ id: intent.id, status: 'PENDING', amount: intent.amount, currency: 'VND', expiresAt: intent.expiresAt, transferContent: intent.transferContent, reconciliationCases: [{ id: 'case' }] });
+    await expect(new PaymentProcessingService(prisma as never, () => now).publicStatus(intent.id)).resolves.toEqual({ paymentIntentId: intent.id, status: 'RECONCILIATION_REQUIRED', amount: '2500000', currency: 'VND', expiresAt: intent.expiresAt.toISOString(), transferContent: intent.transferContent });
   });
 
   it('propagates a transactional failure before emitting audit or outbox records', async () => {

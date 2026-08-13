@@ -71,7 +71,7 @@ export class PaymentProcessingService {
   async publicStatus(paymentIntentId: string) {
     const intent = await this.prisma.paymentIntent.findUnique({
       where: { id: paymentIntentId },
-      select: { id: true, status: true, amount: true, currency: true, expiresAt: true, reconciliationCases: { where: { status: 'OPEN' }, select: { id: true }, take: 1 } },
+      select: { id: true, status: true, amount: true, currency: true, expiresAt: true, transferContent: true, reconciliationCases: { where: { status: 'OPEN' }, select: { id: true }, take: 1 } },
     });
     if (!intent) throw new NotFoundException({ code: 'PAYMENT_STATUS_NOT_FOUND', message: 'Payment status not found' });
     return {
@@ -80,6 +80,7 @@ export class PaymentProcessingService {
       amount: intent.amount.toString(),
       currency: intent.currency,
       expiresAt: intent.expiresAt.toISOString(),
+      transferContent: intent.transferContent,
     };
   }
 
