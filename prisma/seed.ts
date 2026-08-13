@@ -24,6 +24,14 @@ async function main(): Promise<void> {
     },
   });
 
+  for (const [key, hours] of [['payment.expiry_hours.room', 24], ['payment.expiry_hours.bbq', 12]] as const) {
+    await prisma.appSetting.upsert({
+      where: { key },
+      update: {},
+      create: { key, value: { hours }, category: 'payment', isSecretReference: false },
+    });
+  }
+
   await seedRbac(prisma);
 
   console.log('Seed completed: app_settings smoke record and approved RBAC matrix inserted.');

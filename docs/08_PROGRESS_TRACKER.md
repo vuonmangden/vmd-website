@@ -108,7 +108,7 @@
 
 | Task ID | Nội dung | Trạng thái | Dependency | Branch/PR | Tests | Ghi chú |
 |---|---|---|---|---|---|---|
-| PAY-001 | Payment Intent | Backlog | BKG-004, PRE-003, PRE-007 |  |  |  |
+| PAY-001 | Payment Intent | Review | BKG-004, synthetic lane authorization | `codex/pay-001-payment-intent-sandbox` | API lint/typecheck, payment unit tests 6/6, Prisma validation; hosted CI pending | Sandbox-only: no provider secret, bank data, webhook, or public confirmation |
 | PAY-002 | SePay Webhook Ingestion | Backlog | PAY-001, IAM-005 |  |  | Verify + raw event |
 | PAY-003 | Idempotent Payment Processing | Backlog | PAY-002 |  |  | Unique provider transaction |
 | PAY-004 | Reconciliation | Backlog | PAY-003, PRE-005 |  |  | Mismatch/late payment |
