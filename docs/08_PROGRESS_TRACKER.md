@@ -98,7 +98,7 @@
 | BKG-004 | Booking Creation | Backlog | BKG-001, BKG-003, RMS-005 |  |  | Idempotency bắt buộc |
 | BKG-005 | Booking State Machine | In progress | BKG-004, MNT-014 | `codex/bkg-005-booking-state-sandbox` | Status history | Synthetic-only; no payment/refund policy |
 | BKG-006 | Booking Checkout UI | Backlog | BKG-004, RMS-007 |  |  | Mobile/loading/error |
-| BKG-007 | Booking Lookup | Backlog | BKG-004 |  |  | Rate limit/IDOR |
+| BKG-007 | Booking Lookup | Review | BKG-004 | `codex/bkg-007-booking-lookup` | Public lookup/request + internal approval; hosted CI pending | Rate limit/IDOR |
 | BKG-008 | Admin Booking | Backlog | BKG-005, IAM-003 |  |  | Permission/audit |
 | BKG-009 | Change/Cancel | Backlog | BKG-005, PRE-005 |  |  | Transaction/reminder |
 
