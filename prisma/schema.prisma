@@ -124,6 +124,7 @@ model PaymentWebhookEvent {
   id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   provider        String   @db.VarChar(30)
   providerEventId String   @map("provider_event_id") @db.VarChar(150)
+  providerTransactionId String @map("provider_transaction_id") @db.VarChar(150)
   signatureValid  Boolean  @map("signature_valid")
   payload         Json     @db.JsonB
   headers         Json     @db.JsonB
@@ -134,6 +135,7 @@ model PaymentWebhookEvent {
   processedAt     DateTime? @map("processed_at") @db.Timestamptz()
 
   @@unique([provider, providerEventId])
+  @@unique([provider, providerTransactionId])
   @@index([processingStatus, receivedAt])
   @@map("payment_webhook_events")
 }
