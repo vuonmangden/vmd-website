@@ -18,6 +18,7 @@ export const SYNTHETIC_IDS = Object.freeze({
 
 const allowedEnvironments = new Set(['development', 'test', 'local', 'demo']);
 const blockedEnvironments = new Set(['production', 'prod', 'staging', 'live']);
+const approvedStagingDemoProjectRef = 'atefkvykvwgtuaiscxnm';
 
 export const SYNTHETIC_SETTING_KEYS = Object.freeze([
   'synthetic.fixture.registry',
@@ -43,12 +44,20 @@ export function authorizeSyntheticData(environment = process.env) {
     .map((key) => normalize(environment[key]))
     .filter(Boolean);
   const providerEnvironment = normalize(environment['VERCEL_ENV']);
+  const stagingDemoApproval =
+    runtimeEnvironments.includes('staging') &&
+    environment['ALLOW_SYNTHETIC_DATA'] === 'true' &&
+    environment['SYNTHETIC_STAGING_DEMO_APPROVED'] === 'true' &&
+    environment['SYNTHETIC_TARGET_PROJECT_REF'] === approvedStagingDemoProjectRef;
 
-  if (runtimeEnvironments.some((value) => blockedEnvironments.has(value)) || providerEnvironment === 'production') {
+  if (
+    (runtimeEnvironments.some((value) => blockedEnvironments.has(value)) && !stagingDemoApproval) ||
+    providerEnvironment === 'production'
+  ) {
     throw new Error('Synthetic fixtures are forbidden in production-equivalent environments.');
   }
 
-  if (!runtimeEnvironments.some((value) => allowedEnvironments.has(value))) {
+  if (!runtimeEnvironments.some((value) => allowedEnvironments.has(value)) && !stagingDemoApproval) {
     throw new Error('Synthetic fixtures require APP_ENV, DEPLOYMENT_ENV or NODE_ENV to be explicitly non-production.');
   }
 
@@ -68,7 +77,7 @@ export function authorizeSyntheticData(environment = process.env) {
     throw new Error('Synthetic fixture database URL is invalid.');
   }
 
-  if (!safeDatabase) {
+  if (!safeDatabase && !stagingDemoApproval) {
     throw new Error('Synthetic fixtures require a loopback or explicitly dev/test/demo/local database.');
   }
 
