@@ -84,7 +84,7 @@
 | RMS-004 | Room Blocks | Done | RMS-002, MNT-014 | PR #23 / `codex/rms-004-room-blocks-sandbox` | Migration blank/deploy x2, seed x2, API 76/76, fixture 8/8, hosted run `31599535588` đạt | Synthetic-only; không thay `PRE-002`, không public booking |
 | RMS-005 | Price Engine | Review | RMS-003, MNT-014 | `codex/rms-005-price-engine-sandbox` | API 81/81, full local gate; chờ hosted CI | Synthetic-only; PRE-003/PRE-005 vẫn Blocked |
 | RMS-006 | Availability Search | In progress | RMS-002, RMS-004, MNT-014 | `codex/rms-006-availability-search-sandbox` | Integration test bắt buộc | Synthetic-only; chưa bao gồm occupancy/hold/booking |
-| RMS-007 | Public room pages | Backlog | RMS-001, RMS-005, RMS-006, CMS-005 |  |  |  |
+| RMS-007 | Public room pages | Review | RMS-001, RMS-005, RMS-006, CMS-005 | `codex/rms-007-public-room-pages` | API/web unit tests, typecheck and webpack build passed; hosted CI pending | Synthetic-only safe public API; no room IDs, inventory, holds or booking creation |
 
 **Gate:** Price Engine unit test và Availability integration test đạt.
 
