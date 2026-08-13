@@ -120,6 +120,24 @@ model PaymentIntent {
   @@map("payment_intents")
 }
 
+model PaymentWebhookEvent {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  provider        String   @db.VarChar(30)
+  providerEventId String   @map("provider_event_id") @db.VarChar(150)
+  signatureValid  Boolean  @map("signature_valid")
+  payload         Json     @db.JsonB
+  headers         Json     @db.JsonB
+  processingStatus String  @default("RECEIVED") @map("processing_status") @db.VarChar(30)
+  attemptCount    Int      @default(0) @map("attempt_count")
+  errorMessage    String?  @map("error_message") @db.Text
+  receivedAt      DateTime @default(now()) @map("received_at") @db.Timestamptz()
+  processedAt     DateTime? @map("processed_at") @db.Timestamptz()
+
+  @@unique([provider, providerEventId])
+  @@index([processingStatus, receivedAt])
+  @@map("payment_webhook_events")
+}
+
 model ReconciliationCase {
   id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   paymentIntentId String   @map("payment_intent_id") @db.Uuid
