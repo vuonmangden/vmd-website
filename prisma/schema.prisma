@@ -85,6 +85,8 @@ model Booking {
   status       String       @db.VarChar(40)
   source       String       @db.VarChar(50)
   totalAmount  BigInt       @map("total_amount")
+  specialRequest String?    @map("special_request") @db.Text
+  expectedArrivalTime String? @map("expected_arrival_time") @db.VarChar(50)
   currency     String       @default("VND") @db.Char(3)
   createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt    DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
