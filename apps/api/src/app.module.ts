@@ -5,8 +5,9 @@ import { ThrottleModule } from './common/throttle/throttle.module';
 import { HealthModule } from './modules/health/health.module';
 import { CustomersModule } from './modules/customers/customers.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { AuditModule } from './modules/audit/audit.module';
 
 @Module({
-  imports: [PrismaModule, QueueModule, ThrottleModule, HealthModule, CustomersModule, AuthModule],
+  imports: [PrismaModule, QueueModule, ThrottleModule, HealthModule, CustomersModule, AuthModule, AuditModule],
 })
 export class AppModule {}
