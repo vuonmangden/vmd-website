@@ -1,0 +1,16 @@
+export const PaymentStatus = {
+  CREATED: 'CREATED',
+  WAITING: 'WAITING',
+  MATCHED: 'MATCHED',
+  PARTIALLY_PAID: 'PARTIALLY_PAID',
+  PAID: 'PAID',
+  EXPIRED: 'EXPIRED',
+  RECONCILIATION_REQUIRED: 'RECONCILIATION_REQUIRED',
+  REFUND_PENDING: 'REFUND_PENDING',
+  PARTIALLY_REFUNDED: 'PARTIALLY_REFUNDED',
+  REFUNDED: 'REFUNDED',
+  FAILED: 'FAILED',
+} as const;
+
+export type PaymentStatus =
+  (typeof PaymentStatus)[keyof typeof PaymentStatus];

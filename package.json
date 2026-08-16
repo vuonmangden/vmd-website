@@ -33,7 +33,10 @@
     "db:migrate:deploy": "prisma migrate deploy --schema prisma/schema.prisma",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio --schema prisma/schema.prisma",
-    "ci:prisma": "node scripts/ci-prisma-check.mjs"
+    "ci:prisma": "node scripts/ci-prisma-check.mjs",
+    "prepare": "husky",
+    "test:e2e": "playwright test --config e2e/playwright.config.ts",
+    "test:e2e:ui": "playwright test --config e2e/playwright.config.ts --ui"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
@@ -47,6 +50,12 @@
     "turbo": "2.10.8",
     "typescript": "6.0.3",
     "typescript-eslint": "8.66.0",
-    "vitest": "4.1.10"
+    "vitest": "4.1.10",
+    "@playwright/test": "1.52.0",
+    "husky": "9.1.7",
+    "lint-staged": "16.1.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,mjs}": "eslint --fix"
   }
 }
