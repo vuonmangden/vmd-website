@@ -4,11 +4,12 @@ import { AuthController } from './auth.controller';
 import { StaffService } from './staff.service';
 import { SupabaseAuthGuard } from './supabase-auth.guard';
 import { RolesGuard, PermissionsGuard } from './roles.guard';
+import { AdminGuard } from './admin.guard';
 
 @Module({
   imports: [PrismaModule],
   controllers: [AuthController],
-  providers: [StaffService, SupabaseAuthGuard, RolesGuard, PermissionsGuard],
-  exports: [StaffService, SupabaseAuthGuard, RolesGuard, PermissionsGuard],
+  providers: [StaffService, SupabaseAuthGuard, RolesGuard, PermissionsGuard, AdminGuard],
+  exports: [StaffService, SupabaseAuthGuard, RolesGuard, PermissionsGuard, AdminGuard],
 })
 export class AuthModule {}
