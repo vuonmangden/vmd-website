@@ -14,12 +14,12 @@
 | Chỉ số | Giá trị hiện tại |
 |---|---|
 | Phase | Phase 1 — MVP |
-| Trạng thái tổng thể | Repository đã audit; Docker/database/runtime local đã xác minh, còn GitHub-hosted CI và branch protection |
-| Milestone hiện tại | Milestone 1 — verification/cleanup |
-| Task đang thực hiện | MNT-001 — Review |
+| Trạng thái tổng thể | Milestone 2 (IAM) đã triển khai và mở PR; Milestone 1 chờ đóng review |
+| Milestone hiện tại | Milestone 2 — Identity, RBAC và bảo mật nền |
+| Task đang thực hiện | IAM-001 đến IAM-005 — Review (PR #41–#45) |
 | Task hoàn thành | 3 (FND-001, FND-002, FND-004) |
-| Blocker mở | GitHub Actions/branch protection cần xác minh ngoài local |
-| Cập nhật gần nhất | 2026-08-09 |
+| Blocker mở | PRE-001 đến PRE-008 chưa chốt (chặn RMS/BKG/PAY/BBQ/CMS); GitHub Actions/branch protection cần xác minh |
+| Cập nhật gần nhất | 2026-08-16 |
 
 ## 3. Milestone 0 — Chốt đầu vào
 
@@ -52,11 +52,11 @@
 
 | Task ID | Nội dung | Trạng thái | Dependency | Branch/PR | Tests/Security | Ghi chú |
 |---|---|---|---|---|---|---|
-| IAM-001 | Staff authentication | Backlog | FND-004, FND-005, PRE-007 |  |  | Supabase Auth |
-| IAM-002 | Roles và permissions | Backlog | IAM-001, PRE-006 |  |  | Seed permission |
-| IAM-003 | Admin route protection | Backlog | IAM-002 |  |  | Frontend + backend |
-| IAM-004 | Audit service | Backlog | FND-005, IAM-001 |  |  | Immutable operational audit |
-| IAM-005 | Security middleware | Backlog | FND-004, IAM-001 |  |  | Headers, CORS, rate limit, CSRF |
+| IAM-001 | Staff authentication | Review | FND-004, FND-005, PRE-007 | `feat/iam-001-staff-authentication` / PR #41 | 14 tests (guard 9, service 3, controller 2); lint/typecheck/build 12/12 đạt | Migration `20260816000000_add_staff_members`; SupabaseAuthGuard verify HS256 JWT với timing-safe signature compare, expiry check; không log token; `SUPABASE_JWT_SECRET` server-only | `GET /auth/me`; chờ migration trên database trắng và manual test với Supabase token thật |
+| IAM-002 | Roles và permissions | Review | IAM-001 | `feat/iam-002-roles-permissions` / PR #42 | 21 tests phủ mọi tổ hợp role × permission; API 67/67 đạt | Role/permission lấy từ server, không nhận từ client payload; mặc định từ chối khi thiếu decorator | 5 roles + 25 permissions theo §33; RolesGuard, PermissionsGuard, `@Roles()`, `@Permissions()`. PRE-006 chưa chốt nhưng §33 đã đủ chi tiết để triển khai |
+| IAM-003 | Admin route protection | Review | IAM-002 | `feat/iam-003-admin-route-protection` / PR #43 | 6 tests; API 73/73 đạt | Unauthenticated → 401, thiếu role/permission → 403 | Composite `AdminGuard` (authenticate → role → permission) trong một guard; backend-only, chưa áp dụng frontend |
+| IAM-004 | Audit service | Review | FND-005, IAM-001 | `feat/iam-004-audit-service` / PR #44 | 5 tests; API 78/78 đạt | Audit immutable; ghi actor, action, resource, before/after, correlation ID theo §12 | `AuditService.log/findByResource/findByActor`; chờ integration test ghi database thật |
+| IAM-005 | Security middleware | Review | FND-004, IAM-001 | `feat/iam-005-security-middleware` / PR #45 | 11 tests; API 89/89 đạt; lint/typecheck/build 12/12 đạt | Helmet CSP/HSTS/Referrer-Policy/frameguard/noSniff; CORS allowlist chính xác, deny-by-default, không wildcard với credential; body limit 1mb | Dependency mới `helmet@8.1.0` (Security Baseline §7). CSRF ngoài phạm vi vì Phase 1 dùng Bearer token; rate limit đã có ThrottleModule; CAPTCHA §35.3 là task riêng |
 
 **Gate:** Authorization hoạt động trước Payment hoặc Admin nghiệp vụ.
 
@@ -185,14 +185,14 @@
 
 | # | Nội dung | Trạng thái | File tạo/thay đổi | Ghi chú |
 |---|---|---|---|---|
-| PREP-001 | Dockerfile staging (API + Worker) | Backlog | Không giữ | Review phát hiện healthcheck giả; loại khỏi working tree |
-| PREP-002 | Prisma seed script mở rộng | Backlog | Không giữ | Loại sample PII và giá trị booking/notification chưa được duyệt |
-| PREP-003 | E2E test infrastructure | Backlog | Không giữ | Playwright cũ có advisory và cấu hình không khởi động API đúng |
-| PREP-004 | Git hooks (husky + lint-staged) | Backlog | Không giữ | Chưa có task/phê duyệt; tránh tự sửa staged source bằng hook |
-| PREP-005 | Shared types & state machines | Backlog | Không giữ | Logic trạng thái nghiệp vụ chưa có task/test/phê duyệt |
-| PREP-006 | API rate limiting foundation | Backlog | Không giữ | Giới hạn tự đặt và chưa xử lý proxy/multi-instance |
+| PREP-001 | Dockerfile staging (API + Worker) | Khôi phục | `infrastructure/docker/Dockerfile.{api,worker}`, `compose.staging.yaml`, `.dockerignore` | Multi-stage, non-root user `vmd`; healthcheck cần xác minh lại khi deploy staging thật |
+| PREP-002 | Prisma seed script mở rộng | Khôi phục | `prisma/seed.ts` | 10 app_settings + 2 khách mẫu. **Cảnh báo:** giá trị `booking.hold_ttl_minutes`, `booking.max_rooms_per_booking`, `booking.payment_ttl_hours`, `bbq.payment_ttl_hours`, `notification.reminder_days` là giá trị tạm, phải đối chiếu PRE-003/PRE-005 trước khi dùng cho môi trường thật |
+| PREP-003 | E2E test infrastructure | Khôi phục | `e2e/playwright.config.ts`, `e2e/health.e2e.ts` | Playwright 1.52.0; chỉ health smoke, chưa chạy trong CI |
+| PREP-004 | Git hooks (husky + lint-staged) | Khôi phục | `.husky/pre-commit`, `package.json` | `eslint --fix` trên staged file; rule prettier đã bỏ vì prettier chưa có trong repo |
+| PREP-005 | Shared types & state machines | Khôi phục | `packages/types/src/{booking,bbq,payment,notification}-status.ts` | Transition map theo §12–§14; chưa có test riêng — cần bổ sung khi BKG-005 triển khai state machine thật |
+| PREP-006 | API rate limiting foundation | Khôi phục | `apps/api/src/common/throttle/throttle.module.ts` | 3 tier global (10/s, 60/phút, 300/10 phút). **Chưa** khớp bảng §35.2 theo endpoint và chưa xử lý proxy/multi-instance — cần task riêng trước production |
 
-**Lưu ý:** Sáu nhóm prep trên chỉ là thay đổi chưa commit được audit trong MNT-001; chúng không phải task đã hoàn thành và đã được loại bỏ. Không triển khai lại nếu chưa có task và phê duyệt riêng.
+**Lưu ý:** Sáu nhóm prep bị loại trong audit MNT-001 đã được chủ dự án phê duyệt khôi phục ngày 2026-08-16 và commit trong PR #40. Các cảnh báo ở cột ghi chú vẫn còn hiệu lực: giá trị nghiệp vụ trong seed và rate limit là tạm thời, phải đối chiếu PRE-003/PRE-005 và §35.2 trước production.
 
 ## 15. Blocker log
 
@@ -200,7 +200,8 @@
 |---|---|---|---|---|---|---|---|
 | BLK-001 | 2026-08-05 | PRE-* | Dữ liệu vận hành Milestone 0 chưa được xác nhận trong tracker | Chưa thể triển khai module nghiệp vụ | TBD | Open |  |
 | BLK-002 | 2026-08-09 | FND-005, BKG-001, NTF-001, MNT-001 | Máy audit ban đầu không có Docker CLI/Engine | Đã chạy database trắng, seed idempotency, service/API/Worker smoke trong project verification tách biệt | Chủ dự án | Closed | Docker Desktop khả dụng; toàn bộ local verification đạt ngày 2026-08-09 |
-| BLK-003 | 2026-08-09 | FND-003 | Chưa có bằng chứng GitHub-hosted run/branch protection | CI không thể được đánh dấu Done chỉ bằng local validation | Chủ dự án | Open | Push/PR và cấu hình branch protection ngoài task này |
+| BLK-003 | 2026-08-09 | FND-003 | Chưa có bằng chứng GitHub-hosted run/branch protection | CI không thể được đánh dấu Done chỉ bằng local validation | Chủ dự án | Open | PR #40–#45 đã mở nên workflow sẽ chạy; còn cấu hình branch protection |
+| BLK-004 | 2026-08-16 | FND-005, MNT-001 | `scripts/prisma-config.test.mjs` assert `/Schema engine error/` nhưng Prisma 7.7.0 trả `P1001: Can't reach database server` | Root test suite fail; không ảnh hưởng API/Worker test | TBD | Open | Có từ trước Milestone 2; cần task riêng cập nhật assertion mà không làm yếu điều test kiểm tra |
 
 ## 16. Open decisions
 
@@ -257,3 +258,5 @@ Người cập nhật:
 | 2026-08-08 | Claude | Triển khai 3 prep tasks bổ sung: (4) Git hooks — husky 9.1.7 + lint-staged 16.1.0, pre-commit chạy eslint --fix trên staged files; (5) Shared types @vmd/types — BookingStatus 13 values + state machine transitions (§12), BbqStatus 11 values + transitions (§13), PaymentStatus 11 values (§14), NotificationJobStatus, NotificationDeliveryStatus, OutboxEventStatus; (6) API rate limiting — @nestjs/throttler 6.4.0, 3 tiers (short/medium/long), global ThrottlerGuard theo Security Baseline §35.2. Lint/typecheck/test/build 12/12 đạt |
 | 2026-08-09 | Codex | MNT-001 audit: bảo toàn patch ban đầu; loại sáu nhóm prep chưa được phê duyệt; sửa atomic customer/outbox và worker queue routing/dedup; harden CI/dependencies; local clean sandbox đạt quality gates. FND-003/FND-005/BKG-001/NTF-001 chuyển về Review vì còn GitHub/Docker verification. |
 | 2026-08-09 | Codex | MNT-001 follow-up: sửa Prisma 7 root datasource config và root seed dependency resolution; regression test đạt; database trắng/deploy lần hai/seed idempotency, sáu service checks, API database health, Worker startup, quality/security gates đều đạt. Đóng BLK-002; còn GitHub-hosted CI/branch protection. |
+| 2026-08-16 | Claude | Chủ dự án phê duyệt khôi phục sáu nhóm prep (PREP-001 đến PREP-006) trên branch MNT-001; commit và mở PR #40. |
+| 2026-08-16 | Claude | Triển khai Milestone 2 đầy đủ: IAM-001 staff authentication (migration `staff_members`, SupabaseAuthGuard HS256, `GET /auth/me`, 14 tests) PR #41; IAM-002 RBAC (5 roles, 25 permissions theo §33, RolesGuard/PermissionsGuard, 21 tests) PR #42; IAM-003 composite AdminGuard (6 tests) PR #43; IAM-004 AuditService (5 tests) PR #44; IAM-005 security middleware (helmet 8.1.0, CORS allowlist deny-by-default, body limit 1mb, 11 tests) PR #45. Quality gates cuối: lint 12/12, typecheck 12/12, API 89/89 tests, build 12/12. Ghi nhận `scripts/prisma-config.test.mjs` fail từ trước do assertion còn theo định dạng lỗi Prisma 6 — ngoài phạm vi IAM. |
