@@ -112,6 +112,19 @@ model NotificationDelivery {
   @@map("notification_deliveries")
 }
 
+model StaffMember {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  authUserId  String    @unique @map("auth_user_id") @db.Uuid
+  email       String    @unique @db.Citext
+  fullName    String    @map("full_name") @db.VarChar(255)
+  role        String    @default("reception") @db.VarChar(50)
+  isActive    Boolean   @default(true) @map("is_active")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@map("staff_members")
+}
+
 model AppSetting {
   key               String   @id @db.VarChar(150)
   value             Json     @db.JsonB
