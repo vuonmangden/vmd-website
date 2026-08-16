@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { PrismaService } from '../../prisma/prisma.service';
 
@@ -8,8 +9,8 @@ export interface AuditEntry {
   action: string;
   resourceType: string;
   resourceId: string;
-  beforeData?: Record<string, unknown>;
-  afterData?: Record<string, unknown>;
+  beforeData?: Prisma.InputJsonObject;
+  afterData?: Prisma.InputJsonObject;
   reason?: string;
   ipAddress?: string;
   userAgent?: string;
