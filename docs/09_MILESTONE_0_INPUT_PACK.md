@@ -244,41 +244,78 @@ Chính sách hoàn/hủy áp dụng như Phần A trừ khi hợp đồng quy đ
 
 ### Combo/menu Phase 1
 
-**Nguồn:** `Demo menu Vuon Mang Den.pdf` (9 trang, thư mục `THIẾT KẾ`), nhận ngày 2026-08-17.
+> ## ⛔ Hai bản menu mâu thuẫn — chưa được dùng bản nào
+>
+> Chủ dự án cung cấp **hai** tài liệu menu trong ngày 2026-08-17, cùng nằm trong thư mục `THIẾT KẾ`:
+>
+> | | Nguồn A | Nguồn B |
+> |---|---|---|
+> | File | `Demo menu Vuon Mang Den.pdf` | `MENU VƯỜN MĂNG ĐEN VER.1.md` |
+> | Dạng | Bản dựng hình ảnh 9 trang | Bảng dữ liệu có ĐVT và ghi chú nội bộ |
+> | Số set combo | 7 | 4 |
+> | Có món lẩu | Không | Có (3 món) |
+> | Có đơn vị tính | Không | **Có** |
+> | Có số khách/set | Không | **Có** |
+> | Có thành phần set | Không | **Có** |
+> | Chính sách sốt chấm | **Không giới hạn** | **Khách chọn 2/4 loại** |
+>
+> **Giá lệch nhau rất lớn, không phải sai số nhỏ.** Ví dụ:
+>
+> | Món | Nguồn A | Nguồn B | Chênh |
+> |---|---:|---:|---|
+> | Soup cá tầm | 188.000 | 50.000 | **3,8×** |
+> | Cơm lam nướng | 103.000 | 20.000 | **5,2×** |
+> | Nấm rừng nướng | 147.000 | 89.000 | 1,7× |
+> | Rau lủi xào bò | 80.000 | 145.000 | 1,8× |
+> | Măng rừng xào bò | 106.000 | 179.000 | 1,7× |
+> | Gà đen nướng nguyên con | 483.000 | 619.000 | 1,3× |
+> | Cá tầm nướng giềng mẻ | 395.000 | 299.000 | 1,3× |
+> | Set nướng Tứ Khoái | 404.000 | 369.000 | |
+> | Set nướng Ngũ Cung | 498.000 | 439.000 | |
+> | Set Vườn Măng Đen | 985.000 | 799.000 | |
+> | Set cá tầm Măng Đen | 1.199.000 | 999.000 | |
+>
+> Ba set chỉ có ở nguồn A (Set gà 591.000, Set Bát Sơn 929.000, Set Đại Ngàn 1.225.000); ba món lẩu chỉ có ở nguồn B.
+>
+> **Cần chủ dự án chỉ rõ bản nào là giá bán chính thức.** Theo `AGENTS.md` §16, không tự đoán giá. Dùng nhầm bản có thể khiến bán dưới giá vốn hoặc bán cao hơn giá niêm yết thật.
 
-> ⚠️ **Chưa dùng được làm dữ liệu vận hành.** Tên file có chữ "Demo" và nằm trong thư mục thiết kế, nên nhiều khả năng đây là bản dựng hình ảnh chứ chưa phải menu đã chốt. Theo `AGENTS.md` §16, không tự coi giá trong tài liệu thiết kế là giá bán. **Cần chủ dự án xác nhận đây là menu chính thức trước khi đưa vào `BBQ-002`.**
+#### Nguồn B — `MENU VƯỜN MĂNG ĐEN VER.1.md`
 
-Bảy set combo (trang 5):
+Đầy đủ hơn về mặt vận hành. Bốn set combo kèm thành phần và số khách:
 
-| Tên set | Giá VND |
-|---|---:|
-| Set nướng Tứ Khoái | 404.000 |
-| Set nướng Ngũ Cung | 498.000 |
-| Set gà Măng Đen | 591.000 |
-| Set nướng Bát Sơn Măng Đen | 929.000 |
-| Set Vườn Măng Đen | 985.000 |
-| Set cá tầm Măng Đen | 1.199.000 |
-| Set Đại Ngàn Măng Đen | 1.225.000 |
+| Set | Giá VND | Số khách | Thành phần |
+|---|---:|---|---|
+| Set nướng Tứ Khoái | 369.000 | 2–3 | 4 món nướng + 2 cơm lam + củ quả |
+| Set nướng Ngũ Cung | 439.000 | 3–4 | 5 món nướng + 3 cơm lam + củ quả |
+| Set Vườn Măng Đen (lẩu nướng) | 799.000 | 3–4 | 3 phần nướng 150gr + lẩu cá tầm nhỏ + khoai chiên |
+| Set cá tầm Măng Đen | 999.000 | Chưa ghi | Soup + nướng + rang muối + nem + om chuối đậu + lẩu/cháo |
 
-Menu à la carte gồm 6 nhóm: gỏi/salad/khai vị (5 món), rau rừng và đặc sản (12 món), món ăn nhẹ (9 món), món nướng BBQ (28 món chia heo-bò, hải sản, nướng tảng, rau củ-nấm), món nướng được yêu thích (3 món) và 4 loại sốt chấm **không giới hạn**, tức miễn phí.
+Món lẩu: lẩu gà đen 429.000, lẩu cá tầm măng rừng 319.000, lẩu ếch măng cay 350.000 (đơn vị: nồi).
 
-Khoảng giá à la carte: 23.000đ (ngô ngọt nướng) đến 522.000đ (gà nướng nguyên con).
+Đơn vị tính đã có: `đĩa`, `bát`, `phần`, `cái`, `nồi` — cần cho `BBQ-002`.
 
-Danh sách món đầy đủ chưa chép vào tài liệu này vì còn chờ xác nhận ở trên; PDF gốc là nguồn.
+Sốt chấm: 5 loại (mè rang, núi rừng Măng Đen, BBQ, muối đỏ, giềng mẻ), ghi chú **khách chọn 2/4 loại** — mâu thuẫn nội tại vì liệt kê 5 loại. Cần làm rõ.
+
+> ⚠️ **Nguồn B chứa ghi chú nội bộ không được đưa lên web**: chiến lược giá vốn ("chọn phương án bò thường giúp giữ cost đầu vào tốt", "giá bò bắp tại Măng Đen rẻ hơn bò mông"), nguồn hàng ("hàng sẵn HN-HCM xuất lên") và hướng dẫn chế biến. Khi triển khai `BBQ-002` phải tách rõ trường mô tả công khai và trường ghi chú nội bộ.
+
+Danh sách món đầy đủ chưa chép vào tài liệu này vì còn chờ chốt nguồn; hai file gốc là nguồn.
 
 ### Còn thiếu cho PRE-004
 
-Menu/combo đã có (chờ xác nhận), nhưng **toàn bộ phần đặt bàn vẫn trống**:
+**Chặn `BBQ-002`:**
 
-1. **Khu vực và bàn**: mã khu vực, mã bàn, sức chứa tối thiểu/tối đa, có cho ghép bàn không, trạng thái.
-2. **Khung giờ**: giờ bắt đầu, thời lượng sử dụng, thời gian dọn bàn, ngày áp dụng, giới hạn khách.
-3. Quy tắc ghép bàn và giới hạn đặt trước.
-4. **Mức cọc BBQ** — bảng giá phòng chỉ nói cọc phòng, không nói cọc BBQ.
-5. Phụ thu quá giờ và chính sách khách không đến (thuộc PRE-005).
-6. Số người đề xuất cho mỗi set combo — menu không ghi.
-7. Set nào cho chỉnh món, set nào cố định.
+1. **Bản menu nào là giá bán chính thức** — nguồn A hay nguồn B. Đây là câu hỏi quan trọng nhất.
+2. Số khách cho `Set cá tầm Măng Đen` (nguồn B không ghi).
+3. Set nào cho khách chỉnh món, set nào cố định.
+4. Làm rõ chính sách sốt chấm: không giới hạn, hay chọn 2 trong 4, và danh sách 5 loại thì chọn mấy.
 
-`BBQ-001` (khu vực/bàn/khung giờ) và `BBQ-003` (availability) vẫn bị chặn hoàn toàn. `BBQ-002` (menu và combo) chỉ mở được sau khi xác nhận menu chính thức.
+**Chặn `BBQ-001` và `BBQ-003` — chưa nhận gì:**
+
+5. **Khu vực và bàn**: mã khu vực, mã bàn, sức chứa tối thiểu/tối đa, có cho ghép bàn không, trạng thái.
+6. **Khung giờ**: giờ bắt đầu, thời lượng sử dụng, thời gian dọn bàn, ngày áp dụng, giới hạn khách.
+7. Quy tắc ghép bàn và giới hạn đặt trước.
+8. **Mức cọc BBQ** — bảng giá phòng chỉ nói cọc phòng.
+9. Phụ thu quá giờ và chính sách khách không đến (thuộc PRE-005).
 
 ## 8. PRE-005 — Chính sách vận hành và tài chính
 
@@ -526,5 +563,6 @@ Ba mục đều lệch. Email chênh đúng một chữ (`vuong` với `vuon`) n
 |---|---|---|---|---|
 | Chờ cập nhật |  |  |  |  |
 | 2026-08-11 | PRE-007 staging-only | Chủ dự án | Cho phép `IAM-001` và `NTF-002` triển khai trên staging; production fail-closed đến `REL-001` và DNS verification | Tin nhắn chủ dự án ngày 2026-08-11 |
+| 2026-08-17 | PRE-004 | Chủ dự án | Cung cấp thêm `MENU VƯỜN MĂNG ĐEN VER.1.md` — bản có đơn vị tính, số khách mỗi set, thành phần set và ghi chú nội bộ. **Phát hiện mâu thuẫn lớn với `Demo menu Vuon Mang Den.pdf`**: giá lệch tới 5,2 lần ở một số món, số set khác nhau (4 với 7), nguồn B có lẩu mà nguồn A không có, chính sách sốt chấm trái ngược. `BBQ-002` tiếp tục bị chặn cho tới khi chủ dự án chỉ rõ bản nào là giá bán chính thức | `MENU VƯỜN MĂNG ĐEN VER.1.md` |
 | 2026-08-17 | PRE-004 (menu), PRE-003 (agent), PRE-007 (pháp nhân) | Chủ dự án | Cung cấp thêm `VMD_Bao_Gia_Phong_2026_Travel_Agent.docx` và `Demo menu Vuon Mang Den.pdf`. Ghi nhận: 7 set combo BBQ và menu à la carte 6 nhóm (**chờ xác nhận vì là bản "Demo" trong thư mục thiết kế**); cơ chế hoa hồng agent 12–15% với Net Rate 88%; pháp nhân DHLC, MST 0111330155, email hóa đơn và tài khoản MB Bank (số đầy đủ không commit vào Git). PRE-004 chuyển `Blocked` → `Partial`; phần khu vực/bàn/khung giờ vẫn trống | `VMD_Bao_Gia_Phong_2026_Travel_Agent.docx`, `Demo menu Vuon Mang Den.pdf` |
 | 2026-08-17 | PRE-001, PRE-002, PRE-003, PRE-005 | Chủ dự án | Cung cấp bảng giá phòng và chính sách đặt phòng 2026 hiệu lực từ 25/08/2026: 7 phòng 201–207 với 7 hạng phòng, giá ngày thường/cuối tuần × không sáng/có sáng, gói ăn sáng, phụ thu khách thêm và check-out muộn, hệ số cao điểm/Lễ Tết, mức cọc 50%/100%, giờ nhận-trả phòng, chính sách trẻ em, hai bảng hủy hoàn theo giai đoạn, điều kiện đổi ngày và xử lý bất khả kháng. Bốn nhóm chuyển từ `Blocked` sang `Partial`. Phát hiện mâu thuẫn địa chỉ/hotline/email với PRE-008 — chưa tự chọn bên nào | `VMD_Bao_Gia_Phong_2026_Khach_Hang.docx` do chủ dự án cung cấp ngày 2026-08-17 |
