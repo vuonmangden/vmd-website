@@ -188,7 +188,40 @@ Phòng chỉ được giữ chính thức sau khi nhận được khoản thanh 
 6. **Sức chứa tối đa** để biết được phép thêm bao nhiêu khách (liên quan PRE-001).
 7. **Cọc BBQ** — chưa có, thuộc PRE-004.
 8. Có mã giảm giá đợt mở bán đầu không.
-9. **Giá cho Travel Agent.** Tồn tại `VMD_Bao_Gia_Phong_2026_Travel_Agent.docx` cùng thư mục nhưng chưa được cung cấp cho dự án; cần xác nhận Phase 1 có bán qua kênh agent không.
+9. **Kênh Travel Agent có nằm trong Phase 1 không** — xem phần dưới.
+
+### Kênh Travel Agent — nhận ngày 2026-08-17
+
+**Nguồn:** `VMD_Bao_Gia_Phong_2026_Travel_Agent.docx`. Phần A giống hệt bản khách hàng; Phần B là phụ lục thương mại dành riêng cho đối tác lữ hành, **không phát hành cho khách lẻ**.
+
+| Hình thức | Mức hoa hồng | Ghi chú |
+|---|---|---|
+| FIT / booking lẻ | 12% trên giá công bố | Agent Net Rate = **88%** giá niêm yết |
+| Booking từ 5 phòng cùng kỳ | Tối đa 15% | Theo xác nhận từng lần |
+| Sản lượng từ 15 room-night/tháng | Có thể nâng đến 15% | Đánh giá theo sản lượng thực tế và thanh toán đúng hạn |
+| Lễ, Tết, cao điểm | Báo giá riêng | Xác nhận theo từng booking |
+
+Nguyên tắc: đối tác không được công khai giá thấp hơn giá niêm yết nếu chưa có chương trình được duyệt. Hoa hồng tính trên tiền phòng hoặc gói phòng; phụ thu và dịch vụ khác chỉ tính khi có xác nhận riêng. Khuyến mại và voucher không tự động cộng dồn với hoa hồng.
+
+Booking từ 5 phòng, buy-out gần toàn bộ 7 phòng, đoàn doanh nghiệp hoặc nhiều đêm liên tiếp: báo giá riêng, không mặc định cộng với hoa hồng tiêu chuẩn.
+
+Chính sách hoàn/hủy áp dụng như Phần A trừ khi hợp đồng quy định khác.
+
+**Quyết định cần chủ dự án chốt:** Phase 1 có bán qua kênh agent trên website không? Nếu **có**, cần thêm: quản lý đối tác, giá net theo đối tác, đối soát hoa hồng và voucher/rooming list — đây là khối lượng lớn, nên tách milestone riêng chứ không nhét vào `RMS-005`. Nếu **không**, quy trình agent vẫn chạy thủ công ngoài hệ thống ở Phase 1 và tài liệu này chỉ để tham chiếu.
+
+### Pháp nhân và tài khoản nhận tiền — nhận ngày 2026-08-17
+
+| Nội dung | Thông tin |
+|---|---|
+| Đơn vị | CÔNG TY CỔ PHẦN THƯƠNG MẠI VÀ XNK DHLC |
+| Mã số thuế | 0111330155 |
+| Địa chỉ đăng ký | Số 148 Đê Trần Khát Chân, Phường Vĩnh Tuy, TP Hà Nội |
+| Email hóa đơn | dhlc.retail@gmail.com |
+| Ngân hàng nhận tiền | MB Bank, số tài khoản kết thúc `8688` |
+
+**Số tài khoản đầy đủ có trong tài liệu nguồn nhưng cố ý không chép vào Git.** Theo `AGENTS.md` §9 và §11, số tài khoản đầy đủ đặt trong secret store cùng cấu hình SePay khi triển khai `PAY-001`, không commit vào repository.
+
+Đây là đầu vào cho `PAY-001` (nội dung chuyển khoản, tài khoản đích) và cho việc xuất hóa đơn ở `PRE-005`.
 
 ## 7. PRE-004 — Khu vực, bàn, khung giờ và combo BBQ
 
@@ -211,11 +244,41 @@ Phòng chỉ được giữ chính thức sau khi nhận được khoản thanh 
 
 ### Combo/menu Phase 1
 
-| Mã combo | Tên | Số người đề xuất | Thành phần | Giá VND | Có cho chỉnh món | Trạng thái mở bán |
-|---|---|---:|---|---:|---|---|
-| Cần chủ dự án cung cấp |  |  |  |  |  |  |
+**Nguồn:** `Demo menu Vuon Mang Den.pdf` (9 trang, thư mục `THIẾT KẾ`), nhận ngày 2026-08-17.
 
-Quyết định bổ sung: quy tắc ghép bàn, giới hạn đặt trước, mức cọc, phụ thu quá giờ và chính sách khách không đến.
+> ⚠️ **Chưa dùng được làm dữ liệu vận hành.** Tên file có chữ "Demo" và nằm trong thư mục thiết kế, nên nhiều khả năng đây là bản dựng hình ảnh chứ chưa phải menu đã chốt. Theo `AGENTS.md` §16, không tự coi giá trong tài liệu thiết kế là giá bán. **Cần chủ dự án xác nhận đây là menu chính thức trước khi đưa vào `BBQ-002`.**
+
+Bảy set combo (trang 5):
+
+| Tên set | Giá VND |
+|---|---:|
+| Set nướng Tứ Khoái | 404.000 |
+| Set nướng Ngũ Cung | 498.000 |
+| Set gà Măng Đen | 591.000 |
+| Set nướng Bát Sơn Măng Đen | 929.000 |
+| Set Vườn Măng Đen | 985.000 |
+| Set cá tầm Măng Đen | 1.199.000 |
+| Set Đại Ngàn Măng Đen | 1.225.000 |
+
+Menu à la carte gồm 6 nhóm: gỏi/salad/khai vị (5 món), rau rừng và đặc sản (12 món), món ăn nhẹ (9 món), món nướng BBQ (28 món chia heo-bò, hải sản, nướng tảng, rau củ-nấm), món nướng được yêu thích (3 món) và 4 loại sốt chấm **không giới hạn**, tức miễn phí.
+
+Khoảng giá à la carte: 23.000đ (ngô ngọt nướng) đến 522.000đ (gà nướng nguyên con).
+
+Danh sách món đầy đủ chưa chép vào tài liệu này vì còn chờ xác nhận ở trên; PDF gốc là nguồn.
+
+### Còn thiếu cho PRE-004
+
+Menu/combo đã có (chờ xác nhận), nhưng **toàn bộ phần đặt bàn vẫn trống**:
+
+1. **Khu vực và bàn**: mã khu vực, mã bàn, sức chứa tối thiểu/tối đa, có cho ghép bàn không, trạng thái.
+2. **Khung giờ**: giờ bắt đầu, thời lượng sử dụng, thời gian dọn bàn, ngày áp dụng, giới hạn khách.
+3. Quy tắc ghép bàn và giới hạn đặt trước.
+4. **Mức cọc BBQ** — bảng giá phòng chỉ nói cọc phòng, không nói cọc BBQ.
+5. Phụ thu quá giờ và chính sách khách không đến (thuộc PRE-005).
+6. Số người đề xuất cho mỗi set combo — menu không ghi.
+7. Set nào cho chỉnh món, set nào cố định.
+
+`BBQ-001` (khu vực/bàn/khung giờ) và `BBQ-003` (availability) vẫn bị chặn hoàn toàn. `BBQ-002` (menu và combo) chỉ mở được sau khi xác nhận menu chính thức.
 
 ## 8. PRE-005 — Chính sách vận hành và tài chính
 
@@ -410,17 +473,19 @@ Chỉ ghi identifier/reference; không ghi secret.
 
 ### ⚠️ Mâu thuẫn thông tin liên hệ — cần chủ dự án chốt
 
-Bảng giá khách hàng nhận ngày 2026-08-17 ghi thông tin liên hệ **khác** với dữ liệu PRE-008 nhận ngày 2026-08-10:
+Hai tài liệu giá nhận ngày 2026-08-17 — bản khách hàng và bản Travel Agent — ghi **cùng một** thông tin liên hệ, và nó **khác** dữ liệu PRE-008 nhận ngày 2026-08-10:
 
-| Mục | PRE-008 (2026-08-10) | Bảng giá (2026-08-17) |
+| Mục | PRE-008 (2026-08-10) | Cả hai bảng giá (2026-08-17) |
 |---|---|---|
 | Địa chỉ | 26 Đường Phạm Văn Đồng | **24** Đường Phạm Văn Đồng |
 | Hotline | 1900 9085 | **0972 947 942** (kèm Zalo) |
-| Email | vuongmangden.com@gmail.com | **vuonmangden.com@gmail.com** |
+| Email | vuo**ng**mangden.com@gmail.com | vuonmangden.com@gmail.com |
 
-Ba mục đều lệch. Email khác nhau đúng một chữ (`vuong` với `vuon`) nên khả năng cao một trong hai là lỗi đánh máy. `CMS-005` hiện đang hiển thị bản PRE-008 trên website công khai.
+Ba mục đều lệch. Email chênh đúng một chữ (`vuong` với `vuon`) nên nhiều khả năng một bên là lỗi đánh máy. Hai tài liệu mới nhất, cùng ngày, thống nhất với nhau và đều là tài liệu phát hành ra ngoài — nên bản 2026-08-17 **có vẻ** đúng hơn.
 
-**Không tự chọn bên nào.** Cần chủ dự án xác nhận bản đúng trước khi sửa nội dung public.
+`CMS-005` hiện đang hiển thị bản PRE-008 trên website công khai.
+
+**Vẫn không tự chọn bên nào.** Đây là thông tin liên hệ công khai; sai địa chỉ hoặc hotline khiến khách không tới hoặc không gọi được. Cần chủ dự án xác nhận rồi mới sửa nội dung public.
 
 ### Hạng mục vẫn cần chủ dự án xác nhận/cung cấp
 
@@ -461,4 +526,5 @@ Ba mục đều lệch. Email khác nhau đúng một chữ (`vuong` với `vuon
 |---|---|---|---|---|
 | Chờ cập nhật |  |  |  |  |
 | 2026-08-11 | PRE-007 staging-only | Chủ dự án | Cho phép `IAM-001` và `NTF-002` triển khai trên staging; production fail-closed đến `REL-001` và DNS verification | Tin nhắn chủ dự án ngày 2026-08-11 |
+| 2026-08-17 | PRE-004 (menu), PRE-003 (agent), PRE-007 (pháp nhân) | Chủ dự án | Cung cấp thêm `VMD_Bao_Gia_Phong_2026_Travel_Agent.docx` và `Demo menu Vuon Mang Den.pdf`. Ghi nhận: 7 set combo BBQ và menu à la carte 6 nhóm (**chờ xác nhận vì là bản "Demo" trong thư mục thiết kế**); cơ chế hoa hồng agent 12–15% với Net Rate 88%; pháp nhân DHLC, MST 0111330155, email hóa đơn và tài khoản MB Bank (số đầy đủ không commit vào Git). PRE-004 chuyển `Blocked` → `Partial`; phần khu vực/bàn/khung giờ vẫn trống | `VMD_Bao_Gia_Phong_2026_Travel_Agent.docx`, `Demo menu Vuon Mang Den.pdf` |
 | 2026-08-17 | PRE-001, PRE-002, PRE-003, PRE-005 | Chủ dự án | Cung cấp bảng giá phòng và chính sách đặt phòng 2026 hiệu lực từ 25/08/2026: 7 phòng 201–207 với 7 hạng phòng, giá ngày thường/cuối tuần × không sáng/có sáng, gói ăn sáng, phụ thu khách thêm và check-out muộn, hệ số cao điểm/Lễ Tết, mức cọc 50%/100%, giờ nhận-trả phòng, chính sách trẻ em, hai bảng hủy hoàn theo giai đoạn, điều kiện đổi ngày và xử lý bất khả kháng. Bốn nhóm chuyển từ `Blocked` sang `Partial`. Phát hiện mâu thuẫn địa chỉ/hotline/email với PRE-008 — chưa tự chọn bên nào | `VMD_Bao_Gia_Phong_2026_Khach_Hang.docx` do chủ dự án cung cấp ngày 2026-08-17 |
