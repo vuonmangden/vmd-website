@@ -244,7 +244,13 @@ Chính sách hoàn/hủy áp dụng như Phần A trừ khi hợp đồng quy đ
 
 ### Combo/menu Phase 1
 
-> ## ⛔ Hai bản menu mâu thuẫn — chưa được dùng bản nào
+> ## ✅ Đã chốt ngày 2026-08-17: `MENU VƯỜN MĂNG ĐEN VER.1.md` là bản chuẩn
+>
+> Chủ dự án xác nhận **VER.1 là giá bán chính thức**. `Demo menu Vuon Mang Den.pdf` là bản demo chưa chốt và **không được dùng làm nguồn giá**.
+>
+> Phần đối chiếu bên dưới giữ lại để tra cứu: nếu về sau thấy giá nào khớp bản Demo thay vì VER.1, đó là lỗi cần sửa.
+
+> ### Đối chiếu hai bản (bản Demo đã bị thay thế)
 >
 > Chủ dự án cung cấp **hai** tài liệu menu trong ngày 2026-08-17, cùng nằm trong thư mục `THIẾT KẾ`:
 >
@@ -277,11 +283,13 @@ Chính sách hoàn/hủy áp dụng như Phần A trừ khi hợp đồng quy đ
 >
 > Ba set chỉ có ở nguồn A (Set gà 591.000, Set Bát Sơn 929.000, Set Đại Ngàn 1.225.000); ba món lẩu chỉ có ở nguồn B.
 >
-> **Cần chủ dự án chỉ rõ bản nào là giá bán chính thức.** Theo `AGENTS.md` §16, không tự đoán giá. Dùng nhầm bản có thể khiến bán dưới giá vốn hoặc bán cao hơn giá niêm yết thật.
+> Chủ dự án đã chốt: **dùng nguồn B**.
 
-#### Nguồn B — `MENU VƯỜN MĂNG ĐEN VER.1.md`
+#### Nguồn B — `MENU VƯỜN MĂNG ĐEN VER.1.md` — ĐÃ DUYỆT
 
-Đầy đủ hơn về mặt vận hành. Bốn set combo kèm thành phần và số khách:
+**Trạng thái:** Đã duyệt làm giá bán chính thức, 2026-08-17.
+
+Bốn set combo kèm thành phần và số khách:
 
 | Set | Giá VND | Số khách | Thành phần |
 |---|---:|---|---|
@@ -302,12 +310,11 @@ Danh sách món đầy đủ chưa chép vào tài liệu này vì còn chờ ch
 
 ### Còn thiếu cho PRE-004
 
-**Chặn `BBQ-002`:**
+**Không còn chặn `BBQ-002`** — nguồn giá đã chốt. Ba điểm nhỏ còn cần làm rõ nhưng không chặn schema/API:
 
-1. **Bản menu nào là giá bán chính thức** — nguồn A hay nguồn B. Đây là câu hỏi quan trọng nhất.
-2. Số khách cho `Set cá tầm Măng Đen` (nguồn B không ghi).
-3. Set nào cho khách chỉnh món, set nào cố định.
-4. Làm rõ chính sách sốt chấm: không giới hạn, hay chọn 2 trong 4, và danh sách 5 loại thì chọn mấy.
+1. Số khách cho `Set cá tầm Măng Đen` (VER.1 không ghi).
+2. Set nào cho khách chỉnh món, set nào cố định.
+3. Chính sách sốt chấm: VER.1 ghi "khách chọn 2/4 loại" nhưng liệt kê 5 loại. Cần xác nhận số lượng được chọn và món nào tính phí (VER.1 để trống cột giá cho toàn bộ sốt, hiểu là miễn phí).
 
 **Chặn `BBQ-001` và `BBQ-003` — chưa nhận gì:**
 
