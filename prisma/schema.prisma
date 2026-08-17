@@ -448,3 +448,23 @@ model AppSetting {
 
   @@map("app_settings")
 }
+
+model ContactSubmission {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  fullName      String    @map("full_name") @db.VarChar(150)
+  email         String?   @db.Citext
+  phone         String?   @db.VarChar(20)
+  subject       String    @db.VarChar(200)
+  message       String    @db.Text
+  status        String    @default("NEW") @db.VarChar(30)
+  handledBy     String?   @map("handled_by") @db.Uuid
+  handledAt     DateTime? @map("handled_at") @db.Timestamptz()
+  internalNote  String?   @map("internal_note") @db.Text
+  ipHash        String?   @map("ip_hash") @db.VarChar(64)
+  correlationId String?   @map("correlation_id") @db.Uuid
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@index([status, createdAt])
+  @@map("contact_submissions")
+}
