@@ -15,11 +15,11 @@
 |---|---|
 | Phase | Phase 1 — MVP |
 | Trạng thái tổng thể | Baseline local và GitHub-hosted đã xác minh; `main` có required CI checks và branch protection |
-| Milestone hiện tại | Milestone 0 — hoàn thiện dữ liệu thật; chuẩn bị Identity/CMS/Notification theo readiness gate |
-| Task đang thực hiện | IAM-001 Review trên PR #13, chờ Supabase staging sandbox E2E |
-| Task hoàn thành | 20 (FND-001–FND-005, BKG-001, NTF-001–NTF-002, MNT-002–MNT-011, TST-001, CMS-005) |
-| Blocker mở | BLK-001 — dữ liệu vận hành thật PRE-001–PRE-008 chưa được duyệt |
-| Cập nhật gần nhất | 2026-08-11 |
+| Milestone hiện tại | Milestone 0 vẫn chặn dữ liệu thật; Milestone 2/4/5/6 đã xong ở lane synthetic |
+| Task đang thực hiện | CMS-001, CMS-006, BKG-008, ADM-001, OPS-003, OPS-004, NTF-006 (Claude, 2026-08-16) |
+| Task hoàn thành | 46 — FND-001–005, IAM-001–005, CMS-005, RMS-001–007, BKG-001–007, PAY-001–003 và PAY-006, NTF-001–002, TST-001–002, MNT-002–014 |
+| Blocker mở | BLK-001 — PRE-001, PRE-002, PRE-003, PRE-004, PRE-005 và phần còn lại của PRE-007 chưa được duyệt |
+| Cập nhật gần nhất | 2026-08-16 |
 
 ## 3. Milestone 0 — Chốt đầu vào
 
@@ -64,12 +64,12 @@
 
 | Task ID | Nội dung | Trạng thái | Dependency | Branch/PR | Tests | Ghi chú |
 |---|---|---|---|---|---|---|
-| CMS-001 | Site settings | Backlog | FND-005, IAM-002, PRE-008 |  |  |  |
+| CMS-001 | Site settings | In progress (Claude, 2026-08-16) | FND-005, IAM-002, PRE-008 | `claude/cms-001-site-settings` |  |  |
 | CMS-002 | Content pages | Backlog | CMS-001 |  |  | Draft/publish |
 | CMS-003 | Media | Backlog | IAM-002, PRE-007 |  |  | Upload security |
 | CMS-004 | Blog | Backlog | CMS-002, CMS-003 |  |  | SEO metadata |
 | CMS-005 | Public layouts | Done | FND-001, PRE-008 | `codex/cms-005-public-layouts` | 3 web tests, visual QA desktop/mobile, full lint/typecheck/test/build đạt | Mobile-first; logo/link/contact đã duyệt; photo-free homepage; không API/migration/dependency |
-| CMS-006 | Contact | Backlog | FND-004, IAM-002 |  |  | Validation/rate limit |
+| CMS-006 | Contact | In progress (Claude, 2026-08-16) | FND-004, IAM-002 | `claude/cms-006-contact` |  | Validation/rate limit |
 | CMS-007 | SEO | Backlog | CMS-002, CMS-004, CMS-005 |  |  | Sitemap, robots, JSON-LD |
 
 **Gate:** Website nội dung deploy staging độc lập.
@@ -82,9 +82,9 @@
 | RMS-002 | Physical Rooms | Done | RMS-001, MNT-014 | PR #21 / `codex/rms-002-physical-rooms-synthetic` | Migration blank/deploy x2, seed x2, API 68/68, fixture 8/8, full local gate và hosted run `31594299696` đạt | Synthetic/staging-only; PRE-002 vẫn Blocked, không production |
 | RMS-003 | Rate Rules | Done | RMS-001, MNT-014 | PR #22 / `codex/rms-003-rate-rules-sandbox` | Migration blank/deploy x2, seed x2, API 72/72, fixture 8/8, hosted run `31598071210` đạt | Synthetic-only; PRE-003/PRE-005 vẫn Blocked, không public price hoặc production policy |
 | RMS-004 | Room Blocks | Done | RMS-002, MNT-014 | PR #23 / `codex/rms-004-room-blocks-sandbox` | Migration blank/deploy x2, seed x2, API 76/76, fixture 8/8, hosted run `31599535588` đạt | Synthetic-only; không thay `PRE-002`, không public booking |
-| RMS-005 | Price Engine | Review | RMS-003, MNT-014 | `codex/rms-005-price-engine-sandbox` | API 81/81, full local gate; chờ hosted CI | Synthetic-only; PRE-003/PRE-005 vẫn Blocked |
-| RMS-006 | Availability Search | In progress | RMS-002, RMS-004, MNT-014 | `codex/rms-006-availability-search-sandbox` | Integration test bắt buộc | Synthetic-only; chưa bao gồm occupancy/hold/booking |
-| RMS-007 | Public room pages | Review | RMS-001, RMS-005, RMS-006, CMS-005 | `codex/rms-007-public-room-pages` | API/web unit tests, typecheck and webpack build passed; hosted CI pending | Synthetic-only safe public API; no room IDs, inventory, holds or booking creation |
+| RMS-005 | Price Engine | Done | RMS-003, MNT-014 | PR #24 / `codex/rms-005-price-engine-sandbox` / merge `2151e10` | API 81/81, full local gate; hosted CI đạt khi merge | Synthetic-only; PRE-003/PRE-005 vẫn Blocked |
+| RMS-006 | Availability Search | Done | RMS-002, RMS-004, MNT-014 | PR #25 / `codex/rms-006-availability-search-sandbox` / merge `0121c36` | Integration test đạt; hosted CI đạt khi merge | Synthetic-only; chưa bao gồm occupancy/hold/booking |
+| RMS-007 | Public room pages | Done | RMS-001, RMS-005, RMS-006, CMS-005 | PR #33 / `codex/rms-007-public-room-pages` / merge `c979f40` | API/web unit tests, typecheck và build đạt; hosted CI đạt khi merge | Synthetic-only safe public API; no room IDs, inventory, holds or booking creation |
 
 **Gate:** Price Engine unit test và Availability integration test đạt.
 
@@ -93,13 +93,13 @@
 | Task ID | Nội dung | Trạng thái | Dependency | Branch/PR | Tests | Ghi chú |
 |---|---|---|---|---|---|---|
 | BKG-001 | Customer Core | Done | FND-005 | `chore/fnd-005-database-foundation`; audit MNT-001; PR #1 hosted verification | API 32/32 tests đạt; customer + outbox cùng transaction, có rollback regression | Migration `20260808000000_add_customers` áp dụng thành công trên PostgreSQL verification trắng; hosted CI đạt ngày 2026-08-09 |
-| BKG-002 | Occupancy Model | In progress | RMS-002, MNT-014 | `codex/bkg-002-occupancy-sandbox` | Unique `(room_id, stay_date)` | Synthetic-only; booking FK deferred to BKG-004 |
-| BKG-003 | Resource Hold | In progress | BKG-002, MNT-014 | `codex/bkg-003-resource-holds-sandbox` | TTL/expiry/retry | Synthetic-only; booking lifecycle deferred to BKG-004 |
-| BKG-004 | Booking Creation | Backlog | BKG-001, BKG-003, RMS-005 |  |  | Idempotency bắt buộc |
-| BKG-005 | Booking State Machine | In progress | BKG-004, MNT-014 | `codex/bkg-005-booking-state-sandbox` | Status history | Synthetic-only; no payment/refund policy |
-| BKG-006 | Booking Checkout UI | Backlog | BKG-004, RMS-007 |  |  | Mobile/loading/error |
-| BKG-007 | Booking Lookup | Review | BKG-004 | `codex/bkg-007-booking-lookup` | Public lookup/request + internal approval; hosted CI pending | Rate limit/IDOR |
-| BKG-008 | Admin Booking | Backlog | BKG-005, IAM-003 |  |  | Permission/audit |
+| BKG-002 | Occupancy Model | Done | RMS-002, MNT-014 | PR #26 / `codex/bkg-002-occupancy-sandbox` / merge `9f4500b` | Unique `(room_id, stay_date)`; hosted CI đạt khi merge | Synthetic-only; booking FK deferred to BKG-004 |
+| BKG-003 | Resource Hold | Done | BKG-002, MNT-014 | PR #27 / `codex/bkg-003-resource-holds-sandbox` / merge `0584d71` | TTL/expiry/retry; hosted CI đạt khi merge | Synthetic-only; booking lifecycle deferred to BKG-004 |
+| BKG-004 | Booking Creation | Done | BKG-001, BKG-003, RMS-005 | PR #28 / `codex/bkg-004-booking-creation` / merge `0fcbd8d` | Idempotency replay; hosted CI đạt khi merge | Synthetic-only; PRE-003/PRE-005 vẫn Blocked |
+| BKG-005 | Booking State Machine | Done | BKG-004, MNT-014 | PR #29 / `codex/bkg-005-booking-state-sandbox` / merge `3e39a00` | Status history; hosted CI đạt khi merge | Synthetic-only; no payment/refund policy |
+| BKG-006 | Booking Checkout UI | Done | BKG-004, RMS-007 | PR #35 / `codex/bkg-006-public-room-checkout` / merge `0d1b99c` | Mobile/loading/error states; hosted CI đạt khi merge | Synthetic-only public checkout sandbox |
+| BKG-007 | Booking Lookup | Done | BKG-004 | PR #37 / `codex/bkg-007-booking-lookup` / merge `cb143ca` | Public lookup/request + internal approval; hosted CI đạt khi merge | Rate limit/IDOR |
+| BKG-008 | Admin Booking | In progress (Claude, 2026-08-16) | BKG-005, IAM-003 | `claude/bkg-008-admin-booking` |  | Permission/audit |
 | BKG-009 | Change/Cancel | Backlog | BKG-005, PRE-005 |  |  | Transaction/reminder |
 
 **Gate:** E2E booking, concurrency và idempotency replay đạt.
@@ -108,12 +108,12 @@
 
 | Task ID | Nội dung | Trạng thái | Dependency | Branch/PR | Tests | Ghi chú |
 |---|---|---|---|---|---|---|
-| PAY-001 | Payment Intent | Review | BKG-004, synthetic lane authorization | `codex/pay-001-payment-intent-sandbox` | API lint/typecheck, payment unit tests 6/6, Prisma validation; hosted CI pending | Sandbox-only: no provider secret, bank data, webhook, or public confirmation |
-| PAY-002 | SePay Webhook Ingestion | Review | PAY-001, IAM-005 | `codex/pay-002-sepay-webhook` | API lint/typecheck, webhook unit tests, Prisma validation; hosted CI pending | Test Mode only; raw event before queue; production fail-closed |
-| PAY-003 | Idempotent Payment Processing | Review | PAY-002 | `codex/pay-003-payment-processing` | API lint/typecheck, 16 payment tests; hosted CI pending | Exact amount + reference only; unique provider transaction |
-| PAY-004 | Reconciliation | Backlog | PAY-003, PRE-005 |  |  | Mismatch/late payment |
-| PAY-005 | Admin Payment | Backlog | PAY-004, IAM-003, IAM-004 |  |  | Financial audit |
-| PAY-006 | Payment Status UI | Backlog | PAY-003, BKG-006 |  |  | Client không tự xác nhận |
+| PAY-001 | Payment Intent | Done | BKG-004, synthetic lane authorization | PR #32 / `codex/pay-001-payment-intent-sandbox` / merge `9f500ae` | API lint/typecheck, payment unit tests 6/6, Prisma validation; hosted CI đạt khi merge | Sandbox-only: no provider secret, bank data, webhook, or public confirmation |
+| PAY-002 | SePay Webhook Ingestion | Done | PAY-001, IAM-005 | PR #34 / `codex/pay-002-sepay-webhook` / merge `9332ecf` | API lint/typecheck, webhook unit tests, Prisma validation; hosted CI đạt khi merge | Test Mode only; raw event before queue; production fail-closed |
+| PAY-003 | Idempotent Payment Processing | Done | PAY-002 | PR #36 / `codex/pay-003-payment-processing` / merge `dd13c21` | API lint/typecheck, 16 payment tests; hosted CI đạt khi merge | Exact amount + reference only; unique provider transaction |
+| PAY-004 | Reconciliation | Backlog | PAY-003, PRE-005 |  |  | **Blocked bởi PRE-005** — cần chính sách thiếu/thừa/sai nội dung/muộn |
+| PAY-005 | Admin Payment | Backlog | PAY-004, IAM-003, IAM-004 |  |  | Chờ PAY-004 |
+| PAY-006 | Payment Status UI | Done | PAY-003, BKG-006 | PR #38 / `codex/pay-006-payment-status-ui` / merge `d92617f` | Public status polling; hosted CI đạt khi merge | Client không tự xác nhận; synthetic-only |
 
 **Gate:** Webhook auth/replay/duplicate/out-of-order/mismatch tests đạt.
 
@@ -139,7 +139,7 @@
 | NTF-003 | Zalo Adapter | Backlog | NTF-001, PRE-007 |  |  | Template được duyệt |
 | NTF-004 | Booking Notifications | Backlog | NTF-002, NTF-003, BKG-005, PAY-003 |  |  |  |
 | NTF-005 | Reminders | Backlog | NTF-004, PRE-005 |  |  | T-7/T-3/T-1 |
-| NTF-006 | Admin Failure Inbox | Backlog | NTF-001, IAM-003 |  |  | Retry có audit |
+| NTF-006 | Admin Failure Inbox | In progress (Claude, 2026-08-16) | NTF-001, IAM-003 | `claude/ntf-006-failure-inbox` |  | Retry có audit |
 
 **Gate:** Retry/dedup đạt; booking hủy/đổi không nhận reminder sai.
 
@@ -149,11 +149,11 @@
 |---|---|---|---|---|---|---|
 | OPS-001 | Operations Dashboard | Backlog | BKG-008, BBQ-006, PAY-005 |  |  |  |
 | OPS-002 | Calendar | Backlog | BKG-008, BBQ-006 |  |  | Timezone |
-| OPS-003 | Check-in/Check-out | Backlog | BKG-005, IAM-004 |  |  | Audit |
-| OPS-004 | Customer View | Backlog | BKG-001, IAM-003 |  |  | PII/permission |
+| OPS-003 | Check-in/Check-out | In progress (Claude, 2026-08-16) | BKG-005, IAM-004 | `claude/ops-003-check-in-out` |  | Audit |
+| OPS-004 | Customer View | In progress (Claude, 2026-08-16) | BKG-001, IAM-003 | `claude/ops-004-customer-view` |  | PII/permission |
 | RPT-001 | Reports | Backlog | PAY-005, OPS-001 |  |  | Metric definitions |
 | RPT-002 | Export | Backlog | RPT-001, IAM-003 |  |  | Audit/formula injection |
-| ADM-001 | Staff Management | Backlog | IAM-002, IAM-003 |  |  | Prevent privilege escalation |
+| ADM-001 | Staff Management | In progress (Claude, 2026-08-16) | IAM-002, IAM-003 | `claude/adm-001-staff-management` |  | Prevent privilege escalation |
 | ADM-002 | Settings | Backlog | IAM-004, CMS-001 |  |  | Secret not readable |
 
 **Gate:** Admin role matrix đạt; report đối chiếu đúng dữ liệu chuẩn.
@@ -213,6 +213,12 @@
 | MNT-012 | PRE-006 decision packet and IAM wave handoff | Done | IAM-001, MNT-011 | PR #15 / `codex/mnt-012-pre006-iam-wave` | IAM-002–IAM-005 planning-only specs; full local gate và hosted run `31484012208` đạt; PRE-006 vẫn chờ owner approval |
 | MNT-013 | PRE-006 owner approval | Done | MNT-012, IAM-001 | PR #16 / `codex/mnt-013-pre006-approval` | Owner duyệt matrix/MFA/owner/SLA; mở IAM-002; full local gate và hosted run `31484717378` đạt; không code/migration/seed |
 
+## 14d. Phối hợp agent
+
+Dự án có Claude Code và Codex làm song song. Quy trình bắt buộc — fetch `main`, đọc tracker từ `origin/main`, claim task trước khi code, đặt tiền tố nhánh theo agent — nằm ở `AGENTS.md` §17 và `docs/10_AGENT_COORDINATION.md`.
+
+Ngày 2026-08-16 đã xảy ra một lần trùng lặp: Claude triển khai lại IAM-001–005 và NTF-002 vốn đã merge từ 2026-08-11, do đọc bản tracker cũ trên nhánh feature. Sáu PR (#41–#46) bị đóng. Quy trình ở §17 sinh ra từ sự cố này.
+
 ## 15. Blocker log
 
 | ID | Ngày mở | Liên quan | Mô tả | Ảnh hưởng | Owner | Trạng thái | Quyết định/Ngày đóng |
@@ -258,6 +264,7 @@ Người cập nhật:
 
 ## 19. Lịch sử cập nhật
 
+
 | Ngày | Người cập nhật | Nội dung |
 |---|---|---|
 | 2026-08-05 | Codex | Khởi tạo tracker Phase 1 theo Execution Plan; FND-001 ở trạng thái Ready có điều kiện |
@@ -295,3 +302,5 @@ Người cập nhật:
 | 2026-08-10 | Chủ dự án/Codex | Hoàn tất MNT-008: ghi nhận shared Supabase, admin/CORS/callback production và Resend/Mailpit/from/reply-to/DNS/secret-store ở trạng thái đề xuất. Không tự xem proposal là cấu hình production đã duyệt; IAM-001 và NTF-002 tiếp tục planning-only đến khi chủ dự án chốt. Không có secret, API, migration hoặc production code; full local quality gate đạt. |
 | 2026-08-11 | Chủ dự án/Codex | Hoàn tất MNT-009: chốt tách Supabase staging/production, admin/CORS/callback production, Railway Variables, Resend, email identity và DNS verified. IAM-001 vẫn chờ project Supabase production riêng; NTF-002 chờ Resend secret reference và scope webhook/bounce. Không có secret, API, migration hoặc production code; full local quality gate đạt. |
 | 2026-08-11 | Chủ dự án/Codex | NTF-002 hoàn tất qua PR #12 với Resend staging/Mailpit, Worker 27/27 và main CI `31468483338`. IAM-001 trên PR #13 đã đạt migration local, full/hosted gates nhưng giữ Review đến Supabase staging sandbox E2E; production vẫn hard-disabled đến REL-001. |
+| 2026-08-16 | Claude | Sự cố trùng lặp: triển khai lại IAM-001–005 và NTF-002 vốn đã merge từ 2026-08-11, do đọc bản tracker cũ trên nhánh `chore/mnt-001-repository-audit-cleanup` (đi sau `main` 39 commit). Sáu PR #41–#46 đã đóng, nhánh đã xóa. Không có thay đổi nào vào `main`. |
+| 2026-08-16 | Claude | Đồng bộ tracker với `main`: RMS-005/006/007, BKG-002–007, PAY-001/002/003 và PAY-006 chuyển Done kèm số PR và commit merge; header tổng quan cập nhật 46 task hoàn thành. Thêm `AGENTS.md` §17 và `docs/10_AGENT_COORDINATION.md` quy định fetch `main` trước khi làm, claim task trong tracker, tiền tố nhánh theo agent và cập nhật tracker cùng PR với code. |
