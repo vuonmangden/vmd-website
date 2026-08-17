@@ -25,11 +25,11 @@
 
 | Task ID | Nội dung | Trạng thái | Owner | Bằng chứng/Link | Blocker/Ghi chú |
 |---|---|---|---|---|---|
-| PRE-001 | Chốt danh sách loại phòng | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §4 | Chờ chủ dự án điền và duyệt; không được giả định |
-| PRE-002 | Chốt danh sách phòng thực tế | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §5 | Chờ mã phòng, sức chứa, trạng thái được duyệt |
-| PRE-003 | Chốt bảng giá, phụ thu và cọc | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §6 | P0 blocker cho Price Engine/Booking |
-| PRE-004 | Chốt khu vực, bàn, khung giờ và combo BBQ | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §7 | Chờ dữ liệu vận hành BBQ được duyệt |
-| PRE-005 | Chốt chính sách hủy, đổi lịch, hoàn tiền | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §8 | P0 blocker cho Booking/Payment |
+| PRE-001 | Chốt danh sách loại phòng | Partial | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §4; `VMD_Bao_Gia_Phong_2026_Khach_Hang.docx` | Nhận 7 hạng phòng kèm sức chứa chuẩn ngày 2026-08-17. Còn thiếu: cấu hình giường 6 hạng, **sức chứa tối đa**, tiện nghi, duyệt mã loại |
+| PRE-002 | Chốt danh sách phòng thực tế | Partial | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §5 | Nhận 7 phòng `201`–`207` ngày 2026-08-17. Còn thiếu: tầng/khu, trạng thái ban đầu, duyệt vocabulary trạng thái |
+| PRE-003 | Chốt bảng giá, phụ thu và cọc | Partial | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §6 | Nhận bảng giá đầy đủ, gói ăn sáng, phụ thu, cọc 50%/100% ngày 2026-08-17. Cuối tuần = **T6–T7**. Còn thiếu: thuế/VAT, **bảng giá cụ thể cho cao điểm/Lễ Tết** (chỉ có khoảng +10–40%), lịch giai đoạn, hold TTL, quy tắc làm tròn |
+| PRE-004 | Chốt khu vực, bàn, khung giờ và combo BBQ | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §7 | Chưa nhận dữ liệu nào. Có `Demo menu Vuon Mang Den.pdf` trong thư mục THIẾT KẾ nhưng chưa được cung cấp cho dự án |
+| PRE-005 | Chốt chính sách hủy, đổi lịch, hoàn tiền | Partial | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §8 | Nhận chính sách lưu trú, hai bảng hủy hoàn, điều kiện đổi ngày và bất khả kháng ngày 2026-08-17. Còn thiếu: **toàn bộ chính sách BBQ**, người duyệt hoàn tiền + SLA, quy tắc hóa đơn, quy trình đối soát thiếu/thừa/sai/muộn |
 | PRE-006 | Chốt vai trò và quyền nhân sự | Ready | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §9 | Duyệt toàn bộ decision packet ngày 2026-08-11; mở IAM-002 |
 | PRE-007 | Chuẩn bị domain, Supabase, SePay, email, Zalo | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §10 | IAM-001/NTF-002 được mở staging-only ngày 2026-08-11; production vẫn chờ Supabase project riêng (`REL-001`) và SPF/DKIM. SePay/Zalo/object storage vẫn blocked; không ghi secret vào Git |
 | PRE-008 | Chốt bộ nhận diện, ảnh và nội dung ban đầu | Ready | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §11 | Đủ phạm vi CMS-005: quyền logo/brand board, photo-free homepage và system-font fallback được duyệt 2026-08-10; legal/CTA và ảnh venue vẫn ngoài phạm vi |
@@ -217,7 +217,7 @@
 
 | ID | Ngày mở | Liên quan | Mô tả | Ảnh hưởng | Owner | Trạng thái | Quyết định/Ngày đóng |
 |---|---|---|---|---|---|---|---|
-| BLK-001 | 2026-08-05 | PRE-* | Dữ liệu vận hành Milestone 0 chưa được chủ dự án xác nhận | Chưa thể triển khai module nghiệp vụ phụ thuộc | Chủ dự án | Open | Input pack đã tạo tại `docs/09_MILESTONE_0_INPUT_PACK.md`; chờ điền và duyệt, không ghi secret vào Git |
+| BLK-001 | 2026-08-05 | PRE-* | Dữ liệu vận hành Milestone 0 chưa được chủ dự án xác nhận | Chưa thể triển khai module nghiệp vụ phụ thuộc | Chủ dự án | Open | Ngày 2026-08-17 nhận bảng giá phòng: PRE-001/002/003/005 chuyển `Partial`. Còn chặn: sức chứa tối đa, bảng giá cao điểm cụ thể, hold TTL, thuế/VAT, toàn bộ PRE-004 BBQ, người duyệt hoàn tiền và quy trình đối soát |
 | BLK-002 | 2026-08-09 | FND-005, BKG-001, NTF-001, MNT-001 | Máy audit ban đầu không có Docker CLI/Engine | Đã chạy database trắng, seed idempotency, service/API/Worker smoke trong project verification tách biệt | Chủ dự án | Closed | Docker Desktop khả dụng; toàn bộ local verification đạt ngày 2026-08-09 |
 | BLK-003 | 2026-08-09 | FND-003 | Chưa có bằng chứng GitHub-hosted run/branch protection | CI không thể được đánh dấu Done chỉ bằng local validation | Chủ dự án | Closed | GitHub Actions run `31309744163` xanh; `main` yêu cầu Quality + Security checks và chặn force-push/delete ngày 2026-08-09 |
 
@@ -295,3 +295,4 @@ Người cập nhật:
 | 2026-08-10 | Chủ dự án/Codex | Hoàn tất MNT-008: ghi nhận shared Supabase, admin/CORS/callback production và Resend/Mailpit/from/reply-to/DNS/secret-store ở trạng thái đề xuất. Không tự xem proposal là cấu hình production đã duyệt; IAM-001 và NTF-002 tiếp tục planning-only đến khi chủ dự án chốt. Không có secret, API, migration hoặc production code; full local quality gate đạt. |
 | 2026-08-11 | Chủ dự án/Codex | Hoàn tất MNT-009: chốt tách Supabase staging/production, admin/CORS/callback production, Railway Variables, Resend, email identity và DNS verified. IAM-001 vẫn chờ project Supabase production riêng; NTF-002 chờ Resend secret reference và scope webhook/bounce. Không có secret, API, migration hoặc production code; full local quality gate đạt. |
 | 2026-08-11 | Chủ dự án/Codex | NTF-002 hoàn tất qua PR #12 với Resend staging/Mailpit, Worker 27/27 và main CI `31468483338`. IAM-001 trên PR #13 đã đạt migration local, full/hosted gates nhưng giữ Review đến Supabase staging sandbox E2E; production vẫn hard-disabled đến REL-001. |
+| 2026-08-17 | Chủ dự án/Claude | Nhận `VMD_Bao_Gia_Phong_2026_Khach_Hang.docx` (hiệu lực 25/08/2026) và ghi vào input pack: 7 phòng 201–207, 7 hạng phòng, bảng giá ngày thường/cuối tuần × không sáng/có sáng, gói ăn sáng, phụ thu khách thêm và check-out muộn, hệ số cao điểm, mức cọc 50%/100%, giờ nhận-trả phòng, chính sách trẻ em, hai bảng hủy hoàn, điều kiện đổi ngày và bất khả kháng. PRE-001/002/003/005 chuyển `Blocked` → `Partial`. Chưa áp dữ liệu vào code: RMS/BKG/PAY vẫn ở lane synthetic cho tới khi các mục còn thiếu được chốt. Ghi nhận mâu thuẫn địa chỉ/hotline/email giữa bảng giá và PRE-008; không tự chọn bên nào. |

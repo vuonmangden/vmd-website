@@ -47,61 +47,148 @@ Các trạng thái hợp lệ: `Chờ dữ liệu`, `Đang rà soát`, `Đã duy
 
 ## 4. PRE-001 — Loại phòng
 
-**Trạng thái:** Ready cho `CMS-005` — chủ dự án đã duyệt phạm vi layout ngày 2026-08-10; dữ liệu legal/CTA ngoài phạm vi vẫn chưa được cung cấp
+**Trạng thái:** Partial — nhận bảng giá khách hàng ngày 2026-08-17; còn thiếu cấu hình giường, sức chứa tối đa và tiện nghi chi tiết
 **Owner:** Chủ dự án
-**Người duyệt:** Chủ dự án
-**Ngày duyệt:** 2026-08-10
+**Nguồn:** `VMD_Bao_Gia_Phong_2026_Khach_Hang.docx`, hiệu lực từ 25/08/2026
+**Ngày nhận:** 2026-08-17
 
-Điền một dòng cho mỗi loại phòng:
+Bảy hạng phòng, mỗi hạng hiện có đúng một phòng thực tế (xem §5):
 
-| Mã loại | Tên hiển thị | Sức chứa chuẩn | Sức chứa tối đa | Cấu hình giường | Tiện nghi chính | Mô tả ngắn | Trạng thái mở bán |
-|---|---|---:|---:|---|---|---|---|
-| Cần chủ dự án cung cấp |  |  |  |  |  |  |  |
+| Mã loại | Tên hiển thị | Sức chứa chuẩn | Đặc điểm chính |
+|---|---|---:|---|
+| `DOUBLE_LAKE_WINDOW` | Double Lake Window | 2 | Cửa sổ nhìn hồ tiểu cảnh, không ban công |
+| `FAMILY_LOFT_BALCONY` | Family Loft Balcony | 4 | 1 giường đôi + 2 giường đơn, ban công gác mái |
+| `DOUBLE_CITY_VIEW` | Double City View | 2 | Hướng phố, không ban công |
+| `DOUBLE_BALCONY` | Double Balcony | 2 | Ban công riêng |
+| `GARDEN_VIEW` | Garden View | 2 | Hướng vườn, không ban công |
+| `PREMIUM_GARDEN_VIEW` | Premium Garden View | 2 | Hướng vườn đẹp, vị trí ưu tiên |
+| `PREMIUM_BALCONY_VIEW` | Premium Balcony View | 2 | Ban công rộng, hướng phố đẹp |
 
-Quyết định bổ sung:
+**Mã loại ở trên do Claude đề xuất, chưa được chủ dự án duyệt.** Tài liệu chỉ ghi tên tiếng Anh của hạng phòng.
 
-- Trẻ em được tính vào sức chứa theo quy tắc nào?
-- Có cho phép kê thêm giường/nệm không? Nếu có, giới hạn và phụ thu thuộc PRE-003.
-- Loại phòng nào chưa sẵn sàng mở bán trong Phase 1?
+Quy tắc trẻ em đã chốt (§6 nguồn):
+
+- Dưới 6 tuổi: miễn phí khi ngủ chung giường với bố mẹ.
+- 6–11 tuổi: phụ thu ăn sáng 50.000đ/trẻ nếu sử dụng.
+- Từ 12 tuổi: tính như người lớn.
+
+Giường phụ: chỉ bố trí khi diện tích phòng phù hợp và có xác nhận từ Homestay — nghĩa là **không tự động cho phép**, cần thao tác thủ công.
+
+### Còn thiếu cho PRE-001
+
+1. Cấu hình giường của 6 hạng còn lại (chỉ `Family Loft Balcony` được mô tả).
+2. **Sức chứa tối đa từng hạng.** Bảng giá có phụ thu khách thêm 250.000–300.000đ/người/đêm nên sức chứa tối đa lớn hơn sức chứa chuẩn, nhưng trần cụ thể chưa có. Price Engine và Availability cần con số này để chặn đặt quá tải.
+3. Danh sách tiện nghi để hiển thị trên web (điều hòa, nước nóng, TV, wifi…).
+4. Xác nhận cả 7 hạng đều mở bán Phase 1.
+5. Duyệt mã loại phòng, hoặc cung cấp mã nội bộ đang dùng.
 
 ## 5. PRE-002 — Phòng thực tế
 
-**Trạng thái:** Chờ dữ liệu
+**Trạng thái:** Partial — nhận danh sách 7 phòng ngày 2026-08-17; còn thiếu tầng/khu và trạng thái ban đầu
 **Owner:** Chủ dự án
-**Người duyệt:** Chưa xác định
-**Ngày duyệt:** Chưa xác định
+**Nguồn:** `VMD_Bao_Gia_Phong_2026_Khach_Hang.docx`
+**Ngày nhận:** 2026-08-17
 
-| Mã phòng duy nhất | Loại phòng | Tên nội bộ | Tầng/khu | Sức chứa | Trạng thái ban đầu | Ghi chú vận hành |
-|---|---|---|---|---:|---|---|
-| Cần chủ dự án cung cấp |  |  |  |  |  |  |
+| Mã phòng | Loại phòng | Sức chứa chuẩn | Trạng thái ban đầu |
+|---|---|---:|---|
+| `201` | Double Lake Window | 2 | Cần xác nhận |
+| `202` | Family Loft Balcony | 4 | Cần xác nhận |
+| `203` | Double City View | 2 | Cần xác nhận |
+| `204` | Double Balcony | 2 | Cần xác nhận |
+| `205` | Garden View | 2 | Cần xác nhận |
+| `206` | Premium Garden View | 2 | Cần xác nhận |
+| `207` | Premium Balcony View | 2 | Cần xác nhận |
 
-Trạng thái ban đầu đề nghị dùng một trong: `ACTIVE`, `INACTIVE`, `MAINTENANCE`; chủ dự án cần duyệt vocabulary cuối cùng trước khi tạo schema nghiệp vụ.
+Tổng sức chứa chuẩn: **16 khách** trên 7 phòng.
+
+### Còn thiếu cho PRE-002
+
+1. Tầng/khu của từng phòng. Đánh số `2xx` gợi ý tất cả ở tầng 2 nhưng **không được suy đoán** — cần xác nhận.
+2. Trạng thái ban đầu từng phòng: `ACTIVE`, `INACTIVE` hay `MAINTENANCE`. Chủ dự án cũng cần duyệt bộ vocabulary này.
+3. Tên nội bộ nếu nhân viên gọi khác số phòng.
+4. Có phòng nào chưa sẵn sàng đón khách vào ngày mở bán 25/08/2026 không.
 
 ## 6. PRE-003 — Giá, phụ thu, thuế/phí và tiền cọc
 
-**Trạng thái:** Chờ dữ liệu
+**Trạng thái:** Partial — nhận bảng giá đầy đủ ngày 2026-08-17; còn thiếu thuế/VAT, làm tròn, hold TTL và cọc BBQ
 **Owner:** Chủ dự án
-**Người duyệt:** Chưa xác định
-**Ngày duyệt:** Chưa xác định
+**Nguồn:** `VMD_Bao_Gia_Phong_2026_Khach_Hang.docx`, hiệu lực từ 25/08/2026
+**Ngày nhận:** 2026-08-17
 
-Tất cả số tiền dùng số nguyên VND.
+Tất cả số tiền là số nguyên VND, tính trên mỗi phòng mỗi đêm.
 
-| Loại phòng | Giá ngày thường/đêm | Giá cuối tuần/đêm | Định nghĩa cuối tuần | Giá lễ | Giai đoạn áp dụng | Số khách bao gồm |
-|---|---:|---:|---|---|---|---:|
-| Cần chủ dự án cung cấp |  |  |  |  |  |  |
+### Định nghĩa ngày — đã chốt
 
-| Loại phụ thu | Điều kiện áp dụng | Số tiền VND | Theo đêm/lần/người | Có chịu thuế/phí không |
-|---|---|---:|---|---|
-| Cần chủ dự án cung cấp |  |  |  |  |
+- **Ngày thường:** Chủ nhật đến Thứ năm.
+- **Cuối tuần:** Thứ sáu và Thứ bảy.
 
-Quyết định bắt buộc:
+Lưu ý kỹ thuật: cuối tuần ở đây là **T6–T7**, không phải T7–CN. Chủ nhật tính giá ngày thường.
 
-- Giá đã bao gồm thuế/phí chưa?
-- Chính sách cọc phòng: phần trăm hay số tiền cố định; mức cụ thể; có yêu cầu thanh toán toàn bộ trong trường hợp nào?
-- Chính sách cọc BBQ: phần trăm hay số tiền cố định; mức cụ thể.
-- Số phút giữ chỗ production trước khi thanh toán hết hạn. Tài liệu kỹ thuật có mốc 15 phút nhưng vẫn cần chủ dự án xác nhận production.
-- Quy tắc làm tròn và xử lý tổng tiền thấp hơn mức cọc cố định.
-- Có mã giảm giá trong đợt mở bán đầu tiên không? Nếu có, cần phạm vi và giới hạn được duyệt.
+### Bảng giá cơ bản
+
+| Phòng | Hạng phòng | Sức chứa | Ngày thường không sáng | Ngày thường có sáng | Cuối tuần không sáng | Cuối tuần có sáng |
+|---|---|---:|---:|---:|---:|---:|
+| 201 | Double Lake Window | 2 | 650.000 | 750.000 | 750.000 | 850.000 |
+| 202 | Family Loft Balcony | 4 | 1.150.000 | 1.350.000 | 1.350.000 | 1.550.000 |
+| 203 | Double City View | 2 | 600.000 | 700.000 | 700.000 | 800.000 |
+| 204 | Double Balcony | 2 | 700.000 | 800.000 | 800.000 | 900.000 |
+| 205 | Garden View | 2 | 750.000 | 850.000 | 850.000 | 950.000 |
+| 206 | Premium Garden View | 2 | 850.000 | 950.000 | 950.000 | 1.050.000 |
+| 207 | Premium Balcony View | 2 | 850.000 | 950.000 | 950.000 | 1.050.000 |
+
+### Gói ăn sáng
+
+- Phòng 2 khách: +100.000đ/phòng/đêm (50.000đ/khách).
+- Phòng 202 (4 khách): +200.000đ/phòng/đêm.
+
+Ăn sáng là một **biến thể giá của phòng**, không phải phụ thu rời — bảng giá đã liệt kê sẵn cả hai mức.
+
+### Phụ thu
+
+| Loại phụ thu | Điều kiện | Số tiền | Đơn vị |
+|---|---|---:|---|
+| Khách người lớn thêm, không ăn sáng | Vượt sức chứa chuẩn | 250.000 | người/đêm |
+| Khách người lớn thêm, có ăn sáng | Vượt sức chứa chuẩn | 300.000 | người/đêm |
+| Ăn sáng trẻ 6–11 tuổi | Nếu sử dụng | 50.000 | trẻ |
+| Check-out 12:00–15:00 | Theo yêu cầu | 30% giá phòng 1 đêm | lần |
+| Check-out 15:00–18:00 | Theo yêu cầu | 50% giá phòng 1 đêm | lần |
+| Check-out sau 18:00 | Theo yêu cầu | 100% giá phòng 1 đêm | lần |
+
+Check-in sớm: phụ thuộc tình trạng phòng và **cần xác nhận trước** — không có phụ thu cố định, xử lý thủ công. Gửi hành lý miễn phí trong ngày.
+
+### Hệ số cao điểm
+
+| Giai đoạn | Nguyên tắc |
+|---|---|
+| Ngày thường (CN–T5) | Theo bảng giá tiêu chuẩn |
+| Cuối tuần (T6–T7) | Theo bảng giá cuối tuần |
+| Cao điểm / sự kiện địa phương | +10% đến +20% **so với giá cuối tuần** |
+| Lễ, Tết | +25% đến +30% **so với giá cuối tuần** |
+| Đỉnh nhu cầu đặc biệt | Linh hoạt, tối đa khoảng +40% |
+
+Đây là **khoảng tham chiếu, không phải giá cố định** — tài liệu ghi rõ giá cuối cùng được xác nhận tại thời điểm đặt phòng. Price Engine không thể tự chọn trong khoảng; cần bảng giá cụ thể theo từng giai đoạn hoặc một mức cố định được duyệt.
+
+### Tiền cọc — đã chốt
+
+| Trường hợp | Mức thanh toán |
+|---|---|
+| Ngày thường và cuối tuần | Đặt cọc **50%** giá trị booking |
+| Đặt trong vòng 3 ngày trước check-in | **100%** |
+| Lễ, Tết, cao điểm | **100%** |
+
+Phòng chỉ được giữ chính thức sau khi nhận được khoản thanh toán theo quy định.
+
+### Còn thiếu cho PRE-003
+
+1. **Giá đã bao gồm thuế/VAT chưa?** Ảnh hưởng trực tiếp tới cách hiển thị và xuất hóa đơn.
+2. **Bảng giá cụ thể cho cao điểm/Lễ/Tết.** Khoảng +10–40% không đủ để Price Engine tính tự động; cần hoặc danh sách giai đoạn kèm hệ số chốt, hoặc chấp nhận nhân viên nhập giá thủ công cho các giai đoạn đó.
+3. **Lịch các giai đoạn cao điểm/Lễ/Tết năm 2026–2027** để hệ thống biết ngày nào áp mức nào.
+4. **Số phút giữ chỗ (hold TTL)** trước khi booking chưa thanh toán hết hạn. Tài liệu kỹ thuật đề xuất 15 phút, `prisma/seed.ts` đang để tạm 15 phút — cần chủ dự án chốt cho production.
+5. **Quy tắc làm tròn** khi tính 50% cọc hoặc 30%/50% phụ thu check-out muộn cho số lẻ.
+6. **Sức chứa tối đa** để biết được phép thêm bao nhiêu khách (liên quan PRE-001).
+7. **Cọc BBQ** — chưa có, thuộc PRE-004.
+8. Có mã giảm giá đợt mở bán đầu không.
+9. **Giá cho Travel Agent.** Tồn tại `VMD_Bao_Gia_Phong_2026_Travel_Agent.docx` cùng thư mục nhưng chưa được cung cấp cho dự án; cần xác nhận Phase 1 có bán qua kênh agent không.
 
 ## 7. PRE-004 — Khu vực, bàn, khung giờ và combo BBQ
 
@@ -132,40 +219,65 @@ Quyết định bổ sung: quy tắc ghép bàn, giới hạn đặt trước, m
 
 ## 8. PRE-005 — Chính sách vận hành và tài chính
 
-**Trạng thái:** Chờ dữ liệu
+**Trạng thái:** Partial — chính sách lưu trú cho phòng đã chốt ngày 2026-08-17; BBQ và kế toán vẫn thiếu
 **Owner:** Chủ dự án
-**Người duyệt:** Chưa xác định
-**Ngày duyệt:** Chưa xác định
+**Nguồn:** `VMD_Bao_Gia_Phong_2026_Khach_Hang.docx`
+**Ngày nhận:** 2026-08-17
 
-### Lưu trú
+### Lưu trú — đã chốt
 
-| Nội dung | Quyết định cần duyệt |
+| Nội dung | Chính sách |
 |---|---|
-| Giờ check-in | Cần chủ dự án cung cấp |
-| Giờ check-out | Cần chủ dự án cung cấp |
-| Check-in sớm/check-out muộn | Điều kiện và phụ thu |
-| Chính sách trẻ em | Độ tuổi, miễn phí/phụ thu, sức chứa |
-| Hủy booking | Các mốc thời gian và số tiền/tỷ lệ được giữ lại |
-| Đổi lịch | Số lần, thời hạn báo trước, chênh lệch giá |
-| No-show | Trạng thái booking và xử lý tiền đã thu |
-| Hoàn tiền | Điều kiện, người phê duyệt, SLA xử lý |
+| Nhận phòng | Từ 14:00 |
+| Trả phòng | Trước 12:00 |
+| Check-in sớm | Phụ thuộc tình trạng phòng, cần xác nhận trước; không có phụ thu cố định |
+| Check-out muộn | 12–15h: +30%; 15–18h: +50%; sau 18h: +100% giá phòng 1 đêm |
+| Trẻ dưới 6 tuổi | Miễn phí khi ngủ chung giường bố mẹ |
+| Trẻ 6–11 tuổi | Phụ thu ăn sáng 50.000đ/trẻ nếu dùng |
+| Từ 12 tuổi | Tính như người lớn |
+| Gửi hành lý | Miễn phí trong ngày, trước giờ nhận hoặc sau giờ trả phòng |
 
-### BBQ
+### Hủy và hoàn tiền — booking ngày thường và cuối tuần
 
-| Nội dung | Quyết định cần duyệt |
+| Thông báo trước check-in | Chính sách |
 |---|---|
-| Hủy/đổi lịch | Các mốc thời gian và số tiền/tỷ lệ được giữ lại |
-| No-show | Xử lý tiền cọc và tài nguyên bàn |
-| Đến muộn | Thời gian giữ bàn và ảnh hưởng thời lượng sử dụng |
-| Hoàn cọc | Điều kiện, người phê duyệt, SLA xử lý |
+| Từ 7 ngày trở lên | Hoàn **100%** số tiền đã thanh toán |
+| Từ 4–6 ngày | Hoàn **50%** |
+| Từ 2–3 ngày | **Không hoàn tiền**; được đổi ngày 01 lần |
+| Dưới 48 giờ | Không hoàn tiền và **không đổi ngày** |
+| No-show | Không hoàn tiền; tính 100% giá trị booking |
 
-### Kế toán/đối soát
+### Hủy và hoàn tiền — Lễ, Tết và cao điểm
 
-- Quy tắc hóa đơn và thời điểm xuất hóa đơn.
-- Người được phép xác nhận điều chỉnh tài chính.
-- Quy trình giao dịch thiếu, thừa, sai nội dung hoặc đến muộn.
-- Chính sách lưu trữ chứng từ và dữ liệu thanh toán.
-- Phase 1 không tự động hoàn tiền; mọi refund cần thao tác có audit và lý do.
+| Thông báo trước check-in | Chính sách |
+|---|---|
+| Từ 14 ngày trở lên | Hoàn **100%** |
+| Từ 7–13 ngày | Hoàn **50%** |
+| Dưới 7 ngày | Không hoàn tiền |
+| No-show | Không hoàn tiền |
+
+### Đổi ngày — đã chốt
+
+- Chỉ **01 lần** cho mỗi booking.
+- Ngày mới phải nằm trong **60 ngày** kể từ ngày lưu trú ban đầu, phụ thuộc tình trạng phòng.
+- Giá mới cao hơn: khách trả phần chênh lệch. Giá mới thấp hơn: **không hoàn** phần chênh lệch.
+- Sau khi đã đổi 01 lần, booking **mất quyền hoàn/hủy tiêu chuẩn**.
+- Không chuyển nhượng booking cho người khác nếu chưa có xác nhận.
+
+### Bất khả kháng — đã chốt
+
+Thiên tai, bão, sạt lở, đường bị đóng, dịch bệnh: xử lý theo thứ tự ưu tiên **đổi ngày miễn phí → bảo lưu giá trị booking → hoàn tiền** nếu Homestay không thể cung cấp dịch vụ.
+
+### Còn thiếu cho PRE-005
+
+1. **Toàn bộ chính sách BBQ** — hủy/đổi, no-show, đến muộn giữ bàn bao lâu, hoàn cọc. Thuộc PRE-004.
+2. **Ai được duyệt hoàn tiền** và **SLA xử lý** (bao nhiêu ngày làm việc). Cần cho `PAY-004`/`PAY-005` và luồng refund có audit.
+3. **Quy tắc và thời điểm xuất hóa đơn.**
+4. **Quy trình khi khách chuyển thiếu, thừa, sai nội dung hoặc muộn** — cần cho `PAY-004` Reconciliation.
+5. **Chính sách lưu trữ chứng từ và dữ liệu thanh toán.**
+6. Định nghĩa chính xác "cao điểm" để hệ thống biết áp bảng hủy nào — hai bảng hủy khác nhau nhưng ranh giới giữa "ngày thường/cuối tuần" và "Lễ/Tết/cao điểm" phụ thuộc lịch giai đoạn ở §6.
+
+Phase 1 không tự động hoàn tiền; mọi refund vẫn cần thao tác thủ công có audit và lý do.
 
 ## 9. PRE-006 — Vai trò, quyền và trách nhiệm
 
@@ -296,10 +408,25 @@ Chỉ ghi identifier/reference; không ghi secret.
 - **Giới thiệu ngắn:** “Nơi nghỉ dưỡng, giao lưu kết nối bạn bè”.
 - **URL public do chủ dự án cung cấp ngày 2026-08-10:** [Facebook](https://www.facebook.com/MangDenGarden/); [TikTok](https://www.tiktok.com/@vuonmangden); [Instagram](https://www.instagram.com/vuonmangden); [Google Maps](https://maps.app.goo.gl/DtzdH58QEz2p1iYW8).
 
+### ⚠️ Mâu thuẫn thông tin liên hệ — cần chủ dự án chốt
+
+Bảng giá khách hàng nhận ngày 2026-08-17 ghi thông tin liên hệ **khác** với dữ liệu PRE-008 nhận ngày 2026-08-10:
+
+| Mục | PRE-008 (2026-08-10) | Bảng giá (2026-08-17) |
+|---|---|---|
+| Địa chỉ | 26 Đường Phạm Văn Đồng | **24** Đường Phạm Văn Đồng |
+| Hotline | 1900 9085 | **0972 947 942** (kèm Zalo) |
+| Email | vuongmangden.com@gmail.com | **vuonmangden.com@gmail.com** |
+
+Ba mục đều lệch. Email khác nhau đúng một chữ (`vuong` với `vuon`) nên khả năng cao một trong hai là lỗi đánh máy. `CMS-005` hiện đang hiển thị bản PRE-008 trên website công khai.
+
+**Không tự chọn bên nào.** Cần chủ dự án xác nhận bản đúng trước khi sửa nội dung public.
+
 ### Hạng mục vẫn cần chủ dự án xác nhận/cung cấp
 
 1. Cung cấp hoặc tạm hoãn các link pháp lý và CTA/đích đến ngoài hotline, email, Maps và social URL đã duyệt; không tự tạo link không có trang đích.
 2. Cung cấp ảnh không gian/phòng/BBQ có quyền sử dụng trước khi thêm ảnh venue vào website.
+3. Chốt địa chỉ, hotline và email chính xác theo bảng mâu thuẫn ở trên.
 
 ### Phê duyệt phạm vi CMS-005 ngày 2026-08-10
 
@@ -334,3 +461,4 @@ Chỉ ghi identifier/reference; không ghi secret.
 |---|---|---|---|---|
 | Chờ cập nhật |  |  |  |  |
 | 2026-08-11 | PRE-007 staging-only | Chủ dự án | Cho phép `IAM-001` và `NTF-002` triển khai trên staging; production fail-closed đến `REL-001` và DNS verification | Tin nhắn chủ dự án ngày 2026-08-11 |
+| 2026-08-17 | PRE-001, PRE-002, PRE-003, PRE-005 | Chủ dự án | Cung cấp bảng giá phòng và chính sách đặt phòng 2026 hiệu lực từ 25/08/2026: 7 phòng 201–207 với 7 hạng phòng, giá ngày thường/cuối tuần × không sáng/có sáng, gói ăn sáng, phụ thu khách thêm và check-out muộn, hệ số cao điểm/Lễ Tết, mức cọc 50%/100%, giờ nhận-trả phòng, chính sách trẻ em, hai bảng hủy hoàn theo giai đoạn, điều kiện đổi ngày và xử lý bất khả kháng. Bốn nhóm chuyển từ `Blocked` sang `Partial`. Phát hiện mâu thuẫn địa chỉ/hotline/email với PRE-008 — chưa tự chọn bên nào | `VMD_Bao_Gia_Phong_2026_Khach_Hang.docx` do chủ dự án cung cấp ngày 2026-08-17 |
