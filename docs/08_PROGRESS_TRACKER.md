@@ -16,8 +16,8 @@
 | Phase | Phase 1 — MVP |
 | Trạng thái tổng thể | Baseline local và GitHub-hosted đã xác minh; `main` có required CI checks và branch protection |
 | Milestone hiện tại | Milestone 0 vẫn chặn dữ liệu thật; Milestone 2/4/5/6 đã xong ở lane synthetic |
-| Task đang thực hiện | CMS-001, CMS-006, BKG-008, ADM-001, OPS-003, OPS-004, NTF-006 (Claude, 2026-08-16) |
-| Task hoàn thành | 46 — FND-001–005, IAM-001–005, CMS-005, RMS-001–007, BKG-001–007, PAY-001–003 và PAY-006, NTF-001–002, TST-001–002, MNT-002–014 |
+| Task đang thực hiện | Không — 7 PR chờ review: #48 CMS-001, #49 CMS-006, #50 BKG-008, #51 OPS-003, #52 OPS-004, #53 NTF-006, #54 ADM-001 |
+| Task hoàn thành | 46 Done + 7 Review — FND-001–005, IAM-001–005, CMS-005, RMS-001–007, BKG-001–007, PAY-001–003 và PAY-006, NTF-001–002, TST-001–002, MNT-002–014 |
 | Blocker mở | BLK-001 — PRE-001, PRE-002, PRE-003, PRE-004, PRE-005 và phần còn lại của PRE-007 chưa được duyệt |
 | Cập nhật gần nhất | 2026-08-16 |
 
@@ -64,12 +64,12 @@
 
 | Task ID | Nội dung | Trạng thái | Dependency | Branch/PR | Tests | Ghi chú |
 |---|---|---|---|---|---|---|
-| CMS-001 | Site settings | In progress (Claude, 2026-08-16) | FND-005, IAM-002, PRE-008 | `claude/cms-001-site-settings` |  |  |
+| CMS-001 | Site settings | Review | FND-005, IAM-002, PRE-008 | PR #48 / `claude/cms-001-site-settings` | API 146/146; lint/typecheck/build 12/12 đạt | Allow-list 15 key; ghi cần `content.manage` + vai trò; timezone/currency chỉ Super Admin; audit cùng transaction. **Chờ chủ dự án chốt:** MARKETING có được sửa settings không |
 | CMS-002 | Content pages | Backlog | CMS-001 |  |  | Draft/publish |
 | CMS-003 | Media | Backlog | IAM-002, PRE-007 |  |  | Upload security |
 | CMS-004 | Blog | Backlog | CMS-002, CMS-003 |  |  | SEO metadata |
 | CMS-005 | Public layouts | Done | FND-001, PRE-008 | `codex/cms-005-public-layouts` | 3 web tests, visual QA desktop/mobile, full lint/typecheck/test/build đạt | Mobile-first; logo/link/contact đã duyệt; photo-free homepage; không API/migration/dependency |
-| CMS-006 | Contact | In progress (Claude, 2026-08-16) | FND-004, IAM-002 | `claude/cms-006-contact` |  | Validation/rate limit |
+| CMS-006 | Contact | Review | FND-004, IAM-002 | PR #49 / `claude/cms-006-contact` | API 162/162; Prisma + 19 migration hợp lệ; build 12/12 đạt | Migration `20260816120000_add_contact_submissions`; không lưu IP thô (SHA-256); che email/phone khi liệt kê; rate limit 3/10 phút/IP. **Giới hạn:** limiter in-process, chưa đúng multi-instance |
 | CMS-007 | SEO | Backlog | CMS-002, CMS-004, CMS-005 |  |  | Sitemap, robots, JSON-LD |
 
 **Gate:** Website nội dung deploy staging độc lập.
@@ -99,7 +99,7 @@
 | BKG-005 | Booking State Machine | Done | BKG-004, MNT-014 | PR #29 / `codex/bkg-005-booking-state-sandbox` / merge `3e39a00` | Status history; hosted CI đạt khi merge | Synthetic-only; no payment/refund policy |
 | BKG-006 | Booking Checkout UI | Done | BKG-004, RMS-007 | PR #35 / `codex/bkg-006-public-room-checkout` / merge `0d1b99c` | Mobile/loading/error states; hosted CI đạt khi merge | Synthetic-only public checkout sandbox |
 | BKG-007 | Booking Lookup | Done | BKG-004 | PR #37 / `codex/bkg-007-booking-lookup` / merge `cb143ca` | Public lookup/request + internal approval; hosted CI đạt khi merge | Rate limit/IDOR |
-| BKG-008 | Admin Booking | In progress (Claude, 2026-08-16) | BKG-005, IAM-003 | `claude/bkg-008-admin-booking` |  | Permission/audit |
+| BKG-008 | Admin Booking | Review | BKG-005, IAM-003 | PR #50 / `claude/bkg-008-admin-booking` | API 174/174; build 12/12 đạt | List/detail/confirm/cancel; đi qua `BookingStateService`, không tự ghi status; hủy bắt buộc lý do; tiền trả dạng chuỗi số nguyên. Vẫn ở lane synthetic |
 | BKG-009 | Change/Cancel | Backlog | BKG-005, PRE-005 |  |  | Transaction/reminder |
 
 **Gate:** E2E booking, concurrency và idempotency replay đạt.
@@ -139,7 +139,7 @@
 | NTF-003 | Zalo Adapter | Backlog | NTF-001, PRE-007 |  |  | Template được duyệt |
 | NTF-004 | Booking Notifications | Backlog | NTF-002, NTF-003, BKG-005, PAY-003 |  |  |  |
 | NTF-005 | Reminders | Backlog | NTF-004, PRE-005 |  |  | T-7/T-3/T-1 |
-| NTF-006 | Admin Failure Inbox | In progress (Claude, 2026-08-16) | NTF-001, IAM-003 | `claude/ntf-006-failure-inbox` |  | Retry có audit |
+| NTF-006 | Admin Failure Inbox | Review | NTF-001, IAM-003 | PR #53 / `claude/ntf-006-failure-inbox` | API 206/206; build 12/12 đạt | Retry chỉ đưa job về `pending` cho outbox processor, không tự gửi; giữ nguyên `attemptCount`; chỉ retry được từ `failed`; audit cùng transaction |
 
 **Gate:** Retry/dedup đạt; booking hủy/đổi không nhận reminder sai.
 
@@ -149,11 +149,11 @@
 |---|---|---|---|---|---|---|
 | OPS-001 | Operations Dashboard | Backlog | BKG-008, BBQ-006, PAY-005 |  |  |  |
 | OPS-002 | Calendar | Backlog | BKG-008, BBQ-006 |  |  | Timezone |
-| OPS-003 | Check-in/Check-out | In progress (Claude, 2026-08-16) | BKG-005, IAM-004 | `claude/ops-003-check-in-out` |  | Audit |
-| OPS-004 | Customer View | In progress (Claude, 2026-08-16) | BKG-001, IAM-003 | `claude/ops-004-customer-view` |  | PII/permission |
+| OPS-003 | Check-in/Check-out | Review | BKG-005, IAM-004 | PR #51 / `claude/ops-003-check-in-out` | API 183/183; build 12/12 đạt | Check-in từ `CONFIRMED`, check-out từ `CHECKED_IN`; movements theo ngày vận hành `Asia/Ho_Chi_Minh`; audit cùng transaction |
+| OPS-004 | Customer View | Review | BKG-001, IAM-003 | PR #52 / `claude/ops-004-customer-view` | API 194/194; build 12/12 đạt | Hai mức PII: danh sách che, chi tiết chỉ Super Admin/Manager/Reception và **có audit `customer.pii.viewed`**; truy cập bị từ chối không ghi audit |
 | RPT-001 | Reports | Backlog | PAY-005, OPS-001 |  |  | Metric definitions |
 | RPT-002 | Export | Backlog | RPT-001, IAM-003 |  |  | Audit/formula injection |
-| ADM-001 | Staff Management | In progress (Claude, 2026-08-16) | IAM-002, IAM-003 | `claude/adm-001-staff-management` |  | Prevent privilege escalation |
+| ADM-001 | Staff Management | Review | IAM-002, IAM-003 | PR #54 / `claude/adm-001-staff-management` | API 217/217; build 12/12 đạt | List/detail/status + expose assign/revoke role của IAM-002; chặn tự đổi trạng thái, chặn khóa Super Admin cuối cùng, yêu cầu cả vai trò lẫn `user.manage`. **Chưa mời được nhân viên mới** — cần Supabase Admin API, ngoài phạm vi PRE-007 |
 | ADM-002 | Settings | Backlog | IAM-004, CMS-001 |  |  | Secret not readable |
 
 **Gate:** Admin role matrix đạt; report đối chiếu đúng dữ liệu chuẩn.
@@ -304,3 +304,4 @@ Người cập nhật:
 | 2026-08-11 | Chủ dự án/Codex | NTF-002 hoàn tất qua PR #12 với Resend staging/Mailpit, Worker 27/27 và main CI `31468483338`. IAM-001 trên PR #13 đã đạt migration local, full/hosted gates nhưng giữ Review đến Supabase staging sandbox E2E; production vẫn hard-disabled đến REL-001. |
 | 2026-08-16 | Claude | Sự cố trùng lặp: triển khai lại IAM-001–005 và NTF-002 vốn đã merge từ 2026-08-11, do đọc bản tracker cũ trên nhánh `chore/mnt-001-repository-audit-cleanup` (đi sau `main` 39 commit). Sáu PR #41–#46 đã đóng, nhánh đã xóa. Không có thay đổi nào vào `main`. |
 | 2026-08-16 | Claude | Đồng bộ tracker với `main`: RMS-005/006/007, BKG-002–007, PAY-001/002/003 và PAY-006 chuyển Done kèm số PR và commit merge; header tổng quan cập nhật 46 task hoàn thành. Thêm `AGENTS.md` §17 và `docs/10_AGENT_COORDINATION.md` quy định fetch `main` trước khi làm, claim task trong tracker, tiền tố nhánh theo agent và cập nhật tracker cùng PR với code. |
+| 2026-08-16 | Claude | Triển khai 7 task admin/vận hành, mỗi task một PR trên nền `main`: CMS-001 site settings (#48), CMS-006 contact submissions (#49, migration `add_contact_submissions`), BKG-008 admin booking (#50), OPS-003 check-in/check-out (#51), OPS-004 customer view (#52), NTF-006 notification failure inbox (#53), ADM-001 staff management (#54). Tổng 87 unit test mới; gate cuối API 217/217, lint/typecheck/build 12/12, Prisma schema + 19 migration hợp lệ. Chỉ CMS-006 tạo migration; không task nào thêm dependency. Hai điểm chờ chủ dự án: MARKETING có được sửa site settings không (CMS-001), và mời nhân viên mới cần Supabase Admin API ngoài phạm vi PRE-007 (ADM-001). |
