@@ -14,22 +14,22 @@
 | Chỉ số | Giá trị hiện tại |
 |---|---|
 | Phase | Phase 1 — MVP |
-| Trạng thái tổng thể | Baseline local và GitHub-hosted đã xác minh; `main` có required CI checks và branch protection |
-| Milestone hiện tại | Milestone 0 vẫn chặn dữ liệu thật; Milestone 2/4/5/6 đã xong ở lane synthetic |
-| Task đang thực hiện | Không — 7 PR chờ review: #48 CMS-001, #49 CMS-006, #50 BKG-008, #51 OPS-003, #52 OPS-004, #53 NTF-006, #54 ADM-001 |
-| Task hoàn thành | 46 Done + 7 Review — FND-001–005, IAM-001–005, CMS-005, RMS-001–007, BKG-001–007, PAY-001–003 và PAY-006, NTF-001–002, TST-001–002, MNT-002–014 |
-| Blocker mở | BLK-001 — PRE-001, PRE-002, PRE-003, PRE-004, PRE-005 và phần còn lại của PRE-007 chưa được duyệt |
-| Cập nhật gần nhất | 2026-08-16 |
+| Trạng thái tổng thể | `main` có required CI checks và branch protection. Advisory bảo mật `deepmerge-ts` đã vá (PR #57); 9/10 PR admin/vận hành/policy đã merge vào `main` ngày 2026-08-17 |
+| Milestone hiện tại | Milestone 0 vẫn chặn dữ liệu thật nhưng đã có `Partial` cho PRE-001–005; Milestone 2/4/5/6 xong ở lane synthetic; Milestone 3/9 có thêm CMS-001, BKG-008, OPS-003/004, NTF-006, ADM-001, BKG-009 |
+| Task đang thực hiện | `BBQ-002` code xong, PR chưa tạo (nhánh `claude/bbq-002-menu-and-combos`) |
+| Task hoàn thành | 54 Done/Review — thêm CMS-001 (#48), CMS-006 (#49), BKG-008 (#50), OPS-003 (#51), OPS-004 (#52), NTF-006 (#53), ADM-001 (#54), BKG-009 policy engine (#56) so với 46 trước đó |
+| Blocker mở | BLK-001 — sức chứa tối đa phòng, bảng giá cao điểm/Lễ Tết cụ thể, khu vực/bàn/khung giờ BBQ, người duyệt hoàn tiền + SLA vẫn chưa có |
+| Cập nhật gần nhất | 2026-08-17 |
 
 ## 3. Milestone 0 — Chốt đầu vào
 
 | Task ID | Nội dung | Trạng thái | Owner | Bằng chứng/Link | Blocker/Ghi chú |
 |---|---|---|---|---|---|
-| PRE-001 | Chốt danh sách loại phòng | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §4 | Chờ chủ dự án điền và duyệt; không được giả định |
-| PRE-002 | Chốt danh sách phòng thực tế | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §5 | Chờ mã phòng, sức chứa, trạng thái được duyệt |
-| PRE-003 | Chốt bảng giá, phụ thu và cọc | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §6 | P0 blocker cho Price Engine/Booking |
-| PRE-004 | Chốt khu vực, bàn, khung giờ và combo BBQ | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §7 | Chờ dữ liệu vận hành BBQ được duyệt |
-| PRE-005 | Chốt chính sách hủy, đổi lịch, hoàn tiền | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §8 | P0 blocker cho Booking/Payment |
+| PRE-001 | Chốt danh sách loại phòng | Partial | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §4; `VMD_Bao_Gia_Phong_2026_Khach_Hang.docx` | Nhận 7 hạng phòng kèm sức chứa chuẩn ngày 2026-08-17. Còn thiếu: cấu hình giường 6 hạng, **sức chứa tối đa**, tiện nghi, duyệt mã loại |
+| PRE-002 | Chốt danh sách phòng thực tế | Partial | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §5 | Nhận 7 phòng `201`–`207` ngày 2026-08-17. Còn thiếu: tầng/khu, trạng thái ban đầu, duyệt vocabulary trạng thái |
+| PRE-003 | Chốt bảng giá, phụ thu và cọc | Partial | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §6 | Nhận bảng giá đầy đủ, gói ăn sáng, phụ thu, cọc 50%/100% ngày 2026-08-17. Cuối tuần = **T6–T7**. Còn thiếu: thuế/VAT, **bảng giá cụ thể cho cao điểm/Lễ Tết** (chỉ có khoảng +10–40%), lịch giai đoạn, hold TTL, quy tắc làm tròn |
+| PRE-004 | Chốt khu vực, bàn, khung giờ và combo BBQ | Partial | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §7 | Nhận **hai bản menu mâu thuẫn** ngày 2026-08-17; chủ dự án đã chốt `MENU VƯỜN MĂNG ĐEN VER.1.md` là bản chuẩn (`Demo menu ....pdf` bị thay thế). `BBQ-002` triển khai xong (PR chưa tạo, đang ở nhánh `claude/bbq-002-menu-and-combos`). Khu vực/bàn/khung giờ/cọc BBQ vẫn trống → `BBQ-001`, `BBQ-003` Blocked |
+| PRE-005 | Chốt chính sách hủy, đổi lịch, hoàn tiền | Partial | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §8 | Nhận chính sách lưu trú, hai bảng hủy hoàn, điều kiện đổi ngày và bất khả kháng ngày 2026-08-17. `BKG-009` policy engine đã merge (PR #56). Còn thiếu: **toàn bộ chính sách BBQ**, người duyệt hoàn tiền + SLA, quy tắc hóa đơn, quy trình đối soát thiếu/thừa/sai/muộn |
 | PRE-006 | Chốt vai trò và quyền nhân sự | Ready | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §9 | Duyệt toàn bộ decision packet ngày 2026-08-11; mở IAM-002 |
 | PRE-007 | Chuẩn bị domain, Supabase, SePay, email, Zalo | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §10 | IAM-001/NTF-002 được mở staging-only ngày 2026-08-11; production vẫn chờ Supabase project riêng (`REL-001`) và SPF/DKIM. SePay/Zalo/object storage vẫn blocked; không ghi secret vào Git |
 | PRE-008 | Chốt bộ nhận diện, ảnh và nội dung ban đầu | Ready | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §11 | Đủ phạm vi CMS-005: quyền logo/brand board, photo-free homepage và system-font fallback được duyệt 2026-08-10; legal/CTA và ảnh venue vẫn ngoài phạm vi |
@@ -100,7 +100,7 @@
 | BKG-006 | Booking Checkout UI | Done | BKG-004, RMS-007 | PR #35 / `codex/bkg-006-public-room-checkout` / merge `0d1b99c` | Mobile/loading/error states; hosted CI đạt khi merge | Synthetic-only public checkout sandbox |
 | BKG-007 | Booking Lookup | Done | BKG-004 | PR #37 / `codex/bkg-007-booking-lookup` / merge `cb143ca` | Public lookup/request + internal approval; hosted CI đạt khi merge | Rate limit/IDOR |
 | BKG-008 | Admin Booking | Review | BKG-005, IAM-003 | PR #50 / `claude/bkg-008-admin-booking` | API 174/174; build 12/12 đạt | List/detail/confirm/cancel; đi qua `BookingStateService`, không tự ghi status; hủy bắt buộc lý do; tiền trả dạng chuỗi số nguyên. Vẫn ở lane synthetic |
-| BKG-009 | Change/Cancel | Backlog | BKG-005, PRE-005 |  |  | Transaction/reminder |
+| BKG-009 | Change/Cancel | Done (một phần) | BKG-005, PRE-005 | PR #56 / merge `71f9251` | API 158/158; 31 test phủ mọi biên hai bảng chính sách | Policy engine tính tiền hoàn và điều kiện đổi ngày theo bảng giá 2026 (hoàn theo số tiền đã trả, không theo giá trị booking). **Luồng thực thi hoàn tiền vẫn chờ** người duyệt + SLA từ PRE-005 |
 
 **Gate:** E2E booking, concurrency và idempotency replay đạt.
 
@@ -122,7 +122,7 @@
 | Task ID | Nội dung | Trạng thái | Dependency | Branch/PR | Tests | Ghi chú |
 |---|---|---|---|---|---|---|
 | BBQ-001 | Areas, Tables và Slots | Backlog | FND-005, PRE-004 |  |  |  |
-| BBQ-002 | Menu và Combo | Backlog | PRE-004, IAM-002 |  |  | Price snapshot |
+| BBQ-002 | Menu và Combo | Review | PRE-004, IAM-002 | `claude/bbq-002-menu-and-combos` (PR chưa tạo) | Migration `20260817120000_add_bbq_menu`; unit tests cho tách ghi chú nội bộ và snapshot giá | Nguồn giá: `MENU ... VER.1.md` đã chốt 2026-08-17. Ghi chú nội bộ (giá vốn, nguồn hàng) tách khỏi mô tả công khai; endpoint public không select `internal_note`. **Chưa nhập ~60 món** — cần chủ dự án đối chiếu trước khi import |
 | BBQ-003 | BBQ Availability | Backlog | BBQ-001 |  |  | Concurrent allocation |
 | BBQ-004 | BBQ Booking | Backlog | BBQ-002, BBQ-003, BKG-001 |  |  | Hold/idempotency |
 | BBQ-005 | Public BBQ Flow | Backlog | BBQ-004, CMS-005 |  |  |  |
@@ -223,7 +223,7 @@ Ngày 2026-08-16 đã xảy ra một lần trùng lặp: Claude triển khai l�
 
 | ID | Ngày mở | Liên quan | Mô tả | Ảnh hưởng | Owner | Trạng thái | Quyết định/Ngày đóng |
 |---|---|---|---|---|---|---|---|
-| BLK-001 | 2026-08-05 | PRE-* | Dữ liệu vận hành Milestone 0 chưa được chủ dự án xác nhận | Chưa thể triển khai module nghiệp vụ phụ thuộc | Chủ dự án | Open | Input pack đã tạo tại `docs/09_MILESTONE_0_INPUT_PACK.md`; chờ điền và duyệt, không ghi secret vào Git |
+| BLK-001 | 2026-08-05 | PRE-* | Dữ liệu vận hành Milestone 0 chưa được chủ dự án xác nhận | Chưa thể triển khai module nghiệp vụ phụ thuộc | Chủ dự án | Open | Ngày 2026-08-17 nhận bảng giá phòng + menu BBQ: PRE-001/002/003/004/005 chuyển `Partial`. Còn chặn: sức chứa tối đa, bảng giá cao điểm cụ thể, hold TTL, thuế/VAT, khu vực/bàn/khung giờ BBQ, người duyệt hoàn tiền và quy trình đối soát |
 | BLK-002 | 2026-08-09 | FND-005, BKG-001, NTF-001, MNT-001 | Máy audit ban đầu không có Docker CLI/Engine | Đã chạy database trắng, seed idempotency, service/API/Worker smoke trong project verification tách biệt | Chủ dự án | Closed | Docker Desktop khả dụng; toàn bộ local verification đạt ngày 2026-08-09 |
 | BLK-003 | 2026-08-09 | FND-003 | Chưa có bằng chứng GitHub-hosted run/branch protection | CI không thể được đánh dấu Done chỉ bằng local validation | Chủ dự án | Closed | GitHub Actions run `31309744163` xanh; `main` yêu cầu Quality + Security checks và chặn force-push/delete ngày 2026-08-09 |
 
@@ -305,3 +305,6 @@ Người cập nhật:
 | 2026-08-16 | Claude | Sự cố trùng lặp: triển khai lại IAM-001–005 và NTF-002 vốn đã merge từ 2026-08-11, do đọc bản tracker cũ trên nhánh `chore/mnt-001-repository-audit-cleanup` (đi sau `main` 39 commit). Sáu PR #41–#46 đã đóng, nhánh đã xóa. Không có thay đổi nào vào `main`. |
 | 2026-08-16 | Claude | Đồng bộ tracker với `main`: RMS-005/006/007, BKG-002–007, PAY-001/002/003 và PAY-006 chuyển Done kèm số PR và commit merge; header tổng quan cập nhật 46 task hoàn thành. Thêm `AGENTS.md` §17 và `docs/10_AGENT_COORDINATION.md` quy định fetch `main` trước khi làm, claim task trong tracker, tiền tố nhánh theo agent và cập nhật tracker cùng PR với code. |
 | 2026-08-16 | Claude | Triển khai 7 task admin/vận hành, mỗi task một PR trên nền `main`: CMS-001 site settings (#48), CMS-006 contact submissions (#49, migration `add_contact_submissions`), BKG-008 admin booking (#50), OPS-003 check-in/check-out (#51), OPS-004 customer view (#52), NTF-006 notification failure inbox (#53), ADM-001 staff management (#54). Tổng 87 unit test mới; gate cuối API 217/217, lint/typecheck/build 12/12, Prisma schema + 19 migration hợp lệ. Chỉ CMS-006 tạo migration; không task nào thêm dependency. Hai điểm chờ chủ dự án: MARKETING có được sửa site settings không (CMS-001), và mời nhân viên mới cần Supabase Admin API ngoài phạm vi PRE-007 (ADM-001). |
+| 2026-08-17 | Chủ dự án/Claude | Nhận bảng giá phòng, menu BBQ VER.1 (chốt chuẩn), điều khoản Travel Agent và pháp nhân DHLC. PRE-001/002/003/004/005 chuyển `Blocked` → `Partial`. Triển khai `BBQ-002` (menu/combo, PR chưa tạo) và `BKG-009` policy engine hủy/đổi ngày (PR #56, merged). |
+| 2026-08-17 | Claude | Phát hiện advisory **high** `GHSA-ggr8-5vv4-36mx` (`deepmerge-ts` qua `@prisma/client`) chặn toàn bộ 10 PR đang mở vì `main` bắt buộc CI xanh khi rebase. Vá bằng override `deepmerge-ts: ^8.0.1` trong `pnpm-workspace.yaml` (PR #57, merged) — audit hết high, còn 3 moderate như cũ; Prisma generate/validate và full gate vẫn đạt. |
+| 2026-08-17 | Claude | Merge 9 PR vào `main` theo thứ tự phụ thuộc: #47 (tracker+coordination), #57 (security), #48 CMS-001, #49 CMS-006, #50 BKG-008, #51 OPS-003, #52 OPS-004, #53 NTF-006, #54 ADM-001, #56 BKG-009. Mỗi PR rebase local trước khi push để tránh commit trùng lặp giữa các nhánh xếp chồng. PR #55 (docs PRE-003/004) và #40 (MNT-001 cũ) còn treo do conflict trong lịch sử tracker — xử lý thủ công riêng. |
