@@ -10,8 +10,9 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { ContactModule } from './modules/contact/contact.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { BbqModule } from './modules/bbq/bbq.module';
 
 @Module({
-  imports: [PrismaModule, QueueModule, HealthModule, CustomersModule, AuthModule, RoomsModule, AuditModule, PaymentsModule, SettingsModule, ContactModule, NotificationsModule],
+  imports: [PrismaModule, QueueModule, HealthModule, CustomersModule, AuthModule, RoomsModule, AuditModule, PaymentsModule, SettingsModule, ContactModule, NotificationsModule, BbqModule],
 })
 export class AppModule {}
