@@ -226,6 +226,7 @@ Ngày 2026-08-16 đã xảy ra một lần trùng lặp: Claude triển khai l�
 | BLK-001 | 2026-08-05 | PRE-* | Dữ liệu vận hành Milestone 0 chưa được chủ dự án xác nhận | Chưa thể triển khai module nghiệp vụ phụ thuộc | Chủ dự án | Open | Ngày 2026-08-17 nhận bảng giá phòng + menu BBQ: PRE-001/002/003/004/005 chuyển `Partial`. Còn chặn: sức chứa tối đa, bảng giá cao điểm cụ thể, hold TTL, thuế/VAT, khu vực/bàn/khung giờ BBQ, người duyệt hoàn tiền và quy trình đối soát |
 | BLK-002 | 2026-08-09 | FND-005, BKG-001, NTF-001, MNT-001 | Máy audit ban đầu không có Docker CLI/Engine | Đã chạy database trắng, seed idempotency, service/API/Worker smoke trong project verification tách biệt | Chủ dự án | Closed | Docker Desktop khả dụng; toàn bộ local verification đạt ngày 2026-08-09 |
 | BLK-003 | 2026-08-09 | FND-003 | Chưa có bằng chứng GitHub-hosted run/branch protection | CI không thể được đánh dấu Done chỉ bằng local validation | Chủ dự án | Closed | GitHub Actions run `31309744163` xanh; `main` yêu cầu Quality + Security checks và chặn force-push/delete ngày 2026-08-09 |
+| BLK-004 | 2026-08-17 | MNT-001 | PR #40 đi sau `main` 50 commit; nội dung trùng sáu nhóm prep từng bị `MNT-001` audit loại bỏ trước khi được duyệt khôi phục 2026-08-16 | Không tự rebase/merge một PR dạng "audit/cleanup" khi khoảng cách quá lớn | Chủ dự án | Open | Đã để lại comment trên PR #40 nêu hai hướng: đóng PR (phần giá trị đã merge qua #47/#57) hoặc rebase thủ công phần còn thiếu. Chờ chủ dự án quyết định |
 
 ## 16. Open decisions
 
