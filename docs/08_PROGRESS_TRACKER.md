@@ -14,12 +14,12 @@
 | Chỉ số | Giá trị hiện tại |
 |---|---|
 | Phase | Phase 1 — MVP |
-| Trạng thái tổng thể | `main` có required CI checks và branch protection. Advisory bảo mật `deepmerge-ts` đã vá (PR #57); 9/10 PR admin/vận hành/policy đã merge vào `main` ngày 2026-08-17 |
+| Trạng thái tổng thể | `main` có required CI checks và branch protection. Advisory bảo mật `deepmerge-ts` đã vá (PR #57); 12 PR admin/vận hành/policy/BBQ đã merge vào `main` trong 2026-08-17–18. Chỉ còn PR #40 (MNT-001) mở, chờ chủ dự án quyết định (BLK-004) |
 | Milestone hiện tại | Milestone 0 vẫn chặn dữ liệu thật nhưng đã có `Partial` cho PRE-001–005; Milestone 2/4/5/6 xong ở lane synthetic; Milestone 3/9 có thêm CMS-001, BKG-008, OPS-003/004, NTF-006, ADM-001, BKG-009 |
-| Task đang thực hiện | `BBQ-002` code xong, PR chưa tạo (nhánh `claude/bbq-002-menu-and-combos`) |
-| Task hoàn thành | 54 Done/Review — thêm CMS-001 (#48), CMS-006 (#49), BKG-008 (#50), OPS-003 (#51), OPS-004 (#52), NTF-006 (#53), ADM-001 (#54), BKG-009 policy engine (#56) so với 46 trước đó |
+| Task đang thực hiện | Không có task nào đang code dở; chỉ còn PR #40 (MNT-001) chờ chủ dự án quyết định theo BLK-004 |
+| Task hoàn thành | 55 Done/Review — thêm `BBQ-002` menu/combo (PR #59, merged 2026-08-18) so với 54 trước đó |
 | Blocker mở | BLK-001 — sức chứa tối đa phòng, bảng giá cao điểm/Lễ Tết cụ thể, khu vực/bàn/khung giờ BBQ, người duyệt hoàn tiền + SLA vẫn chưa có |
-| Cập nhật gần nhất | 2026-08-17 |
+| Cập nhật gần nhất | 2026-08-18 |
 
 ## 3. Milestone 0 — Chốt đầu vào
 
@@ -122,7 +122,7 @@
 | Task ID | Nội dung | Trạng thái | Dependency | Branch/PR | Tests | Ghi chú |
 |---|---|---|---|---|---|---|
 | BBQ-001 | Areas, Tables và Slots | Backlog | FND-005, PRE-004 |  |  |  |
-| BBQ-002 | Menu và Combo | Review | PRE-004, IAM-002 | `claude/bbq-002-menu-and-combos` (PR chưa tạo) | Migration `20260817120000_add_bbq_menu`; unit tests cho tách ghi chú nội bộ và snapshot giá | Nguồn giá: `MENU ... VER.1.md` đã chốt 2026-08-17. Ghi chú nội bộ (giá vốn, nguồn hàng) tách khỏi mô tả công khai; endpoint public không select `internal_note`. **Chưa nhập ~60 món** — cần chủ dự án đối chiếu trước khi import |
+| BBQ-002 | Menu và Combo | Review | PRE-004, IAM-002 | PR #59 / `claude/bbq-002-menu-and-combos` (merged 2026-08-18) | Migration `20260817120000_add_bbq_menu`; unit tests cho tách ghi chú nội bộ và snapshot giá | Nguồn giá: `MENU ... VER.1.md` đã chốt 2026-08-17. Ghi chú nội bộ (giá vốn, nguồn hàng) tách khỏi mô tả công khai; endpoint public không select `internal_note`. **Chưa nhập ~60 món** — cần chủ dự án đối chiếu trước khi import |
 | BBQ-003 | BBQ Availability | Backlog | BBQ-001 |  |  | Concurrent allocation |
 | BBQ-004 | BBQ Booking | Backlog | BBQ-002, BBQ-003, BKG-001 |  |  | Hold/idempotency |
 | BBQ-005 | Public BBQ Flow | Backlog | BBQ-004, CMS-005 |  |  |  |
@@ -309,3 +309,7 @@ Người cập nhật:
 | 2026-08-17 | Chủ dự án/Claude | Nhận bảng giá phòng, menu BBQ VER.1 (chốt chuẩn), điều khoản Travel Agent và pháp nhân DHLC. PRE-001/002/003/004/005 chuyển `Blocked` → `Partial`. Triển khai `BBQ-002` (menu/combo, PR chưa tạo) và `BKG-009` policy engine hủy/đổi ngày (PR #56, merged). |
 | 2026-08-17 | Claude | Phát hiện advisory **high** `GHSA-ggr8-5vv4-36mx` (`deepmerge-ts` qua `@prisma/client`) chặn toàn bộ 10 PR đang mở vì `main` bắt buộc CI xanh khi rebase. Vá bằng override `deepmerge-ts: ^8.0.1` trong `pnpm-workspace.yaml` (PR #57, merged) — audit hết high, còn 3 moderate như cũ; Prisma generate/validate và full gate vẫn đạt. |
 | 2026-08-17 | Claude | Merge 9 PR vào `main` theo thứ tự phụ thuộc: #47 (tracker+coordination), #57 (security), #48 CMS-001, #49 CMS-006, #50 BKG-008, #51 OPS-003, #52 OPS-004, #53 NTF-006, #54 ADM-001, #56 BKG-009. Mỗi PR rebase local trước khi push để tránh commit trùng lặp giữa các nhánh xếp chồng. PR #55 (docs PRE-003/004) và #40 (MNT-001 cũ) còn treo do conflict trong lịch sử tracker — xử lý thủ công riêng. |
+| 2026-08-18 | Claude | Giải quyết PR #55 (docs PRE-003/004): đóng do rebase conflict lặp lại trong lịch sử tracker, tái tạo nội dung tương đương trên nhánh mới `claude/pre-003-pre-004-intake-v2` → PR #58, merge vào `main`. |
+| 2026-08-18 | Claude | Merge `BBQ-002` (menu/combo BBQ) qua PR #59: migration `add_bbq_menu`, tách `internal_note` khỏi mô tả công khai, snapshot giá theo mã. Giải quyết conflict `app.module.ts` và tracker khi khôi phục từ stash cũ trước các PR merge trong ngày. |
+| 2026-08-18 | Claude | Thêm BLK-004 (PR #40 lệch 50 commit so với `main`, trùng nội dung đã bị MNT-001 loại bỏ) qua PR #60, merge vào `main`. Verify gate cuối trên `main`: lint/typecheck/build 12/12, API 258/258, worker 27/27 — tất cả xanh. Chỉ còn PR #40 mở, chờ chủ dự án quyết định. |
+| 2026-08-18 | Claude | Đồng bộ lại tracker: sửa dòng BBQ-002 (PR #59 đã merge, không còn ghi "PR chưa tạo"), cập nhật số liệu tổng quan §2 và bổ sung lịch sử PR #58/#59/#60 bị sót khi thêm BLK-004 trước đó. |
