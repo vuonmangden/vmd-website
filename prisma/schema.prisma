@@ -438,6 +438,42 @@ model NotificationDelivery {
   @@map("notification_deliveries")
 }
 
+model BbqMenuItem {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code              String   @unique @db.VarChar(80)
+  name              String   @db.VarChar(200)
+  menuGroup         String   @map("menu_group") @db.VarChar(50)
+  unit              String   @db.VarChar(20)
+  price             BigInt
+  publicDescription String?  @map("public_description") @db.Text
+  internalNote      String?  @map("internal_note") @db.Text
+  isAvailable       Boolean  @default(true) @map("is_available")
+  displayOrder      Int      @default(0) @map("display_order")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt         DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@index([menuGroup, displayOrder])
+  @@map("bbq_menu_items")
+}
+
+model BbqCombo {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code         String   @unique @db.VarChar(80)
+  name         String   @db.VarChar(200)
+  price        BigInt
+  minGuests    Int?     @map("min_guests")
+  maxGuests    Int?     @map("max_guests")
+  composition  String?  @db.Text
+  internalNote String?  @map("internal_note") @db.Text
+  isAvailable  Boolean  @default(true) @map("is_available")
+  displayOrder Int      @default(0) @map("display_order")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@index([displayOrder])
+  @@map("bbq_combos")
+}
+
 model AppSetting {
   key               String   @id @db.VarChar(150)
   value             Json     @db.JsonB
