@@ -10,11 +10,13 @@ import { PaymentWebhookProcessor } from './payment-webhook.processor';
 import { PaymentProcessingService } from './payment-processing.service';
 import { PublicPaymentStatusController } from './public-payment-status.controller';
 import { PublicPaymentStatusRateLimitService } from './public-payment-status-rate-limit.service';
+import { ReconciliationController } from './reconciliation.controller';
+import { ReconciliationService } from './reconciliation.service';
 
 @Module({
   imports: [AuthModule, QueueModule],
-  controllers: [PaymentsController, SePayWebhookController, PublicPaymentStatusController],
-  providers: [PaymentsService, SePayWebhookConfigService, SePayWebhookService, PaymentProcessingService, PaymentWebhookProcessor, PublicPaymentStatusRateLimitService],
+  controllers: [PaymentsController, SePayWebhookController, PublicPaymentStatusController, ReconciliationController],
+  providers: [PaymentsService, SePayWebhookConfigService, SePayWebhookService, PaymentProcessingService, PaymentWebhookProcessor, PublicPaymentStatusRateLimitService, ReconciliationService],
   exports: [PaymentsService],
 })
 export class PaymentsModule {}

@@ -1,7 +1,7 @@
 import { PaymentProcessingService } from './payment-processing.service';
 
 const now = new Date('2099-08-13T12:00:00.000Z');
-const intent = { id: '00000000-0000-4000-8000-000000000010', bookingId: '00000000-0000-4000-8000-000000000011', provider: 'SEPAY_TEST', status: 'PENDING', amount: 2500000n, currency: 'VND', transferContent: 'VMD BK990813A1B2', expiresAt: new Date('2099-08-14T12:00:00.000Z'), createdAt: now };
+const intent = { id: '00000000-0000-4000-8000-000000000010', bookingId: '00000000-0000-4000-8000-000000000011', provider: 'SEPAY_TEST', status: 'PENDING', amount: 2500000n, paidAmount: 0n, currency: 'VND', transferContent: 'VMD BK990813A1B2', expiresAt: new Date('2099-08-14T12:00:00.000Z'), createdAt: now };
 const booking = { id: intent.bookingId, status: 'PENDING_PAYMENT' };
 const event = { id: '00000000-0000-4000-8000-000000000012', provider: 'SEPAY_TEST', signatureValid: true, processingStatus: 'RECEIVED', headers: { correlationId: '00000000-0000-4000-8000-000000000013' }, payload: { transferType: 'in', transferAmount: 2500000, content: 'Thanh toan VMD BK990813A1B2', code: '' } };
 
@@ -11,7 +11,8 @@ function fixture(overrides: Record<string, unknown> = {}) {
     paymentIntent: { findMany: jest.fn().mockResolvedValue([intent]), updateMany: jest.fn().mockResolvedValue({ count: 1 }), findUnique: jest.fn() },
     booking: { findUnique: jest.fn().mockResolvedValue(booking), updateMany: jest.fn().mockResolvedValue({ count: 1 }) },
     bookingStatusHistory: { create: jest.fn() }, roomOccupancy: { updateMany: jest.fn() }, resourceHold: { updateMany: jest.fn() },
-    reconciliationCase: { create: jest.fn() }, outboxEvent: { create: jest.fn() }, auditLog: { create: jest.fn() },
+    reconciliationCase: { create: jest.fn(), findFirst: jest.fn().mockResolvedValue(null), updateMany: jest.fn().mockResolvedValue({ count: 1 }) },
+    outboxEvent: { create: jest.fn() }, auditLog: { create: jest.fn() },
     ...overrides,
   };
   return { tx, prisma: { $transaction: jest.fn((operation: (value: typeof tx) => unknown) => operation(tx)), paymentIntent: tx.paymentIntent } };
@@ -39,6 +40,52 @@ describe('PaymentProcessingService', () => {
     const { tx, prisma } = fixture({ paymentWebhookEvent: { findUnique: jest.fn().mockResolvedValue({ ...event, payload: { ...event.payload, transferAmount } }), updateMany: jest.fn().mockResolvedValue({ count: 1 }), update: jest.fn() } });
     await expect(new PaymentProcessingService(prisma as never, () => now).processWebhookEvent(event.id)).resolves.toEqual({ outcome: 'reconciliation_required', paymentIntentId: intent.id });
     expect(tx.reconciliationCase.create).toHaveBeenCalledWith({ data: expect.objectContaining({ paymentIntentId: intent.id, reason, receivedAmount: BigInt(transferAmount) }) });
+    expect(tx.booking.updateMany).not.toHaveBeenCalled();
+  });
+
+  it('auto-confirms a shortfall within the 10,000d tolerance as if paid in full', async () => {
+    const transferAmount = 2495000; // 5,000 short of 2,500,000
+    const { tx, prisma } = fixture({ paymentWebhookEvent: { findUnique: jest.fn().mockResolvedValue({ ...event, payload: { ...event.payload, transferAmount } }), updateMany: jest.fn().mockResolvedValue({ count: 1 }), update: jest.fn() } });
+    await expect(new PaymentProcessingService(prisma as never, () => now).processWebhookEvent(event.id)).resolves.toEqual({ outcome: 'confirmed', paymentIntentId: intent.id });
+    expect(tx.paymentIntent.updateMany).toHaveBeenCalledWith({ where: { id: intent.id, status: 'PENDING' }, data: { status: 'PAID', paidAmount: 2495000n } });
+    expect(tx.booking.updateMany).toHaveBeenCalledWith({ where: { id: booking.id, status: 'PENDING_PAYMENT' }, data: { status: 'CONFIRMED' } });
+    expect(tx.reconciliationCase.create).not.toHaveBeenCalled();
+  });
+
+  it('does not auto-confirm a shortfall beyond the tolerance', async () => {
+    const transferAmount = 2489000; // 11,000 short — over the 10,000d tolerance
+    const { tx, prisma } = fixture({ paymentWebhookEvent: { findUnique: jest.fn().mockResolvedValue({ ...event, payload: { ...event.payload, transferAmount } }), updateMany: jest.fn().mockResolvedValue({ count: 1 }), update: jest.fn() } });
+    await expect(new PaymentProcessingService(prisma as never, () => now).processWebhookEvent(event.id)).resolves.toEqual({ outcome: 'reconciliation_required', paymentIntentId: intent.id });
+    expect(tx.paymentIntent.updateMany).toHaveBeenCalledWith({ where: { id: intent.id }, data: { paidAmount: 2489000n } });
+    expect(tx.reconciliationCase.create).toHaveBeenCalledWith({ data: expect.objectContaining({ reason: 'UNDERPAYMENT', receivedAmount: 2489000n }) });
+  });
+
+  it('tops up an existing underpayment case in place instead of duplicating it, then confirms once sufficient', async () => {
+    const openCase = { id: 'case-1' };
+    const toppedUpIntent = { ...intent, paidAmount: 2400000n }; // already short by 100,000 from a prior event
+    const { tx, prisma } = fixture({
+      paymentIntent: { findMany: jest.fn().mockResolvedValue([toppedUpIntent]), updateMany: jest.fn().mockResolvedValue({ count: 1 }), findUnique: jest.fn() },
+      paymentWebhookEvent: { findUnique: jest.fn().mockResolvedValue({ ...event, payload: { ...event.payload, transferAmount: 100000 } }), updateMany: jest.fn().mockResolvedValue({ count: 1 }), update: jest.fn() },
+      reconciliationCase: { create: jest.fn(), findFirst: jest.fn().mockResolvedValue(openCase), updateMany: jest.fn().mockResolvedValue({ count: 1 }) },
+    });
+    // 2,400,000 + 100,000 = 2,500,000 exact — closes the shortfall.
+    await expect(new PaymentProcessingService(prisma as never, () => now).processWebhookEvent(event.id)).resolves.toEqual({ outcome: 'confirmed', paymentIntentId: intent.id });
+    expect(tx.reconciliationCase.create).not.toHaveBeenCalled();
+    expect(tx.reconciliationCase.updateMany).toHaveBeenCalledWith({ where: { paymentIntentId: intent.id, status: 'OPEN', reason: 'UNDERPAYMENT' }, data: { status: 'RESOLVED', resolvedAt: now, resolutionOutcome: 'TOPPED_UP' } });
+  });
+
+  it('updates the existing open case in place for a top-up that still falls short', async () => {
+    const openCase = { id: 'case-1' };
+    const partialIntent = { ...intent, paidAmount: 2000000n }; // short by 500,000
+    const { tx, prisma } = fixture({
+      paymentIntent: { findMany: jest.fn().mockResolvedValue([partialIntent]), updateMany: jest.fn().mockResolvedValue({ count: 1 }), findUnique: jest.fn() },
+      paymentWebhookEvent: { findUnique: jest.fn().mockResolvedValue({ ...event, payload: { ...event.payload, transferAmount: 100000 } }), updateMany: jest.fn().mockResolvedValue({ count: 1 }), update: jest.fn() },
+      reconciliationCase: { create: jest.fn(), findFirst: jest.fn().mockResolvedValue(openCase), updateMany: jest.fn().mockResolvedValue({ count: 1 }) },
+    });
+    // 2,000,000 + 100,000 = 2,100,000 — still short by 400,000.
+    await expect(new PaymentProcessingService(prisma as never, () => now).processWebhookEvent(event.id)).resolves.toEqual({ outcome: 'reconciliation_required', paymentIntentId: intent.id });
+    expect(tx.reconciliationCase.create).not.toHaveBeenCalled();
+    expect(tx.reconciliationCase.updateMany).toHaveBeenCalledWith({ where: { id: openCase.id }, data: { receivedAmount: 2100000n } });
     expect(tx.booking.updateMany).not.toHaveBeenCalled();
   });
 

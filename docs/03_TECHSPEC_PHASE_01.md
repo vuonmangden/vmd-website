@@ -1635,9 +1635,9 @@ Payment intent có thể tạo ngay sau transaction. Nếu tạo payment intent 
 
 ## 16.2 Hold mặc định
 
-- 15 phút.
+- 120 phút (2 tiếng) — chốt theo dữ liệu chủ dự án 2026-08-19, xem `docs/09_MILESTONE_0_INPUT_PACK.md` §6.
 - Cấu hình bằng `BOOKING_HOLD_MINUTES`.
-- Không cho vượt 30 phút trong MVP nếu không có quyền quản trị.
+- Không cho vượt 360 phút (6 tiếng) trong MVP nếu không có quyền quản trị.
 
 ---
 
@@ -3041,8 +3041,8 @@ CORS_ALLOWED_ORIGINS=
 CAPTCHA_SECRET=
 
 # Booking
-BOOKING_HOLD_MINUTES=15
-BBQ_HOLD_MINUTES=15
+BOOKING_HOLD_MINUTES=120
+BBQ_HOLD_MINUTES=120
 DEFAULT_CURRENCY=VND
 REMINDER_SEND_HOUR=9
 ```

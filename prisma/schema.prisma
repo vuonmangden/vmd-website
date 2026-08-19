@@ -162,15 +162,18 @@ model PaymentWebhookEvent {
 }
 
 model ReconciliationCase {
-  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  paymentIntentId String   @map("payment_intent_id") @db.Uuid
-  status          String   @default("OPEN") @db.VarChar(30)
-  reason          String   @db.VarChar(100)
-  expectedAmount  BigInt   @map("expected_amount")
-  receivedAmount  BigInt   @map("received_amount")
-  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  resolvedAt      DateTime? @map("resolved_at") @db.Timestamptz()
-  paymentIntent   PaymentIntent @relation(fields: [paymentIntentId], references: [id], onDelete: Restrict)
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  paymentIntentId   String    @map("payment_intent_id") @db.Uuid
+  status            String    @default("OPEN") @db.VarChar(30)
+  reason            String    @db.VarChar(100)
+  expectedAmount    BigInt    @map("expected_amount")
+  receivedAmount    BigInt    @map("received_amount")
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  resolvedAt        DateTime? @map("resolved_at") @db.Timestamptz()
+  resolvedBy        String?   @map("resolved_by") @db.Uuid
+  resolutionOutcome String?   @map("resolution_outcome") @db.VarChar(30)
+  resolutionNote    String?   @map("resolution_note") @db.Text
+  paymentIntent     PaymentIntent @relation(fields: [paymentIntentId], references: [id], onDelete: Restrict)
 
   @@index([status, createdAt])
   @@map("reconciliation_cases")
