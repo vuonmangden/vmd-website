@@ -74,12 +74,17 @@ Quy tắc trẻ em đã chốt (§6 nguồn):
 
 Giường phụ: chỉ bố trí khi diện tích phòng phù hợp và có xác nhận từ Homestay — nghĩa là **không tự động cho phép**, cần thao tác thủ công.
 
+### Cập nhật 2026-08-19 — tiện nghi và hạng phòng thứ 8
+
+- **Tiện nghi xác nhận đồng nhất cho cả 7 hạng 201–207:** điều hòa, TV, minibar. Wifi/nước nóng chưa được xác nhận riêng, giả định có sẵn theo tiêu chuẩn homestay nhưng cần chủ dự án xác nhận trước khi hiển thị công khai.
+- **Hạng phòng thứ 8 phát sinh:** phòng `301` "Doom" (nhiều khả năng là "Dorm" — phòng tập thể), sức chứa 16, tầng áp mái, giá niêm yết "Liên hệ" thay vì số cố định. Đây là hạng **ngoài phạm vi 7 hạng đã phân tích trước đó** và không khớp mô hình Price Engine hiện tại (yêu cầu giá cố định dạng số nguyên). Quyết định tạm thời: **không đưa 301 vào luồng đặt phòng online ở Phase 1**, giữ ở dạng liên hệ trực tiếp cho tới khi có bảng giá cố định hoặc quy tắc định giá riêng.
+
 ### Còn thiếu cho PRE-001
 
-1. Cấu hình giường của 6 hạng còn lại (chỉ `Family Loft Balcony` được mô tả).
-2. **Sức chứa tối đa từng hạng.** Bảng giá có phụ thu khách thêm 250.000–300.000đ/người/đêm nên sức chứa tối đa lớn hơn sức chứa chuẩn, nhưng trần cụ thể chưa có. Price Engine và Availability cần con số này để chặn đặt quá tải.
-3. Danh sách tiện nghi để hiển thị trên web (điều hòa, nước nóng, TV, wifi…).
-4. Xác nhận cả 7 hạng đều mở bán Phase 1.
+1. Cấu hình giường của 6 hạng còn lại trong 201–207 (chỉ `Family Loft Balcony`/202 được mô tả).
+2. **Sức chứa tối đa từng hạng** (khác sức chứa chuẩn). Bảng giá có phụ thu khách thêm 250.000–300.000đ/người/đêm nên chắc chắn có trần tối đa, nhưng con số cụ thể chưa có. Price Engine và Availability cần con số này để chặn đặt quá tải.
+3. Xác nhận wifi/nước nóng có ở tất cả các phòng không.
+4. Xác nhận cả 7 hạng 201–207 đều mở bán Phase 1; quyết định cách xử lý phòng 301 (liên hệ thủ công, hay xây dựng cơ chế giá riêng).
 5. Duyệt mã loại phòng, hoặc cung cấp mã nội bộ đang dùng.
 
 ## 5. PRE-002 — Phòng thực tế
@@ -98,22 +103,29 @@ Giường phụ: chỉ bố trí khi diện tích phòng phù hợp và có xác
 | `205` | Garden View | 2 | Cần xác nhận |
 | `206` | Premium Garden View | 2 | Cần xác nhận |
 | `207` | Premium Balcony View | 2 | Cần xác nhận |
+| `301` | Doom (Dorm, chờ xác nhận chính tả) | 16 | Ngoài luồng đặt online Phase 1, xem §4 |
 
-Tổng sức chứa chuẩn: **16 khách** trên 7 phòng.
+Tổng sức chứa chuẩn: **16 khách** trên 7 phòng 201–207 (chưa tính 301).
+
+### Cập nhật 2026-08-19 — tầng/khu và trạng thái ban đầu
+
+- **Tầng/khu:** vẫn chưa có xác nhận chính thức từ chủ dự án. Rate card 2026 chỉ ghi rõ tầng cho phòng `301` ("tầng áp mái"). Với 201–207, Claude **tạm suy luận** tầng 2 dựa trên quy ước đánh số `2xx` để có giá trị mặc định khi seed dữ liệu — đây là suy luận kỹ thuật, chưa phải xác nhận, chủ dự án nên chốt lại khi rảnh.
+- **Trạng thái ban đầu:** chủ dự án ủy quyền cho Claude chọn cách hợp lý nhất (form 2026-08-19, câu 11). Đề xuất áp dụng: vocabulary `Sẵn sàng` / `Đang dọn` / `Bảo trì` / `Khóa`, mặc định tất cả 7 phòng 201–207 ở trạng thái `Sẵn sàng` tại thời điểm go-live 25/08/2026. Phòng `301` đặt `Chưa mở bán` cho tới khi có quyết định giá (§4).
 
 ### Còn thiếu cho PRE-002
 
-1. Tầng/khu của từng phòng. Đánh số `2xx` gợi ý tất cả ở tầng 2 nhưng **không được suy đoán** — cần xác nhận.
-2. Trạng thái ban đầu từng phòng: `ACTIVE`, `INACTIVE` hay `MAINTENANCE`. Chủ dự án cũng cần duyệt bộ vocabulary này.
-3. Tên nội bộ nếu nhân viên gọi khác số phòng.
-4. Có phòng nào chưa sẵn sàng đón khách vào ngày mở bán 25/08/2026 không.
+1. Tầng/khu chính thức của 201–207 (hiện chỉ có suy luận kỹ thuật ở trên, cần chủ dự án xác nhận hoặc sửa).
+2. Tên nội bộ nếu nhân viên gọi khác số phòng.
+3. Xác nhận cách đặt tên chính thức cho phòng 301 ("Doom" hay "Dorm") và mô hình giá.
 
 ## 6. PRE-003 — Giá, phụ thu, thuế/phí và tiền cọc
 
-**Trạng thái:** Partial — nhận bảng giá đầy đủ ngày 2026-08-17; còn thiếu thuế/VAT, làm tròn, hold TTL và cọc BBQ
+**Trạng thái:** Partial — nhận bảng giá cập nhật ngày 2026-08-19 (thay thế bản 2026-08-17); VAT, hold TTL, làm tròn và cọc BBQ đã chốt
 **Owner:** Chủ dự án
-**Nguồn:** `VMD_Bao_Gia_Phong_2026_Khach_Hang.docx`, hiệu lực từ 25/08/2026
-**Ngày nhận:** 2026-08-17
+**Nguồn:** `VMD_Bao_Gia_Phong_2026_Khach_Hang.docx`, hiệu lực từ 25/08/2026 (bản có logo/letterhead, cập nhật 2026-08-19)
+**Ngày nhận:** 2026-08-17, cập nhật 2026-08-19
+
+> ⚠️ **File nguồn đã được chủ dự án cập nhật ngày 2026-08-19, cùng tên file nhưng số liệu khác hẳn bản 2026-08-17 đã ghi trước đó** (không phải sai số nhỏ — ví dụ phòng 202 từ 1.150.000–1.550.000đ xuống còn 800.000–900.000đ). Chủ dự án xác nhận **dùng bản 2026-08-19** làm giá chính thức (2026-08-19). Bảng giá bên dưới đã cập nhật theo bản mới; bản cũ không còn hiệu lực.
 
 Tất cả số tiền là số nguyên VND, tính trên mỗi phòng mỗi đêm.
 
@@ -124,24 +136,26 @@ Tất cả số tiền là số nguyên VND, tính trên mỗi phòng mỗi đê
 
 Lưu ý kỹ thuật: cuối tuần ở đây là **T6–T7**, không phải T7–CN. Chủ nhật tính giá ngày thường.
 
-### Bảng giá cơ bản
+### Bảng giá cơ bản (cập nhật 2026-08-19, thay thế bản 2026-08-17)
 
-| Phòng | Hạng phòng | Sức chứa | Ngày thường không sáng | Ngày thường có sáng | Cuối tuần không sáng | Cuối tuần có sáng |
-|---|---|---:|---:|---:|---:|---:|
-| 201 | Double Lake Window | 2 | 650.000 | 750.000 | 750.000 | 850.000 |
-| 202 | Family Loft Balcony | 4 | 1.150.000 | 1.350.000 | 1.350.000 | 1.550.000 |
-| 203 | Double City View | 2 | 600.000 | 700.000 | 700.000 | 800.000 |
-| 204 | Double Balcony | 2 | 700.000 | 800.000 | 800.000 | 900.000 |
-| 205 | Garden View | 2 | 750.000 | 850.000 | 850.000 | 950.000 |
-| 206 | Premium Garden View | 2 | 850.000 | 950.000 | 950.000 | 1.050.000 |
-| 207 | Premium Balcony View | 2 | 850.000 | 950.000 | 950.000 | 1.050.000 |
+Giá **không bao gồm ăn sáng** (khác bản 2026-08-17 — bản đó gộp sẵn ăn sáng vào 2 trong 4 mức giá).
 
-### Gói ăn sáng
+| Phòng | Hạng phòng | Sức chứa | Ngày thường (CN–T5) | Cuối tuần (T6–T7) |
+|---|---|---:|---:|---:|
+| 201 | Double Lake Window | 2 | 450.000 | 550.000 |
+| 202 | Family Loft Balcony | 4 | 800.000 | 900.000 |
+| 203 | Double City View | 2 | 500.000 | 600.000 |
+| 204 | Double Balcony | 2 | 550.000 | 650.000 |
+| 205 | Garden View | 2 | 600.000 | 700.000 |
+| 206 | Premium Garden View | 2 | 700.000 | 800.000 |
+| 207 | Premium Balcony View | 2 | 700.000 | 800.000 |
+| 301 | Doom (16 khách, tầng áp mái) | 16 | Liên hệ | Liên hệ — ngoài Price Engine, xem §4/§5 |
 
-- Phòng 2 khách: +100.000đ/phòng/đêm (50.000đ/khách).
-- Phòng 202 (4 khách): +200.000đ/phòng/đêm.
+Giá đã bao gồm **VAT 8%** (xác nhận 2026-08-19, form câu 12).
 
-Ăn sáng là một **biến thể giá của phòng**, không phải phụ thu rời — bảng giá đã liệt kê sẵn cả hai mức.
+### Gói ăn sáng — cần dữ liệu mới
+
+Bản 2026-08-17 có giá ăn sáng theo phòng (+100.000đ/phòng 2 khách, +200.000đ/phòng 202). **Bản 2026-08-19 bỏ cách trình bày này** — chỉ còn tiêu đề "Ăn sáng và trải nghiệm cà phê Măng Đen" không kèm số tiền, và ghi chú giá ăn sáng "có thể điều chỉnh" theo mùa/sự kiện. Chưa rõ mức giá ăn sáng hiện hành có còn là 100.000–200.000đ/phòng/đêm hay đã đổi — **cần chủ dự án xác nhận lại giá gói ăn sáng** trước khi Price Engine tính biến thể có/không ăn sáng.
 
 ### Phụ thu
 
@@ -156,17 +170,17 @@ Lưu ý kỹ thuật: cuối tuần ở đây là **T6–T7**, không phải T7�
 
 Check-in sớm: phụ thuộc tình trạng phòng và **cần xác nhận trước** — không có phụ thu cố định, xử lý thủ công. Gửi hành lý miễn phí trong ngày.
 
-### Hệ số cao điểm
+### Hệ số cao điểm — đã chốt 2026-08-19
 
 | Giai đoạn | Nguyên tắc |
 |---|---|
 | Ngày thường (CN–T5) | Theo bảng giá tiêu chuẩn |
 | Cuối tuần (T6–T7) | Theo bảng giá cuối tuần |
-| Cao điểm / sự kiện địa phương | +10% đến +20% **so với giá cuối tuần** |
-| Lễ, Tết | +25% đến +30% **so với giá cuối tuần** |
-| Đỉnh nhu cầu đặc biệt | Linh hoạt, tối đa khoảng +40% |
+| Lễ, Tết, cao điểm | **+20% so với giá cuối tuần**, mức cố định duy nhất |
 
-Đây là **khoảng tham chiếu, không phải giá cố định** — tài liệu ghi rõ giá cuối cùng được xác nhận tại thời điểm đặt phòng. Price Engine không thể tự chọn trong khoảng; cần bảng giá cụ thể theo từng giai đoạn hoặc một mức cố định được duyệt.
+Chủ dự án chốt dùng **một mức cố định +20%** cho mọi dịp Lễ/Tết/cao điểm (form 2026-08-19, câu 1), thay cho khoảng tham chiếu nhiều mức trước đó (+10–40% chia theo 3 tầng "cao điểm địa phương / Lễ Tết / đỉnh đặc biệt"). Đủ để Price Engine tính tự động, không cần bảng giai đoạn riêng.
+
+> Lưu ý: chính tài liệu rate card 2026-08-19 vẫn còn **hai chỗ ghi khác nhau trong cùng file** — một dòng ghi "phụ thu dịp lễ, tết: 20%", nhưng mục "3. Giá cao điểm, Lễ & Tết" phía dưới vẫn liệt kê 3 tầng +10–40% như bản cũ. Hệ thống áp dụng theo quyết định +20% cố định ở trên; **chủ dự án nên sửa lại rate card khách hàng cho nhất quán** để tránh nhân viên đọc nhầm khi tư vấn khách.
 
 ### Tiền cọc — đã chốt
 
@@ -178,17 +192,18 @@ Check-in sớm: phụ thuộc tình trạng phòng và **cần xác nhận trư�
 
 Phòng chỉ được giữ chính thức sau khi nhận được khoản thanh toán theo quy định.
 
+### Hold TTL, làm tròn — đã chốt 2026-08-19
+
+- **Hold TTL:** giữ chỗ tạm (chưa thanh toán) tối đa **2 tiếng (120 phút)** trước khi hệ thống tự hủy. Thay thế mức đề xuất 15 phút trước đó trong `prisma/seed.ts`.
+- **Làm tròn:** làm tròn **xuống** đến đơn vị **nghìn đồng** cho mọi phép tính cọc/phụ thu ra số lẻ.
+
 ### Còn thiếu cho PRE-003
 
-1. **Giá đã bao gồm thuế/VAT chưa?** Ảnh hưởng trực tiếp tới cách hiển thị và xuất hóa đơn.
-2. **Bảng giá cụ thể cho cao điểm/Lễ/Tết.** Khoảng +10–40% không đủ để Price Engine tính tự động; cần hoặc danh sách giai đoạn kèm hệ số chốt, hoặc chấp nhận nhân viên nhập giá thủ công cho các giai đoạn đó.
-3. **Lịch các giai đoạn cao điểm/Lễ/Tết năm 2026–2027** để hệ thống biết ngày nào áp mức nào.
-4. **Số phút giữ chỗ (hold TTL)** trước khi booking chưa thanh toán hết hạn. Tài liệu kỹ thuật đề xuất 15 phút, `prisma/seed.ts` đang để tạm 15 phút — cần chủ dự án chốt cho production.
-5. **Quy tắc làm tròn** khi tính 50% cọc hoặc 30%/50% phụ thu check-out muộn cho số lẻ.
-6. **Sức chứa tối đa** để biết được phép thêm bao nhiêu khách (liên quan PRE-001).
-7. **Cọc BBQ** — chưa có, thuộc PRE-004.
-8. Có mã giảm giá đợt mở bán đầu không.
-9. **Kênh Travel Agent có nằm trong Phase 1 không** — xem phần dưới.
+1. **Giá gói ăn sáng** theo bảng giá mới — xem mục "Gói ăn sáng" ở trên, chưa có số tiền.
+2. **Sức chứa tối đa** từng hạng phòng để biết được phép thêm bao nhiêu khách (liên quan PRE-001).
+3. Có mã giảm giá đợt mở bán đầu không.
+4. **Kênh Travel Agent có nằm trong Phase 1 không** — xem phần dưới.
+5. Đồng bộ lại rate card khách hàng để hết mâu thuẫn nội bộ về % phụ thu Lễ/Tết (xem lưu ý ở trên).
 
 ### Kênh Travel Agent — nhận ngày 2026-08-17
 
@@ -225,22 +240,33 @@ Chính sách hoàn/hủy áp dụng như Phần A trừ khi hợp đồng quy đ
 
 ## 7. PRE-004 — Khu vực, bàn, khung giờ và combo BBQ
 
-**Trạng thái:** Chờ dữ liệu
+**Trạng thái:** Partial — khu vực/bàn/khung giờ/cọc đã nhận 2026-08-19; đủ để mở `BBQ-001`
 **Owner:** Chủ dự án
-**Người duyệt:** Chưa xác định
-**Ngày duyệt:** Chưa xác định
+**Nguồn:** Form thu thập thông tin, câu 1–6
+**Ngày nhận:** 2026-08-19
 
-### Khu vực và bàn
+### Khu vực và bàn — đã chốt 2026-08-19
 
-| Mã khu vực | Tên khu vực | Mã bàn | Sức chứa tối thiểu | Sức chứa tối đa | Cho phép ghép bàn | Trạng thái |
-|---|---|---|---:|---:|---|---|
-| Cần chủ dự án cung cấp |  |  |  |  |  |  |
+| Khu vực | Số bàn | Sức chứa/bàn | Tổng khách tối đa |
+|---|---:|---:|---:|
+| Khu vườn thông trước | 6 | 6 | 36 |
+| Khu sân gạch đỏ | 6 | 4 | 24 |
+| Khu sân trước homestay | 10 | 4 | 40 |
+| Khu vực ngồi trong nhà | 6 | 4 | 24 |
+| Khu phòng VIP | 1 (bàn dài) | 12 | 12 |
+| **Tổng** | **29 bàn** | | **136 khách** |
 
-### Khung giờ
+Mã khu vực/mã bàn cụ thể, sức chứa tối thiểu/bàn và quy tắc ghép bàn **chưa có** — chủ dự án mới cung cấp số lượng và sức chứa tối đa, cần bổ sung thêm khi triển khai `BBQ-001` schema chi tiết.
 
-| Mã khung giờ | Giờ bắt đầu | Thời lượng sử dụng | Thời gian dọn bàn | Ngày áp dụng | Giới hạn khách |
-|---|---|---|---|---|---:|
-| Cần chủ dự án cung cấp |  |  |  |  |  |
+### Khung giờ — đã chốt 2026-08-19
+
+- **Khung giờ mở cửa:** 11:00–14:00 và 18:00–22:00.
+- **Cách đặt:** khách chọn giờ tự do trong khung mở cửa, **không chia slot cố định theo ca**. Không bắt buộc đặt trọn khung giờ.
+- Thời gian dọn bàn giữa các lượt khách chưa có — cần chủ dự án bổ sung nếu muốn giới hạn số lượt/bàn/ngày.
+
+### Cọc BBQ — đã chốt 2026-08-19
+
+Yêu cầu đặt cọc giữ chỗ, mức **100.000–200.000đ/bàn** (form ghi "1-200k", xác nhận là thiếu số 0, đúng nghĩa 100.000–200.000đ). Chưa chốt mức cụ thể trong khoảng này theo tiêu chí nào (theo khu vực, theo sức chứa bàn, hay đồng giá) — cần chủ dự án chọn một mức cụ thể hoặc quy tắc chọn mức trước khi triển khai thu cọc.
 
 ### Combo/menu Phase 1
 
@@ -316,13 +342,12 @@ Danh sách món đầy đủ chưa chép vào tài liệu này vì còn chờ ch
 2. Set nào cho khách chỉnh món, set nào cố định.
 3. Chính sách sốt chấm: VER.1 ghi "khách chọn 2/4 loại" nhưng liệt kê 5 loại. Cần xác nhận số lượng được chọn và món nào tính phí (VER.1 để trống cột giá cho toàn bộ sốt, hiểu là miễn phí).
 
-**Chặn `BBQ-001` và `BBQ-003` — chưa nhận gì:**
+**Không còn chặn `BBQ-001`** — khu vực/bàn/khung giờ/cọc đã nhận đủ để triển khai (xem trên). Còn thiếu để hoàn thiện schema chi tiết:
 
-5. **Khu vực và bàn**: mã khu vực, mã bàn, sức chứa tối thiểu/tối đa, có cho ghép bàn không, trạng thái.
-6. **Khung giờ**: giờ bắt đầu, thời lượng sử dụng, thời gian dọn bàn, ngày áp dụng, giới hạn khách.
-7. Quy tắc ghép bàn và giới hạn đặt trước.
-8. **Mức cọc BBQ** — bảng giá phòng chỉ nói cọc phòng.
-9. Phụ thu quá giờ và chính sách khách không đến (thuộc PRE-005).
+4. Mã khu vực/mã bàn chính thức, sức chứa tối thiểu mỗi bàn, quy tắc ghép bàn.
+5. Thời gian dọn bàn giữa các lượt (nếu cần giới hạn số lượt/bàn/ngày).
+6. Mức cọc cụ thể trong khoảng 100.000–200.000đ (đồng giá hay theo khu vực/sức chứa).
+7. Phụ thu quá giờ và chính sách khách không đến — xem PRE-005, đã có chính sách hủy cơ bản nhưng chưa có phụ thu quá giờ.
 
 ## 8. PRE-005 — Chính sách vận hành và tài chính
 
@@ -375,14 +400,36 @@ Danh sách món đầy đủ chưa chép vào tài liệu này vì còn chờ ch
 
 Thiên tai, bão, sạt lở, đường bị đóng, dịch bệnh: xử lý theo thứ tự ưu tiên **đổi ngày miễn phí → bảo lưu giá trị booking → hoàn tiền** nếu Homestay không thể cung cấp dịch vụ.
 
+### Chính sách hủy/đổi BBQ — đã chốt 2026-08-19
+
+Đề xuất của Claude dựa trên trả lời của chủ dự án (form câu 6, 16), đã được duyệt:
+
+| Thời điểm báo hủy | Chính sách |
+|---|---|
+| Báo trước ≥ 1 tiếng so với giờ đặt bàn | Hoàn **100%** tiền cọc |
+| Báo trước < 1 tiếng, hoặc không đến | **Mất cọc**, không hoàn |
+| Đổi giờ/đổi ngày | Được đổi **01 lần**, nếu báo trước ≥ 1 tiếng và còn bàn trống |
+
+### Người duyệt hoàn tiền, SLA và hóa đơn — đã chốt 2026-08-19
+
+- **Người duyệt hoàn tiền:** Quản lý (áp dụng chung cho cả hoàn tiền phòng và BBQ, cho tới khi có phân quyền chi tiết hơn).
+- **SLA xử lý hoàn tiền:** trong ngày sử dụng dịch vụ (ngày check-in/ngày đặt BBQ) — nhanh hơn đáng kể so với SLA 1–3 ngày làm việc của quy trình chuyển khoản nhầm CHB FOOD dùng làm tham chiếu (xem dưới).
+- **Hóa đơn:** có xuất hóa đơn VAT. Đơn vị xuất hóa đơn là **DHLC** (khớp thông tin pháp nhân đã ghi ở §6 "Pháp nhân và tài khoản nhận tiền").
+
+### Quy trình đối soát chuyển khoản — tham chiếu 2026-08-19, còn thiếu 2 trường hợp
+
+**Nguồn:** SOP nội bộ CHB FOOD `008.VH-SOP-008-THUNGAN-Quy_trinh_xu_ly_chuyen_khoan_nham-v1.1.docx` (SOP thu ngân cho chuỗi F&B, không viết riêng cho VMD nhưng chủ dự án dùng làm quy trình tham chiếu).
+
+Quy trình tổng quát cho case **chuyển thừa / chuyển nhầm tài khoản / chuyển trùng**: xác nhận giao dịch → lập biên bản có chữ ký khách + nhân sự + quản lý → chụp ảnh gửi nhóm vận hành tag Kế toán → Kế toán xác nhận, báo Quỹ → Quỹ hoàn **100% về đúng tài khoản đã chuyển** trong **1–3 ngày làm việc** → lưu trữ biên bản + ảnh giao dịch + thông tin hoàn tiền (Kế toán lưu).
+
+> ⚠️ **SOP này không đề cập 2 trường hợp cần cho `PAY-004`:** khách **chuyển thiếu** (thanh toán một phần) và khách **chuyển muộn** (sau khi hold hết hạn 2 tiếng). Đây là 2 case thường gặp nhất với booking online có giữ chỗ tạm, khác với bối cảnh thu ngân tại quầy của SOP gốc. Cần chủ dự án bổ sung quy tắc cho 2 case này — không gấp, không chặn task nào hiện tại vì `PAY-004` vẫn ở Backlog chờ `PAY-003` xong trước.
+
 ### Còn thiếu cho PRE-005
 
-1. **Toàn bộ chính sách BBQ** — hủy/đổi, no-show, đến muộn giữ bàn bao lâu, hoàn cọc. Thuộc PRE-004.
-2. **Ai được duyệt hoàn tiền** và **SLA xử lý** (bao nhiêu ngày làm việc). Cần cho `PAY-004`/`PAY-005` và luồng refund có audit.
-3. **Quy tắc và thời điểm xuất hóa đơn.**
-4. **Quy trình khi khách chuyển thiếu, thừa, sai nội dung hoặc muộn** — cần cho `PAY-004` Reconciliation.
-5. **Chính sách lưu trữ chứng từ và dữ liệu thanh toán.**
-6. Định nghĩa chính xác "cao điểm" để hệ thống biết áp bảng hủy nào — hai bảng hủy khác nhau nhưng ranh giới giữa "ngày thường/cuối tuần" và "Lễ/Tết/cao điểm" phụ thuộc lịch giai đoạn ở §6.
+1. Quy tắc xử lý khách **chuyển thiếu** và **chuyển muộn** — xem lưu ý SOP ở trên.
+2. Phụ thu quá giờ cho BBQ và chính sách khách không đến giữ bàn bao lâu trước khi hủy tự động.
+3. **Chính sách lưu trữ chứng từ và dữ liệu thanh toán** cho riêng luồng online (SOP gốc chỉ nói lưu trữ phía Kế toán, chưa nói thời hạn lưu hay nơi lưu số hoá).
+4. Định nghĩa chính xác "cao điểm" để hệ thống biết áp bảng hủy nào — ranh giới giữa "ngày thường/cuối tuần" và "Lễ/Tết/cao điểm" phụ thuộc lịch giai đoạn cụ thể, vẫn chưa có ở §6.
 
 Phase 1 không tự động hoàn tiền; mọi refund vẫn cần thao tác thủ công có audit và lý do.
 
@@ -449,10 +496,10 @@ Chỉ ghi identifier/reference; không ghi secret.
 | Public domain | Chưa cung cấp | DNS credential lưu ngoài repo | Chờ dữ liệu |
 | Admin domain | Development: `http://localhost:3001`; production `https://admin.vuonmangden.vn` đã chốt | DNS credential lưu ngoài repo | Đã nhận |
 | Supabase/PostgreSQL | Staging: project ref `atefkvykvwgtuaiscxnm`, URL `https://atefkvykvwgtuaiscxnm.supabase.co`, Singapore (`ap-southeast-1`); production chưa tạo và phải dùng project riêng trong `REL-001` trước go-live | `DATABASE_URL`, service credentials trong secret manager | Đủ staging-only |
-| SePay | Merchant/account identifier, môi trường test | API/webhook secret trong secret manager | Chờ dữ liệu |
+| SePay | Chủ dự án xác nhận **đã có tài khoản/API production** (2026-08-19); merchant/account identifier cụ thể chưa cung cấp vào tài liệu này | API/webhook secret trong secret manager | Có tài khoản, chờ identifier |
 | Tài khoản ngân hàng | Tên ngân hàng, tên chủ tài khoản, số tài khoản chỉ chia sẻ qua kênh an toàn | Reference secret/config | Chờ dữ liệu |
-| Email | Resend đã chốt; staging dùng Resend test mode hoặc Mailpit local; from `Vườn Măng Đen <noreply@vuonmangden.vn>`; reply-to `info@vuonmangden.vn`; domain `vuonmangden.vn` cần xác minh SPF/DKIM trước gửi production | Railway Variables: `RESEND_API_KEY` | Đủ staging-only |
-| Zalo | OA identifier, trạng thái ZNS template | App secret/token trong secret manager | Chờ dữ liệu |
+| Email | Resend đã chốt; staging dùng Resend test mode hoặc Mailpit local; from `Vườn Măng Đen <noreply@vuonmangden.vn>`; reply-to `info@vuonmangden.vn`; domain `vuonmangden.vn` cần xác minh SPF/DKIM trước gửi production — quy trình cụ thể xem mục dưới | Railway Variables: `RESEND_API_KEY` | Đủ staging-only |
+| Zalo | Chủ dự án xác nhận **chưa đăng ký Zalo Official Account** (2026-08-19) | App secret/token trong secret manager | Chờ dữ liệu |
 | Object storage | Provider, region, bucket naming | Access key trong secret manager | Chờ dữ liệu |
 | Hosting | Staging: Railway Variables; production secret store: Railway Variables đã chốt | Deploy credential trong secret manager | Đã nhận |
 
@@ -491,11 +538,25 @@ Chỉ ghi identifier/reference; không ghi secret.
 - **Webhook/bounce:** ngoài phạm vi `NTF-002`. Task này chỉ gửi qua Resend API và lưu trạng thái kỹ thuật `sent`/`rejected` từ response; bounce/complaint tách sang `NTF-007` hoặc OPS task sau.
 - **Production guard:** `IAM-001` và `NTF-002` chỉ được mở implementation cho staging; không cấu hình/deploy production, không gửi email production, và phải fail-closed khi thiếu cấu hình hợp lệ.
 
+### Cách tạo Supabase project production riêng — trả lời 2026-08-19
+
+Chủ dự án hỏi có cần nâng cấp gói để tạo project production riêng không. **Không cần.** Theo Supabase Pricing, một organization được giữ **tối đa 2 project active cùng lúc ở Free plan**, không giới hạn tổng số project — project rảnh quá 1 tuần tự động pause (không mất dữ liệu, kích hoạt lại khi cần). Vì đang có đúng 1 project staging (`atefkvykvwgtuaiscxnm`), tạo thêm 1 project production nữa vẫn nằm trong hạn miễn phí. Chỉ cần nâng gói nếu sau này cần project thứ 3 active cùng lúc.
+
+### Cách xác minh SPF/DKIM cho Resend — trả lời 2026-08-19
+
+1. Vào Resend Dashboard → Domains → Add Domain.
+2. Nhập **subdomain** gửi mail (khuyến nghị dùng subdomain như `mail.vuonmangden.vn`, không dùng domain gốc, để tránh ảnh hưởng uy tín domain chính nếu có sự cố gửi mail).
+3. Chọn region gần người nhận nhất.
+4. Resend tự sinh bản ghi **MX + SPF (TXT) + DKIM** riêng cho domain vừa tạo — vào tab Records để lấy giá trị chính xác (giá trị này sinh động theo từng domain, không cố định trước được).
+5. Copy chính xác các bản ghi vào nơi quản lý DNS của domain `vuonmangden.vn`.
+6. Chờ xác minh — thường ~15 phút, tối đa 72 giờ.
+7. Sau khi verify xong, nên thêm bản ghi DMARC (khuyến nghị của Resend, chưa bắt buộc).
+
 ### Phần còn thiếu và gate
 
-1. `IAM-001` được mở staging-only. Cần Supabase production URL/ref/region riêng trong `REL-001` trước go-live; không tự dùng project staging làm production.
-2. `NTF-002` được mở staging-only với reference `RESEND_API_KEY`. Xác minh SPF/DKIM cho production vẫn do Chủ dự án thực hiện; không ghi key vào Git. Bounce/complaint webhook là `NTF-007` hoặc OPS task sau.
-3. SePay, Zalo, ngân hàng, object storage và public domain vẫn chờ dữ liệu; các task Payment/Notification/Deployment tương ứng chưa được mở.
+1. `IAM-001` được mở staging-only. Cần Supabase production URL/ref/region riêng trong `REL-001` trước go-live; không tự dùng project staging làm production. Cách tạo đã có ở trên, chỉ còn chờ chủ dự án thực hiện.
+2. `NTF-002` được mở staging-only với reference `RESEND_API_KEY`. Quy trình xác minh SPF/DKIM đã có ở trên; chủ dự án vẫn cần tự thực hiện (không giao thông tin đăng nhập DNS/Resend cho agent). Bounce/complaint webhook là `NTF-007` hoặc OPS task sau.
+3. SePay đã có tài khoản nhưng cần identifier cụ thể; ngân hàng, object storage và public domain vẫn chờ dữ liệu; Zalo OA chưa đăng ký. Các task Payment/Notification/Deployment tương ứng chưa được mở.
 
 ## 11. PRE-008 — Thương hiệu, asset và nội dung
 
@@ -573,3 +634,6 @@ Ba mục đều lệch. Email chênh đúng một chữ (`vuong` với `vuon`) n
 | 2026-08-17 | PRE-004 | Chủ dự án | Cung cấp thêm `MENU VƯỜN MĂNG ĐEN VER.1.md` — bản có đơn vị tính, số khách mỗi set, thành phần set và ghi chú nội bộ. **Phát hiện mâu thuẫn lớn với `Demo menu Vuon Mang Den.pdf`**: giá lệch tới 5,2 lần ở một số món, số set khác nhau (4 với 7), nguồn B có lẩu mà nguồn A không có, chính sách sốt chấm trái ngược. `BBQ-002` tiếp tục bị chặn cho tới khi chủ dự án chỉ rõ bản nào là giá bán chính thức | `MENU VƯỜN MĂNG ĐEN VER.1.md` |
 | 2026-08-17 | PRE-004 (menu), PRE-003 (agent), PRE-007 (pháp nhân) | Chủ dự án | Cung cấp thêm `VMD_Bao_Gia_Phong_2026_Travel_Agent.docx` và `Demo menu Vuon Mang Den.pdf`. Ghi nhận: 7 set combo BBQ và menu à la carte 6 nhóm (**chờ xác nhận vì là bản "Demo" trong thư mục thiết kế**); cơ chế hoa hồng agent 12–15% với Net Rate 88%; pháp nhân DHLC, MST 0111330155, email hóa đơn và tài khoản MB Bank (số đầy đủ không commit vào Git). PRE-004 chuyển `Blocked` → `Partial`; phần khu vực/bàn/khung giờ vẫn trống | `VMD_Bao_Gia_Phong_2026_Travel_Agent.docx`, `Demo menu Vuon Mang Den.pdf` |
 | 2026-08-17 | PRE-001, PRE-002, PRE-003, PRE-005 | Chủ dự án | Cung cấp bảng giá phòng và chính sách đặt phòng 2026 hiệu lực từ 25/08/2026: 7 phòng 201–207 với 7 hạng phòng, giá ngày thường/cuối tuần × không sáng/có sáng, gói ăn sáng, phụ thu khách thêm và check-out muộn, hệ số cao điểm/Lễ Tết, mức cọc 50%/100%, giờ nhận-trả phòng, chính sách trẻ em, hai bảng hủy hoàn theo giai đoạn, điều kiện đổi ngày và xử lý bất khả kháng. Bốn nhóm chuyển từ `Blocked` sang `Partial`. Phát hiện mâu thuẫn địa chỉ/hotline/email với PRE-008 — chưa tự chọn bên nào | `VMD_Bao_Gia_Phong_2026_Khach_Hang.docx` do chủ dự án cung cấp ngày 2026-08-17 |
+| 2026-08-19 | PRE-001, PRE-002, PRE-004, PRE-005 | Chủ dự án | Điền form thu thập thông tin 27 câu: khu vực/bàn/khung giờ/cọc BBQ (mở khóa `BBQ-001`); chính sách hủy BBQ do Claude đề xuất, chủ dự án duyệt; người duyệt hoàn tiền = Quản lý, SLA = trong ngày sử dụng dịch vụ; hóa đơn VAT xuất bởi DHLC; VAT phòng 8%, hold TTL 2 tiếng, làm tròn xuống nghìn đồng; phát sinh hạng phòng thứ 8 "Doom/Dorm" (301, 16 khách, giá liên hệ) ngoài phạm vi 7 phòng ban đầu; tầng/trạng thái ban đầu của 201–207 giao Claude tự quyết. Đóng PR #40 (MNT-001 cũ) theo quyết định chủ dự án | `VMD-Form-Thong-Tin-Con-Thieu.docx` (đã điền) do chủ dự án cung cấp ngày 2026-08-19 |
+| 2026-08-19 | PRE-003 | Chủ dự án | Cung cấp bản cập nhật `VMD_Bao_Gia_Phong_2026_Khach_Hang.docx` (có logo/letterhead), **thay thế bảng giá phòng cơ bản đã ghi ngày 2026-08-17** — giá thấp hơn đáng kể (vd. phòng 202 từ 1,15–1,55tr xuống 800–900k), bỏ cách tách giá theo có/không ăn sáng, gộp phụ thu Lễ/Tết về một mức cố định +20%. Chủ dự án xác nhận dùng bản mới. Giá gói ăn sáng riêng chưa có trong bản mới — phát sinh khoảng trống dữ liệu mới, không chặn task nào hiện tại | `VMD_Bao_Gia_Phong_2026_Khach_Hang.docx` cập nhật 2026-08-19 |
+| 2026-08-19 | PRE-005 | Chủ dự án | Cung cấp SOP nội bộ CHB FOOD xử lý chuyển khoản nhầm/chuyển thừa, dùng làm quy trình tham chiếu cho `PAY-004`. SOP không có case chuyển thiếu/chuyển muộn — ghi nhận là khoảng trống còn lại, không chặn `PAY-004` (vẫn Backlog chờ `PAY-003`) | `008.VH-SOP-008-THUNGAN-Quy_trinh_xu_ly_chuyen_khoan_nham-v1.1.docx` |
