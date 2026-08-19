@@ -16,8 +16,8 @@
 | Phase | Phase 1 — MVP |
 | Trạng thái tổng thể | `main` có required CI checks và branch protection. Advisory bảo mật `deepmerge-ts` đã vá (PR #57); 12 PR admin/vận hành/policy/BBQ đã merge vào `main` trong 2026-08-17–18. PR #40 (MNT-001) đã đóng theo quyết định chủ dự án 2026-08-19 (BLK-004 closed) |
 | Milestone hiện tại | Milestone 0 tiến triển mạnh ngày 2026-08-19: PRE-004 gần như đủ dữ liệu (mở khóa `BBQ-001`), PRE-003 gần đóng (chỉ còn sức chứa tối đa + mã giảm giá + Travel Agent), PRE-005 chờ duyệt đề xuất chuyển thiếu/chuyển muộn của Claude; Milestone 2/4/5/6 xong ở lane synthetic; Milestone 3/9 có thêm CMS-001, BKG-008, OPS-003/004, NTF-006, ADM-001, BKG-009 |
-| Task đang thực hiện | Không có task nào đang code dở; PRE-001–005 vừa nhận dữ liệu mới, chờ triển khai `BBQ-001` |
-| Task hoàn thành | 55 Done/Review, không đổi so với 2026-08-18 — cập nhật hôm nay chỉ ở Milestone 0 (dữ liệu), chưa có code mới |
+| Task đang thực hiện | Không có task nào đang code dở; `BBQ-001` vừa triển khai xong, chờ review |
+| Task hoàn thành | 56 Done/Review (+1: `BBQ-001` Review) — mở khóa `BBQ-003` (BBQ Availability) |
 | Blocker mở | BLK-001 — vẫn còn: sức chứa tối đa phòng, tầng/khu chính thức 201–207, mã khu vực/bàn BBQ chi tiết, chủ dự án duyệt đề xuất chuyển thiếu/chuyển muộn (đặc biệt mức dung sai 10.000đ) |
 | Cập nhật gần nhất | 2026-08-19 |
 
@@ -64,7 +64,7 @@
 
 | Task ID | Nội dung | Trạng thái | Dependency | Branch/PR | Tests | Ghi chú |
 |---|---|---|---|---|---|---|
-| CMS-001 | Site settings | Review | FND-005, IAM-002, PRE-008 | PR #48 / `claude/cms-001-site-settings` | API 146/146; lint/typecheck/build 12/12 đạt | Allow-list 15 key; ghi cần `content.manage` + vai trò; timezone/currency chỉ Super Admin; audit cùng transaction. **Chờ chủ dự án chốt:** MARKETING có được sửa settings không |
+| CMS-001 | Site settings | Review | FND-005, IAM-002, PRE-008 | PR #48 / `claude/cms-001-site-settings` | API 146/146; lint/typecheck/build 12/12 đạt | Allow-list 15 key; ghi cần `content.manage` + vai trò; timezone/currency chỉ Super Admin; audit cùng transaction. **Chốt 2026-08-19:** MARKETING tạm thời KHÔNG được sửa site settings — code hiện tại (`SETTINGS_WRITE_ROLES` = SUPER_ADMIN, MANAGER) đã đúng ý này sẵn, không cần sửa code. Không còn điểm treo, sẵn sàng cho bước duyệt merge |
 | CMS-002 | Content pages | Backlog | CMS-001 |  |  | Draft/publish |
 | CMS-003 | Media | Backlog | IAM-002, PRE-007 |  |  | Upload security |
 | CMS-004 | Blog | Backlog | CMS-002, CMS-003 |  |  | SEO metadata |
@@ -121,7 +121,7 @@
 
 | Task ID | Nội dung | Trạng thái | Dependency | Branch/PR | Tests | Ghi chú |
 |---|---|---|---|---|---|---|
-| BBQ-001 | Areas, Tables và Slots | Ready | FND-005, PRE-004 |  |  | Mở khóa 2026-08-19: 5 khu/29 bàn, khung giờ 11-14h & 18-22h, cọc 100-200k đã nhận (`docs/09_MILESTONE_0_INPUT_PACK.md` §7). Mã khu vực/bàn chính thức và mức cọc cụ thể vẫn cần bổ sung khi triển khai schema |
+| BBQ-001 | Areas, Tables và Slots | Review | FND-005, PRE-004 | `claude/bbq-001-areas-tables-slots` | Migration `20260819120000_add_bbq_areas_tables_slots`; API 274/274 tests đạt (16 test mới); lint/typecheck/build đạt | 3 bảng mới (`bbq_areas`, `bbq_tables`, `bbq_service_slots`) + CRUD admin (`bbq.manage`) + endpoint public `GET /public/bbq/areas`. Seed thật: 5 khu/29 bàn/2 khung giờ theo dữ liệu chủ dự án 2026-08-19. Mã khu vực/mã bàn do Claude tự sinh (vd `VUON_THONG-01`) vì chủ dự án chưa cấp mã chính thức — cần xác nhận hoặc đổi trước production. Cọc chưa lưu ở bảng này (thuộc PAY); `min_capacity` mặc định 1, `turnaround_minutes` mặc định 30 — cả hai đều là giả định chờ xác nhận |
 | BBQ-002 | Menu và Combo | Review | PRE-004, IAM-002 | PR #59 / `claude/bbq-002-menu-and-combos` (merged 2026-08-18) | Migration `20260817120000_add_bbq_menu`; unit tests cho tách ghi chú nội bộ và snapshot giá | Nguồn giá: `MENU ... VER.1.md` đã chốt 2026-08-17. Ghi chú nội bộ (giá vốn, nguồn hàng) tách khỏi mô tả công khai; endpoint public không select `internal_note`. **Chưa nhập ~60 món** — cần chủ dự án đối chiếu trước khi import |
 | BBQ-003 | BBQ Availability | Backlog | BBQ-001 |  |  | Concurrent allocation |
 | BBQ-004 | BBQ Booking | Backlog | BBQ-002, BBQ-003, BKG-001 |  |  | Hold/idempotency |
@@ -153,7 +153,7 @@
 | OPS-004 | Customer View | Review | BKG-001, IAM-003 | PR #52 / `claude/ops-004-customer-view` | API 194/194; build 12/12 đạt | Hai mức PII: danh sách che, chi tiết chỉ Super Admin/Manager/Reception và **có audit `customer.pii.viewed`**; truy cập bị từ chối không ghi audit |
 | RPT-001 | Reports | Backlog | PAY-005, OPS-001 |  |  | Metric definitions |
 | RPT-002 | Export | Backlog | RPT-001, IAM-003 |  |  | Audit/formula injection |
-| ADM-001 | Staff Management | Review | IAM-002, IAM-003 | PR #54 / `claude/adm-001-staff-management` | API 217/217; build 12/12 đạt | List/detail/status + expose assign/revoke role của IAM-002; chặn tự đổi trạng thái, chặn khóa Super Admin cuối cùng, yêu cầu cả vai trò lẫn `user.manage`. **Chưa mời được nhân viên mới** — cần Supabase Admin API, ngoài phạm vi PRE-007 |
+| ADM-001 | Staff Management | Review | IAM-002, IAM-003 | PR #54 / `claude/adm-001-staff-management` | API 217/217; build 12/12 đạt | List/detail/status + expose assign/revoke role của IAM-002; chặn tự đổi trạng thái, chặn khóa Super Admin cuối cùng, yêu cầu cả vai trò lẫn `user.manage`. **Chưa mời được nhân viên mới.** Chủ dự án đã duyệt dùng Supabase Admin API để mời nhân viên (2026-08-19) — sẵn sàng nhận task bổ sung endpoint invite (`POST /admin/staff/invite`: tạo Supabase Auth user qua Admin API + staff profile + gán vai trò, gửi email mời) |
 | ADM-002 | Settings | Backlog | IAM-004, CMS-001 |  |  | Secret not readable |
 
 **Gate:** Admin role matrix đạt; report đối chiếu đúng dữ liệu chuẩn.
@@ -315,3 +315,5 @@ Người cập nhật:
 | 2026-08-18 | Claude | Đồng bộ lại tracker: sửa dòng BBQ-002 (PR #59 đã merge, không còn ghi "PR chưa tạo"), cập nhật số liệu tổng quan §2 và bổ sung lịch sử PR #58/#59/#60 bị sót khi thêm BLK-004 trước đó. |
 | 2026-08-19 | Chủ dự án/Claude | Chủ dự án điền form thu thập thông tin 27 câu (`VMD-Form-Thong-Tin-Con-Thieu.docx`) và gửi thêm 2 tài liệu: bản cập nhật `VMD_Bao_Gia_Phong_2026_Khach_Hang.docx` (giá phòng cơ bản đổi hẳn so với bản 17/8, chủ dự án xác nhận dùng bản mới) và SOP nội bộ CHB FOOD xử lý chuyển khoản nhầm/thừa (dùng tham chiếu cho `PAY-004`). Cập nhật `docs/09_MILESTONE_0_INPUT_PACK.md` §4–§8, §10: khu vực/bàn/giờ/cọc BBQ, chính sách hủy BBQ, người duyệt hoàn tiền + SLA, VAT, hold TTL, làm tròn, hướng dẫn tạo Supabase production project và xác minh SPF/DKIM Resend. `BBQ-001` chuyển `Backlog` → `Ready`; `PAY-004` bớt phụ thuộc PRE-005. Phát hiện phòng `301` "Doom/Dorm" ngoài phạm vi 7 phòng ban đầu, tạm để ngoài luồng đặt online. Đóng PR #40 và BLK-004 theo quyết định chủ dự án. Chưa có code mới — chỉ cập nhật dữ liệu/tài liệu. |
 | 2026-08-19 | Chủ dự án/Claude | Chủ dự án xác nhận bỏ gói ăn sáng khỏi giá bán là chủ động (đóng khoảng trống PRE-003) và chốt lại lần hai mức +20% Lễ/Tết cố định. Giao Claude xây dựng phương án xử lý chuyển thiếu/chuyển muộn cho `PAY-004` — đã thêm vào `docs/09_MILESTONE_0_INPUT_PACK.md` §8: dung sai 10.000đ cho chuyển thiếu (đề xuất), trạng thái "Chờ bổ sung tiền cọc" giữ nguyên hold, hoàn tiền qua SOP tham chiếu nếu hold hết hạn; chuyển muộn luôn cần Quản lý duyệt thủ công theo tồn phòng/bàn, không tự động khôi phục booking. Cả hai đề xuất chờ chủ dự án duyệt trước khi đưa vào code `PAY-004`. Chưa có code mới. |
+| 2026-08-19 | Chủ dự án | Ba quyết định nhanh: (1) phòng `301` Doom/Dorm xử lý thủ công tạm thời, chủ dự án sẽ báo lại khi chốt cơ chế giá; (2) MARKETING tạm thời không được sửa site settings (khớp sẵn với code hiện tại, CMS-001 hết điểm treo); (3) đồng ý dùng Supabase Admin API để mời nhân viên, mở khóa phần còn thiếu của `ADM-001`. |
+| 2026-08-19 | Claude | Triển khai `BBQ-001` (Areas, Tables và Slots) trên nhánh `claude/bbq-001-areas-tables-slots`: 3 bảng mới `bbq_areas`/`bbq_tables`/`bbq_service_slots` (migration `20260819120000_add_bbq_areas_tables_slots`), `BbqAreaService` CRUD (archive pattern, không hard-delete), admin controller theo `bbq.manage` (`/admin/bbq/areas`, `/admin/bbq/tables`, `/admin/bbq/service-slots`) và public controller `GET /public/bbq/areas`. Seed thật (không phải synthetic): 5 khu, 29 bàn, 2 khung giờ (11h-14h, 18h-22h) theo dữ liệu chủ dự án 2026-08-19. 16 test mới, API 274/274, lint/typecheck/build đạt local. Mã khu vực/bàn tự sinh (`VUON_THONG`, `VUON_THONG-01`...) vì chưa có mã chính thức — cần chủ dự án xác nhận trước production. Chuyển `BBQ-001` `Ready` → `Review`, mở khóa `BBQ-003`. |
