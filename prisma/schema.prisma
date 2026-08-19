@@ -474,6 +474,67 @@ model BbqCombo {
   @@map("bbq_combos")
 }
 
+model BbqArea {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code          String    @unique @db.VarChar(50)
+  name          String    @db.VarChar(150)
+  description   String?   @db.Text
+  minCapacity   Int       @map("min_capacity")
+  maxCapacity   Int       @map("max_capacity")
+  coverMediaId  String?   @map("cover_media_id") @db.Uuid
+  status        String    @default("ACTIVE") @db.VarChar(30)
+  sortOrder     Int       @default(0) @map("sort_order")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+  deletedAt     DateTime? @map("deleted_at") @db.Timestamptz()
+
+  tables       BbqTable[]
+  serviceSlots BbqServiceSlot[]
+
+  @@index([status, sortOrder])
+  @@map("bbq_areas")
+}
+
+model BbqTable {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  areaId             String    @map("area_id") @db.Uuid
+  code               String    @unique @db.VarChar(50)
+  name               String    @db.VarChar(100)
+  minCapacity        Int       @map("min_capacity")
+  maxCapacity        Int       @map("max_capacity")
+  status             String    @default("ACTIVE") @db.VarChar(30)
+  turnaroundMinutes  Int       @default(30) @map("turnaround_minutes")
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt          DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+  deletedAt          DateTime? @map("deleted_at") @db.Timestamptz()
+
+  area BbqArea @relation(fields: [areaId], references: [id], onDelete: Restrict)
+
+  @@index([areaId, status])
+  @@map("bbq_tables")
+}
+
+model BbqServiceSlot {
+  id                      String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  areaId                  String?   @map("area_id") @db.Uuid
+  name                    String    @db.VarChar(100)
+  startTime               String    @map("start_time") @db.VarChar(5)
+  endTime                 String    @map("end_time") @db.VarChar(5)
+  bookingIntervalMinutes  Int?      @map("booking_interval_minutes")
+  maxTotalGuests          Int?      @map("max_total_guests")
+  daysOfWeek              Int[]     @default([]) @map("days_of_week")
+  dateFrom                DateTime? @map("date_from") @db.Date
+  dateTo                  DateTime? @map("date_to") @db.Date
+  status                  String    @default("ACTIVE") @db.VarChar(30)
+  createdAt               DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt               DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  area BbqArea? @relation(fields: [areaId], references: [id], onDelete: Restrict)
+
+  @@index([status])
+  @@map("bbq_service_slots")
+}
+
 model AppSetting {
   key               String   @id @db.VarChar(150)
   value             Json     @db.JsonB
