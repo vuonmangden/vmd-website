@@ -79,13 +79,18 @@ Giường phụ: chỉ bố trí khi diện tích phòng phù hợp và có xác
 - **Tiện nghi xác nhận đồng nhất cho cả 7 hạng 201–207:** điều hòa, TV, minibar. Wifi/nước nóng chưa được xác nhận riêng, giả định có sẵn theo tiêu chuẩn homestay nhưng cần chủ dự án xác nhận trước khi hiển thị công khai.
 - **Hạng phòng thứ 8 phát sinh:** phòng `301` "Doom" (nhiều khả năng là "Dorm" — phòng tập thể), sức chứa 16, tầng áp mái, giá niêm yết "Liên hệ" thay vì số cố định. Đây là hạng **ngoài phạm vi 7 hạng đã phân tích trước đó** và không khớp mô hình Price Engine hiện tại (yêu cầu giá cố định dạng số nguyên). Quyết định tạm thời: **không đưa 301 vào luồng đặt phòng online ở Phase 1**, giữ ở dạng liên hệ trực tiếp cho tới khi có bảng giá cố định hoặc quy tắc định giá riêng.
 
+### Sức chứa tối đa — chốt 2026-08-19
+
+**Sức chứa tối đa = sức chứa chuẩn cho mọi hạng: 2 khách/phòng, riêng `202 Family Loft Balcony` là 4 khách.** Không có phòng nào bán vượt số này.
+
+> ⚠️ Lưu ý kỹ thuật: điều này khiến 2 dòng phụ thu "khách người lớn thêm" trong bảng giá (250.000đ/300.000đ người/đêm, điều kiện "vượt sức chứa chuẩn") **không bao giờ áp dụng được** — sức chứa tối đa trùng sức chứa chuẩn nên không có chỗ cho khách vượt. Không tự xoá 2 dòng này khỏi Price Engine (giữ để tương thích ngược nếu chủ dự án đổi ý), nhưng sẽ không có booking nào kích hoạt được mức phụ thu đó với dữ liệu hiện tại. Chủ dự án nên xác nhận đây đúng là chủ định (không bán thêm giường phụ) hoặc sửa lại một trong hai con số.
+
 ### Còn thiếu cho PRE-001
 
 1. Cấu hình giường của 6 hạng còn lại trong 201–207 (chỉ `Family Loft Balcony`/202 được mô tả).
-2. **Sức chứa tối đa từng hạng** (khác sức chứa chuẩn). Bảng giá có phụ thu khách thêm 250.000–300.000đ/người/đêm nên chắc chắn có trần tối đa, nhưng con số cụ thể chưa có. Price Engine và Availability cần con số này để chặn đặt quá tải.
-3. Xác nhận wifi/nước nóng có ở tất cả các phòng không.
-4. Xác nhận cả 7 hạng 201–207 đều mở bán Phase 1. Phòng 301: **chốt 2026-08-19** — xử lý thủ công (liên hệ trực tiếp) tạm thời, giữ ngoài Price Engine/luồng đặt online; chủ dự án sẽ báo lại khi chốt cơ chế giá riêng để triển khai.
-5. Duyệt mã loại phòng, hoặc cung cấp mã nội bộ đang dùng.
+2. Xác nhận wifi/nước nóng có ở tất cả các phòng không.
+3. Xác nhận cả 7 hạng 201–207 đều mở bán Phase 1. Phòng 301: **chốt 2026-08-19** — xử lý thủ công (liên hệ trực tiếp) tạm thời, giữ ngoài Price Engine/luồng đặt online; chủ dự án sẽ báo lại khi chốt cơ chế giá riêng để triển khai.
+4. Duyệt mã loại phòng, hoặc cung cấp mã nội bộ đang dùng.
 
 ## 5. PRE-002 — Phòng thực tế
 
@@ -194,7 +199,7 @@ Phòng chỉ được giữ chính thức sau khi nhận được khoản thanh 
 
 ### Hold TTL, làm tròn — đã chốt 2026-08-19
 
-- **Hold TTL:** giữ chỗ tạm (chưa thanh toán) tối đa **2 tiếng (120 phút)** trước khi hệ thống tự hủy. Thay thế mức đề xuất 15 phút trước đó trong `prisma/seed.ts`.
+- **Hold TTL:** giữ chỗ tạm (chưa thanh toán) tối đa **2 tiếng (120 phút)** trước khi hệ thống tự hủy. Đã sửa trong code ngày 2026-08-19 (`BOOKING_HOLD_MINUTES` mặc định 15→120, trần 30→360 phút, xem `apps/api/src/modules/rooms/resource-holds.service.ts` và `booking-creation.service.ts`) — trước đó tài liệu đã ghi quyết định này nhưng code vẫn mặc định 15 phút, nay đã khớp.
 - **Làm tròn:** làm tròn **xuống** đến đơn vị **nghìn đồng** cho mọi phép tính cọc/phụ thu ra số lẻ.
 
 ### Còn thiếu cho PRE-003
@@ -422,11 +427,11 @@ Quy trình tổng quát cho case **chuyển thừa / chuyển nhầm tài khoả
 
 > SOP CHB FOOD ở trên không đề cập 2 trường hợp cần cho `PAY-004`: khách **chuyển thiếu** và khách **chuyển muộn**. Hai case này khác với bối cảnh thu ngân tại quầy của SOP gốc, gắn liền với đặc thù booking online có giữ chỗ tạm (hold TTL 2 tiếng, PAY-002/003 chỉ tự khớp khi số tiền đúng chính xác). Chủ dự án giao Claude xây dựng phương án — đề xuất bên dưới.
 
-### Chuyển thiếu — đề xuất của Claude 2026-08-19, chờ chủ dự án duyệt
+### Chuyển thiếu — đề xuất của Claude 2026-08-19, **đã duyệt cùng ngày**
 
 Bối cảnh kỹ thuật: `PAY-002`/`PAY-003` hiện chỉ tự động xác nhận khi số tiền khớp **chính xác** với số tiền yêu cầu; giao dịch thiếu tiền sẽ không tự khớp, cần `PAY-004` xử lý.
 
-1. **Dung sai tự động:** giao dịch thiếu **≤ 10.000đ** so với số tiền yêu cầu (bù chênh phí ngân hàng) được coi là đủ, hệ thống tự xác nhận bình thường như khớp đúng. *(Con số 10.000đ do Claude đề xuất, chủ dự án có thể điều chỉnh.)*
+1. **Dung sai tự động:** giao dịch thiếu **≤ 10.000đ** so với số tiền yêu cầu (bù chênh phí ngân hàng) được coi là đủ, hệ thống tự xác nhận bình thường như khớp đúng. *(Chủ dự án duyệt mức 10.000đ ngày 2026-08-19.)*
 2. **Thiếu nhiều hơn 10.000đ nhưng đúng mã booking trong nội dung chuyển khoản:** chuyển booking sang trạng thái "Chờ bổ sung tiền cọc"; **không reset hold** — vẫn tính từ mốc giữ chỗ ban đầu (2 tiếng); gửi thông báo yêu cầu khách chuyển bổ sung phần còn thiếu trước khi hold hết hạn.
    - Bổ sung đủ trước khi hết hạn → xác nhận booking bình thường, cộng dồn các lần chuyển.
    - Hold hết hạn mà chưa bổ sung đủ → hủy hold tự động (như hành vi `BKG-003` hiện có); số tiền đã nhận (dù thiếu) phải hoàn 100% cho khách theo đúng quy trình chuyển khoản nhầm/thừa ở SOP tham chiếu (biên bản, Kế toán xác nhận, Quỹ hoàn trong 1–3 ngày làm việc) — vì đây là tiền đã nhận nhưng không còn booking tương ứng.
@@ -444,7 +449,6 @@ Bối cảnh kỹ thuật: `PAY-002`/`PAY-003` hiện chỉ tự động xác nh
 1. Phụ thu quá giờ cho BBQ và chính sách khách không đến giữ bàn bao lâu trước khi hủy tự động.
 2. **Chính sách lưu trữ chứng từ và dữ liệu thanh toán** cho riêng luồng online (SOP gốc chỉ nói lưu trữ phía Kế toán, chưa nói thời hạn lưu hay nơi lưu số hoá).
 3. Định nghĩa chính xác "cao điểm" để hệ thống biết áp bảng hủy nào — ranh giới giữa "ngày thường/cuối tuần" và "Lễ/Tết/cao điểm" phụ thuộc lịch giai đoạn cụ thể, vẫn chưa có ở §6.
-4. Chủ dự án duyệt 2 đề xuất chuyển thiếu/chuyển muộn ở trên (đặc biệt mức dung sai 10.000đ).
 
 Phase 1 không tự động hoàn tiền; mọi refund vẫn cần thao tác thủ công có audit và lý do.
 
@@ -654,3 +658,4 @@ Ba mục đều lệch. Email chênh đúng một chữ (`vuong` với `vuon`) n
 | 2026-08-19 | PRE-005 | Chủ dự án | Cung cấp SOP nội bộ CHB FOOD xử lý chuyển khoản nhầm/chuyển thừa, dùng làm quy trình tham chiếu cho `PAY-004`. SOP không có case chuyển thiếu/chuyển muộn — ghi nhận là khoảng trống còn lại, không chặn `PAY-004` (vẫn Backlog chờ `PAY-003`) | `008.VH-SOP-008-THUNGAN-Quy_trinh_xu_ly_chuyen_khoan_nham-v1.1.docx` |
 | 2026-08-19 | PRE-003, PRE-005 | Chủ dự án | Xác nhận: (1) bỏ gói ăn sáng khỏi giá bán là chủ động, không phải thiếu dữ liệu — đóng khoảng trống; (2) chốt lại lần hai mức cố định +20% Lễ/Tết/cao điểm sau khi Claude nêu rate card khách hàng còn mâu thuẫn nội bộ; (3) giao Claude xây dựng phương án xử lý chuyển thiếu/chuyển muộn — đã thêm vào §8, gồm dung sai 10.000đ (đề xuất, chờ duyệt số cụ thể) và quy trình Quản lý xử lý thủ công theo tình trạng phòng/bàn còn trống | Tin nhắn chủ dự án 2026-08-19 |
 | 2026-08-19 | PRE-001, CMS-001, ADM-001 | Chủ dự án | Ba quyết định: (1) phòng `301` "Doom/Dorm" xử lý thủ công tạm thời, giữ ngoài Price Engine, chủ dự án sẽ báo lại khi chốt cơ chế giá riêng; (2) vai trò MARKETING tạm thời KHÔNG được sửa site settings — khớp sẵn với `SETTINGS_WRITE_ROLES` hiện tại trong code, không cần sửa; (3) đồng ý dùng Supabase Admin API để mời nhân viên mới, mở khóa phần còn thiếu của `ADM-001` | Tin nhắn chủ dự án 2026-08-19 |
+| 2026-08-19 | PRE-001, PRE-005 | Chủ dự án | Ba quyết định thêm: (1) duyệt mức dung sai chuyển thiếu 10.000đ — mở khóa code `PAY-004`; (2) sức chứa tối đa mỗi phòng = sức chứa chuẩn (2 khách, riêng 202 là 4 khách) — đóng gap PRE-001, phát sinh lưu ý kỹ thuật là 2 dòng phụ thu "khách thêm" trong bảng giá sẽ không bao giờ áp dụng được với số này; (3) giữ mã khu vực/bàn BBQ tạm do Claude sinh cho tới khi chủ dự án cấp mã chính thức | Tin nhắn chủ dự án 2026-08-19 |
