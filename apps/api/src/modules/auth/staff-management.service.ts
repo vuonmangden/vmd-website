@@ -1,6 +1,8 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- Nest needs runtime DI metadata.
 import { PrismaService } from '../../prisma/prisma.service';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports -- Nest needs runtime DI metadata.
+import { SupabaseAdminService } from './supabase-admin.service';
 import type { AuthenticatedActor } from './auth.types';
 
 export const STAFF_STATUSES = ['INVITED', 'ACTIVE', 'SUSPENDED'] as const;
@@ -14,7 +16,51 @@ export interface ListStaffOptions {
 
 @Injectable()
 export class StaffManagementService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly supabaseAdmin: SupabaseAdminService,
+  ) {}
+
+  /**
+   * Invites a new staff member: creates the Supabase Auth user (which sends
+   * the invite email) via the Admin API, then a matching INVITED profile.
+   * The caller is expected to assign a starting role afterward via
+   * RolesService — kept separate to match the existing assign/revoke split.
+   */
+  async invite(actor: AuthenticatedActor, input: { email: string; fullName: string }, correlationId: string) {
+    assertUserManager(actor);
+
+    const email = input.email.trim().toLowerCase();
+    const fullName = input.fullName.trim();
+    if (!email || !fullName) {
+      throw new BadRequestException({ code: 'STAFF_INVITE_INVALID', message: 'Email and full name are required' });
+    }
+
+    const existing = await this.prisma.staffProfile.findFirst({ where: { email } });
+    if (existing) {
+      throw new ConflictException({ code: 'STAFF_EMAIL_ALREADY_EXISTS', message: 'A staff profile with this email already exists' });
+    }
+
+    const invited = await this.supabaseAdmin.inviteUserByEmail(email);
+
+    return this.prisma.$transaction(async (tx) => {
+      const profile = await tx.staffProfile.create({
+        data: { authUserId: invited.id, fullName, email, status: 'INVITED' },
+      });
+      await tx.auditLog.create({
+        data: {
+          actorType: 'STAFF',
+          actorId: actor.staffProfileId,
+          action: 'staff.invited',
+          resourceType: 'staff_profile',
+          resourceId: profile.id,
+          afterData: { email, fullName, status: 'INVITED' },
+          correlationId,
+        },
+      });
+      return { id: profile.id, email: profile.email, fullName: profile.fullName, status: profile.status };
+    });
+  }
 
   async list(actor: AuthenticatedActor, options: ListStaffOptions) {
     assertUserManager(actor);
