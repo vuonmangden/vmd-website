@@ -153,9 +153,9 @@ Giá **không bao gồm ăn sáng** (khác bản 2026-08-17 — bản đó gộp
 
 Giá đã bao gồm **VAT 8%** (xác nhận 2026-08-19, form câu 12).
 
-### Gói ăn sáng — cần dữ liệu mới
+### Gói ăn sáng — đã chốt 2026-08-19
 
-Bản 2026-08-17 có giá ăn sáng theo phòng (+100.000đ/phòng 2 khách, +200.000đ/phòng 202). **Bản 2026-08-19 bỏ cách trình bày này** — chỉ còn tiêu đề "Ăn sáng và trải nghiệm cà phê Măng Đen" không kèm số tiền, và ghi chú giá ăn sáng "có thể điều chỉnh" theo mùa/sự kiện. Chưa rõ mức giá ăn sáng hiện hành có còn là 100.000–200.000đ/phòng/đêm hay đã đổi — **cần chủ dự án xác nhận lại giá gói ăn sáng** trước khi Price Engine tính biến thể có/không ăn sáng.
+Chủ dự án xác nhận **chủ động bỏ gói ăn sáng khỏi giá bán** kể từ bản rate card 2026-08-19 — không phải thiếu dữ liệu. Phase 1 chỉ có **một mức giá phòng duy nhất mỗi loại ngày** (ngày thường/cuối tuần), không còn biến thể có/không ăn sáng. Price Engine không cần xử lý biến thể ăn sáng cho phòng nữa; nếu về sau muốn bán ăn sáng trở lại, đó là sản phẩm/task riêng chứ không phải biến thể giá phòng.
 
 ### Phụ thu
 
@@ -178,9 +178,9 @@ Check-in sớm: phụ thuộc tình trạng phòng và **cần xác nhận trư�
 | Cuối tuần (T6–T7) | Theo bảng giá cuối tuần |
 | Lễ, Tết, cao điểm | **+20% so với giá cuối tuần**, mức cố định duy nhất |
 
-Chủ dự án chốt dùng **một mức cố định +20%** cho mọi dịp Lễ/Tết/cao điểm (form 2026-08-19, câu 1), thay cho khoảng tham chiếu nhiều mức trước đó (+10–40% chia theo 3 tầng "cao điểm địa phương / Lễ Tết / đỉnh đặc biệt"). Đủ để Price Engine tính tự động, không cần bảng giai đoạn riêng.
+Chủ dự án chốt dùng **một mức cố định +20%** cho mọi dịp Lễ/Tết/cao điểm — xác nhận hai lần, form 2026-08-19 câu 1 và nhắc lại 2026-08-19 sau khi Claude nêu mâu thuẫn trong rate card. Đủ để Price Engine tính tự động, không cần bảng giai đoạn riêng. **Quyết định cuối cùng, không còn là điểm mở.**
 
-> Lưu ý: chính tài liệu rate card 2026-08-19 vẫn còn **hai chỗ ghi khác nhau trong cùng file** — một dòng ghi "phụ thu dịp lễ, tết: 20%", nhưng mục "3. Giá cao điểm, Lễ & Tết" phía dưới vẫn liệt kê 3 tầng +10–40% như bản cũ. Hệ thống áp dụng theo quyết định +20% cố định ở trên; **chủ dự án nên sửa lại rate card khách hàng cho nhất quán** để tránh nhân viên đọc nhầm khi tư vấn khách.
+> Việc còn lại không thuộc phạm vi kỹ thuật: chính tài liệu rate card khách hàng 2026-08-19 vẫn còn hai chỗ ghi khác nhau trong cùng file (một dòng ghi "phụ thu dịp lễ, tết: 20%", mục "3. Giá cao điểm, Lễ & Tết" phía dưới vẫn liệt kê 3 tầng +10–40% cũ). Hệ thống dùng +20% cố định; **chủ dự án nên sửa lại rate card khách hàng khi rảnh** để nhân viên tư vấn khách không đọc nhầm — việc này không chặn task nào.
 
 ### Tiền cọc — đã chốt
 
@@ -199,11 +199,9 @@ Phòng chỉ được giữ chính thức sau khi nhận được khoản thanh 
 
 ### Còn thiếu cho PRE-003
 
-1. **Giá gói ăn sáng** theo bảng giá mới — xem mục "Gói ăn sáng" ở trên, chưa có số tiền.
-2. **Sức chứa tối đa** từng hạng phòng để biết được phép thêm bao nhiêu khách (liên quan PRE-001).
-3. Có mã giảm giá đợt mở bán đầu không.
-4. **Kênh Travel Agent có nằm trong Phase 1 không** — xem phần dưới.
-5. Đồng bộ lại rate card khách hàng để hết mâu thuẫn nội bộ về % phụ thu Lễ/Tết (xem lưu ý ở trên).
+1. **Sức chứa tối đa** từng hạng phòng để biết được phép thêm bao nhiêu khách (liên quan PRE-001).
+2. Có mã giảm giá đợt mở bán đầu không.
+3. **Kênh Travel Agent có nằm trong Phase 1 không** — xem phần dưới.
 
 ### Kênh Travel Agent — nhận ngày 2026-08-17
 
@@ -422,14 +420,31 @@ Thiên tai, bão, sạt lở, đường bị đóng, dịch bệnh: xử lý the
 
 Quy trình tổng quát cho case **chuyển thừa / chuyển nhầm tài khoản / chuyển trùng**: xác nhận giao dịch → lập biên bản có chữ ký khách + nhân sự + quản lý → chụp ảnh gửi nhóm vận hành tag Kế toán → Kế toán xác nhận, báo Quỹ → Quỹ hoàn **100% về đúng tài khoản đã chuyển** trong **1–3 ngày làm việc** → lưu trữ biên bản + ảnh giao dịch + thông tin hoàn tiền (Kế toán lưu).
 
-> ⚠️ **SOP này không đề cập 2 trường hợp cần cho `PAY-004`:** khách **chuyển thiếu** (thanh toán một phần) và khách **chuyển muộn** (sau khi hold hết hạn 2 tiếng). Đây là 2 case thường gặp nhất với booking online có giữ chỗ tạm, khác với bối cảnh thu ngân tại quầy của SOP gốc. Cần chủ dự án bổ sung quy tắc cho 2 case này — không gấp, không chặn task nào hiện tại vì `PAY-004` vẫn ở Backlog chờ `PAY-003` xong trước.
+> SOP CHB FOOD ở trên không đề cập 2 trường hợp cần cho `PAY-004`: khách **chuyển thiếu** và khách **chuyển muộn**. Hai case này khác với bối cảnh thu ngân tại quầy của SOP gốc, gắn liền với đặc thù booking online có giữ chỗ tạm (hold TTL 2 tiếng, PAY-002/003 chỉ tự khớp khi số tiền đúng chính xác). Chủ dự án giao Claude xây dựng phương án — đề xuất bên dưới.
+
+### Chuyển thiếu — đề xuất của Claude 2026-08-19, chờ chủ dự án duyệt
+
+Bối cảnh kỹ thuật: `PAY-002`/`PAY-003` hiện chỉ tự động xác nhận khi số tiền khớp **chính xác** với số tiền yêu cầu; giao dịch thiếu tiền sẽ không tự khớp, cần `PAY-004` xử lý.
+
+1. **Dung sai tự động:** giao dịch thiếu **≤ 10.000đ** so với số tiền yêu cầu (bù chênh phí ngân hàng) được coi là đủ, hệ thống tự xác nhận bình thường như khớp đúng. *(Con số 10.000đ do Claude đề xuất, chủ dự án có thể điều chỉnh.)*
+2. **Thiếu nhiều hơn 10.000đ nhưng đúng mã booking trong nội dung chuyển khoản:** chuyển booking sang trạng thái "Chờ bổ sung tiền cọc"; **không reset hold** — vẫn tính từ mốc giữ chỗ ban đầu (2 tiếng); gửi thông báo yêu cầu khách chuyển bổ sung phần còn thiếu trước khi hold hết hạn.
+   - Bổ sung đủ trước khi hết hạn → xác nhận booking bình thường, cộng dồn các lần chuyển.
+   - Hold hết hạn mà chưa bổ sung đủ → hủy hold tự động (như hành vi `BKG-003` hiện có); số tiền đã nhận (dù thiếu) phải hoàn 100% cho khách theo đúng quy trình chuyển khoản nhầm/thừa ở SOP tham chiếu (biên bản, Kế toán xác nhận, Quỹ hoàn trong 1–3 ngày làm việc) — vì đây là tiền đã nhận nhưng không còn booking tương ứng.
+
+### Chuyển muộn — đề xuất của Claude 2026-08-19, chờ chủ dự án duyệt
+
+1. Giao dịch đến **sau khi hold đã hết hạn** (quá 2 tiếng) nhưng đúng mã booking trong nội dung chuyển khoản: hệ thống đánh dấu **"Thanh toán muộn — cần Quản lý xử lý thủ công"**, **không tự động khôi phục booking** (tránh xung đột tồn phòng/bàn đã được giữ lại cho khách khác).
+2. Quản lý kiểm tra phòng/bàn theo ngày yêu cầu:
+   - **Còn trống:** được quyền duyệt khôi phục booking ở đúng giá đã giữ ban đầu (thiện chí), tạo booking mới gắn với khoản thanh toán đã nhận, ghi audit rõ lý do "khôi phục do thanh toán muộn, phòng/bàn còn trống".
+   - **Hết chỗ** (đã có khách khác đặt trong lúc chờ): không thể khôi phục; hoàn 100% số tiền đã nhận trong SLA hoàn tiền đã chốt (trong ngày sử dụng dịch vụ dự kiến), có thể chủ động đề nghị khách đổi sang ngày khác nếu còn phù hợp.
+3. Không có nhánh xử lý tự động cho case này — nhất quán với nguyên tắc "Phase 1 không tự động hoàn tiền, mọi refund cần thao tác thủ công có audit và lý do" đã có.
 
 ### Còn thiếu cho PRE-005
 
-1. Quy tắc xử lý khách **chuyển thiếu** và **chuyển muộn** — xem lưu ý SOP ở trên.
-2. Phụ thu quá giờ cho BBQ và chính sách khách không đến giữ bàn bao lâu trước khi hủy tự động.
-3. **Chính sách lưu trữ chứng từ và dữ liệu thanh toán** cho riêng luồng online (SOP gốc chỉ nói lưu trữ phía Kế toán, chưa nói thời hạn lưu hay nơi lưu số hoá).
-4. Định nghĩa chính xác "cao điểm" để hệ thống biết áp bảng hủy nào — ranh giới giữa "ngày thường/cuối tuần" và "Lễ/Tết/cao điểm" phụ thuộc lịch giai đoạn cụ thể, vẫn chưa có ở §6.
+1. Phụ thu quá giờ cho BBQ và chính sách khách không đến giữ bàn bao lâu trước khi hủy tự động.
+2. **Chính sách lưu trữ chứng từ và dữ liệu thanh toán** cho riêng luồng online (SOP gốc chỉ nói lưu trữ phía Kế toán, chưa nói thời hạn lưu hay nơi lưu số hoá).
+3. Định nghĩa chính xác "cao điểm" để hệ thống biết áp bảng hủy nào — ranh giới giữa "ngày thường/cuối tuần" và "Lễ/Tết/cao điểm" phụ thuộc lịch giai đoạn cụ thể, vẫn chưa có ở §6.
+4. Chủ dự án duyệt 2 đề xuất chuyển thiếu/chuyển muộn ở trên (đặc biệt mức dung sai 10.000đ).
 
 Phase 1 không tự động hoàn tiền; mọi refund vẫn cần thao tác thủ công có audit và lý do.
 
@@ -637,3 +652,4 @@ Ba mục đều lệch. Email chênh đúng một chữ (`vuong` với `vuon`) n
 | 2026-08-19 | PRE-001, PRE-002, PRE-004, PRE-005 | Chủ dự án | Điền form thu thập thông tin 27 câu: khu vực/bàn/khung giờ/cọc BBQ (mở khóa `BBQ-001`); chính sách hủy BBQ do Claude đề xuất, chủ dự án duyệt; người duyệt hoàn tiền = Quản lý, SLA = trong ngày sử dụng dịch vụ; hóa đơn VAT xuất bởi DHLC; VAT phòng 8%, hold TTL 2 tiếng, làm tròn xuống nghìn đồng; phát sinh hạng phòng thứ 8 "Doom/Dorm" (301, 16 khách, giá liên hệ) ngoài phạm vi 7 phòng ban đầu; tầng/trạng thái ban đầu của 201–207 giao Claude tự quyết. Đóng PR #40 (MNT-001 cũ) theo quyết định chủ dự án | `VMD-Form-Thong-Tin-Con-Thieu.docx` (đã điền) do chủ dự án cung cấp ngày 2026-08-19 |
 | 2026-08-19 | PRE-003 | Chủ dự án | Cung cấp bản cập nhật `VMD_Bao_Gia_Phong_2026_Khach_Hang.docx` (có logo/letterhead), **thay thế bảng giá phòng cơ bản đã ghi ngày 2026-08-17** — giá thấp hơn đáng kể (vd. phòng 202 từ 1,15–1,55tr xuống 800–900k), bỏ cách tách giá theo có/không ăn sáng, gộp phụ thu Lễ/Tết về một mức cố định +20%. Chủ dự án xác nhận dùng bản mới. Giá gói ăn sáng riêng chưa có trong bản mới — phát sinh khoảng trống dữ liệu mới, không chặn task nào hiện tại | `VMD_Bao_Gia_Phong_2026_Khach_Hang.docx` cập nhật 2026-08-19 |
 | 2026-08-19 | PRE-005 | Chủ dự án | Cung cấp SOP nội bộ CHB FOOD xử lý chuyển khoản nhầm/chuyển thừa, dùng làm quy trình tham chiếu cho `PAY-004`. SOP không có case chuyển thiếu/chuyển muộn — ghi nhận là khoảng trống còn lại, không chặn `PAY-004` (vẫn Backlog chờ `PAY-003`) | `008.VH-SOP-008-THUNGAN-Quy_trinh_xu_ly_chuyen_khoan_nham-v1.1.docx` |
+| 2026-08-19 | PRE-003, PRE-005 | Chủ dự án | Xác nhận: (1) bỏ gói ăn sáng khỏi giá bán là chủ động, không phải thiếu dữ liệu — đóng khoảng trống; (2) chốt lại lần hai mức cố định +20% Lễ/Tết/cao điểm sau khi Claude nêu rate card khách hàng còn mâu thuẫn nội bộ; (3) giao Claude xây dựng phương án xử lý chuyển thiếu/chuyển muộn — đã thêm vào §8, gồm dung sai 10.000đ (đề xuất, chờ duyệt số cụ thể) và quy trình Quản lý xử lý thủ công theo tình trạng phòng/bàn còn trống | Tin nhắn chủ dự án 2026-08-19 |
