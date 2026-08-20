@@ -8,6 +8,8 @@ import {
   PublicBbqAreaController,
 } from './bbq-area.controller';
 import { BbqAreaService } from './bbq-area.service';
+import { PublicBbqAvailabilityController } from './bbq-availability.controller';
+import { BbqAvailabilityService } from './bbq-availability.service';
 import { AdminBbqMenuController, PublicBbqMenuController } from './bbq-menu.controller';
 import { BbqMenuService } from './bbq-menu.service';
 
@@ -16,12 +18,13 @@ import { BbqMenuService } from './bbq-menu.service';
   controllers: [
     PublicBbqMenuController,
     PublicBbqAreaController,
+    PublicBbqAvailabilityController,
     AdminBbqMenuController,
     AdminBbqAreaController,
     AdminBbqTableController,
     AdminBbqServiceSlotController,
   ],
-  providers: [BbqMenuService, BbqAreaService],
-  exports: [BbqMenuService, BbqAreaService],
+  providers: [BbqMenuService, BbqAreaService, BbqAvailabilityService],
+  exports: [BbqMenuService, BbqAreaService, BbqAvailabilityService],
 })
 export class BbqModule {}
