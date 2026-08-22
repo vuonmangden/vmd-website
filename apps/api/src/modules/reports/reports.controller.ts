@@ -1,4 +1,4 @@
-import { BadRequestException, Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { BadRequestException, Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiForbiddenResponse,
@@ -6,12 +6,16 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import type { AuthenticatedRequest } from '../auth/auth.types';
 import { AdminAuthGuard } from '../auth/admin-auth.guard';
 import { PermissionsGuard } from '../auth/permissions.guard';
 import { RequirePermissions } from '../auth/permissions.decorator';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- Nest needs the runtime class for DI metadata.
 import { ReportsService } from './reports.service';
 import type { ReportRange } from './reports.service';
+import { REPORT_EXPORT_TYPES, type ReportExportType } from './report-csv';
+
+const CORRELATION_ID_HEADER = 'x-correlation-id';
 
 /** A year is generous for a reporting period and still bounded. */
 const MAX_RANGE_DAYS = 366;
@@ -55,6 +59,37 @@ export class AdminReportsController {
   payments(@Query('from') from?: string, @Query('to') to?: string) {
     return this.reports.payments(range(from, to));
   }
+
+  @Get('export')
+  @ApiOperation({ summary: 'CSV export of one report for a date range, audited' })
+  export(
+    @Query('type') type: string | undefined,
+    @Query('from') from: string | undefined,
+    @Query('to') to: string | undefined,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.reports.export(actor(request), exportType(type), range(from, to), correlationId(request));
+  }
+}
+
+function exportType(value: string | undefined): ReportExportType {
+  if (value && (REPORT_EXPORT_TYPES as readonly string[]).includes(value)) {
+    return value as ReportExportType;
+  }
+  throw new BadRequestException({
+    code: 'REPORT_EXPORT_TYPE_INVALID',
+    message: `type must be one of: ${REPORT_EXPORT_TYPES.join(', ')}`,
+  });
+}
+
+function actor(request: AuthenticatedRequest) {
+  if (!request.actor) throw new Error('Authenticated actor is missing from request');
+  return request.actor;
+}
+
+function correlationId(request: AuthenticatedRequest): string {
+  const value = request.headers[CORRELATION_ID_HEADER];
+  return Array.isArray(value) ? value[0] ?? '' : value ?? '';
 }
 
 function range(from: string | undefined, to: string | undefined): ReportRange {

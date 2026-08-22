@@ -12,12 +12,21 @@ function prismaMock() {
     roomOccupancy: { groupBy: jest.fn().mockResolvedValue([]) },
     bbqReservation: { findMany: jest.fn().mockResolvedValue([]) },
     reconciliationCase: { findMany: jest.fn().mockResolvedValue([]) },
+    auditLog: { create: jest.fn() },
     $transaction: jest.fn((arg: unknown) => (Array.isArray(arg) ? Promise.all(arg) : arg)),
   };
 }
 
 const FROM = new Date('2026-08-01T00:00:00.000Z');
 const TO = new Date('2026-08-08T00:00:00.000Z');
+const ACTOR = {
+  staffProfileId: '00000000-0000-4000-8000-000000000001',
+  authUserId: '00000000-0000-4000-8000-000000000002',
+  fullName: 'Accountant',
+  email: 'accountant@example.com',
+  roles: ['ACCOUNTANT'],
+  permissions: ['report.read'],
+};
 
 describe('ReportsService.bookings', () => {
   it('tallies status and source, scoped to the Asia/Ho_Chi_Minh instant range', async () => {
@@ -131,5 +140,41 @@ describe('ReportsService.payments', () => {
     expect(result.paymentsByStatus).toEqual({ PAID: 2, EXPIRED: 1 });
     expect(result.reconciliationByStatus).toEqual({ OPEN: 1, RESOLVED: 1 });
     expect(result.reconciliationByReason).toEqual({ AMOUNT_MISMATCH: 2 });
+  });
+});
+
+describe('ReportsService.export', () => {
+  it('writes an audit row for every export, naming the acting staff and the report type/range', async () => {
+    const prisma = prismaMock();
+    prisma.paymentIntent.findMany.mockResolvedValue([{ status: 'PAID' }]);
+    const service = new ReportsService(prisma as never);
+
+    await service.export(ACTOR as never, 'payments', { from: FROM, to: TO }, 'corr-1');
+
+    expect(prisma.auditLog.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        actorId: ACTOR.staffProfileId,
+        action: 'report.exported',
+        resourceType: 'report_export',
+        resourceId: 'payments',
+        afterData: { type: 'payments', from: '2026-08-01', to: '2026-08-08', rowCount: 1 },
+        correlationId: 'corr-1',
+      }),
+    });
+  });
+
+  it('returns a CSV body and a descriptive filename', async () => {
+    const prisma = prismaMock();
+    prisma.bbqReservation.findMany.mockResolvedValue([
+      { status: 'CONFIRMED', itemsAmount: 100_000n, depositAmount: 150_000n },
+    ]);
+    const service = new ReportsService(prisma as never);
+
+    const result = await service.export(ACTOR as never, 'bbq', { from: FROM, to: TO }, 'corr-1');
+
+    expect(result.filename).toBe('report-bbq-2026-08-01-2026-08-08.csv');
+    expect(result.contentType).toBe('text/csv');
+    expect(result.body).toContain('itemsRevenue,itemsRevenue,100000');
+    expect(result.rowCount).toBe(result.body.split('\r\n').length - 1);
   });
 });
