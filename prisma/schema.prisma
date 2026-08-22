@@ -645,6 +645,27 @@ model ContentPage {
   @@map("content_pages")
 }
 
+model MediaAsset {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bucket       String    @db.VarChar(100)
+  objectKey    String    @map("object_key") @db.Text
+  originalName String    @map("original_name") @db.Text
+  mimeType     String    @map("mime_type") @db.VarChar(100)
+  sizeBytes    BigInt?   @map("size_bytes")
+  width        Int?
+  height       Int?
+  altText      String?   @map("alt_text") @db.Text
+  visibility   String    @default("PUBLIC") @db.VarChar(30)
+  status       String    @default("PENDING") @db.VarChar(20)
+  uploadedBy   String?   @map("uploaded_by") @db.Uuid
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz()
+
+  @@unique([bucket, objectKey])
+  @@index([status, deletedAt])
+  @@map("media_assets")
+}
+
 model AppSetting {
   key               String   @id @db.VarChar(150)
   value             Json     @db.JsonB
