@@ -1,10 +1,19 @@
 import { Injectable } from '@nestjs/common';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- Nest needs runtime DI metadata.
 import { PrismaService } from '../../prisma/prisma.service';
+import type { AuthenticatedActor } from '../auth/auth.types';
+import { reportRows, toCsv, type ReportExportType } from './report-csv';
 
 export interface ReportRange {
   from: Date;
   to: Date;
+}
+
+export interface ReportExport {
+  filename: string;
+  contentType: string;
+  rowCount: number;
+  body: string;
 }
 
 /** Reservation/booking statuses that represent an actually-confirmed sale, for revenue sums. */
@@ -155,6 +164,63 @@ export class ReportsService {
       reconciliationByStatus: tally(cases.map((row) => row.status)),
       reconciliationByReason: tally(cases.map((row) => row.reason)),
     };
+  }
+
+  /**
+   * CSV export of one of the five reports above, returned as a JSON body
+   * (`body` holds the CSV text) rather than a raw file download — there is
+   * no admin frontend yet to receive a `Content-Disposition` response, and
+   * every other endpoint in this API goes through the global
+   * `ResponseTransformInterceptor`, so a raw non-JSON response would need
+   * its own verified bypass. A future frontend can turn `body` into a
+   * downloadable file client-side.
+   *
+   * Every export is audited (§39.4) — this is the only side effect the
+   * report endpoints have, so a single `auditLog.create` is enough; there is
+   * no other write to protect it against.
+   */
+  async export(
+    actor: AuthenticatedActor,
+    type: ReportExportType,
+    range: ReportRange,
+    correlationId: string,
+  ): Promise<ReportExport> {
+    const report = await this.run(type, range);
+    const rows = reportRows(type, report);
+
+    await this.prisma.auditLog.create({
+      data: {
+        actorType: 'STAFF',
+        actorId: actor.staffProfileId,
+        action: 'report.exported',
+        resourceType: 'report_export',
+        resourceId: type,
+        afterData: { type, from: label(range.from), to: label(range.to), rowCount: rows.length - 1 },
+        correlationId,
+      },
+    });
+
+    return {
+      filename: `report-${type}-${label(range.from)}-${label(range.to)}.csv`,
+      contentType: 'text/csv',
+      rowCount: rows.length - 1,
+      body: toCsv(rows),
+    };
+  }
+
+  private run(type: ReportExportType, range: ReportRange) {
+    switch (type) {
+      case 'bookings':
+        return this.bookings(range);
+      case 'revenue':
+        return this.revenue(range);
+      case 'occupancy':
+        return this.occupancy(range);
+      case 'bbq':
+        return this.bbq(range);
+      case 'payments':
+        return this.payments(range);
+    }
   }
 }
 
