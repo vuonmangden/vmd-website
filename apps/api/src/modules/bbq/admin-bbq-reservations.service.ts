@@ -5,7 +5,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { BbqReservationStateService } from './bbq-reservation-state.service';
 import type { AuthenticatedActor } from '../auth/auth.types';
 
-const ADMIN_TRANSITIONS = ['CONFIRMED', 'CANCELLED'] as const;
+const ADMIN_TRANSITIONS = ['CONFIRMED', 'CANCELLED', 'CHECKED_IN', 'CHECKED_OUT'] as const;
 export type AdminBbqTransition = (typeof ADMIN_TRANSITIONS)[number];
 
 export interface ListBbqReservationsOptions {
@@ -69,6 +69,35 @@ export class AdminBbqReservationsService {
       page: options.page,
       pageSize: options.pageSize,
       total,
+    };
+  }
+
+  /**
+   * One operational date's reservations for the front-desk/calendar view.
+   * Unlike rooms, a BBQ reservation is a single-day time window rather than
+   * a multi-night stay, so there is no separate arrivals/departures split —
+   * one list per date, ordered by start time, is enough.
+   */
+  async calendar(reservationDate: Date) {
+    const reservations = await this.prisma.bbqReservation.findMany({
+      where: { reservationDate, status: { in: ['CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT'] } },
+      select: {
+        id: true,
+        reservationCode: true,
+        status: true,
+        startTime: true,
+        endTime: true,
+        adults: true,
+        children: true,
+        customer: { select: { fullName: true } },
+        tables: { where: { status: 'ACTIVE' }, select: { table: { select: { code: true, name: true } }, area: { select: { name: true } } } },
+      },
+      orderBy: { startTime: 'asc' },
+    });
+
+    return {
+      date: reservationDate,
+      reservations: reservations.map((reservation) => ({ ...reservation, tables: reservation.tables.map((t) => ({ ...t.table, areaName: t.area.name })) })),
     };
   }
 

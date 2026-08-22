@@ -49,6 +49,12 @@ export class AdminBbqReservationController {
     });
   }
 
+  @Get('calendar')
+  @ApiOperation({ summary: 'BBQ reservations for one operational date (front-desk/calendar view)' })
+  calendar(@Query('date') date?: string) {
+    return this.reservations.calendar(operationalDate(date));
+  }
+
   @Get()
   @ApiOperation({ summary: 'List BBQ reservations with status and date filters' })
   list(
@@ -92,6 +98,26 @@ export class AdminBbqReservationController {
   ) {
     return this.reservations.transition(request.actor!, id, 'CANCELLED', dto.reason, correlationId(request));
   }
+
+  @Post(':id/check-in')
+  @ApiOperation({ summary: 'Check a confirmed BBQ reservation in' })
+  checkIn(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: TransitionBbqReservationDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.reservations.transition(request.actor!, id, 'CHECKED_IN', dto.reason, correlationId(request));
+  }
+
+  @Post(':id/check-out')
+  @ApiOperation({ summary: 'Check a checked-in BBQ reservation out' })
+  checkOut(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: TransitionBbqReservationDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.reservations.transition(request.actor!, id, 'CHECKED_OUT', dto.reason, correlationId(request));
+  }
 }
 
 function correlationId(request: AuthenticatedRequest): string {
@@ -109,4 +135,12 @@ function parseDate(value: string | undefined): Date | undefined {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return undefined;
   const parsed = new Date(`${value}T00:00:00.000Z`);
   return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+}
+
+/** Same convention as the room front desk: keyed by the Asia/Ho_Chi_Minh operational day, defaulting to today when no date is given. */
+function operationalDate(value: string | undefined): Date {
+  const parsed = parseDate(value);
+  if (parsed) return parsed;
+  const nowInHoChiMinh = new Date(Date.now() + 7 * 60 * 60 * 1000);
+  return new Date(`${nowInHoChiMinh.toISOString().slice(0, 10)}T00:00:00.000Z`);
 }

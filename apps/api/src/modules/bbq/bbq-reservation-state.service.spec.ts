@@ -43,6 +43,39 @@ describe('BbqReservationStateService', () => {
     expect(tx.bbqReservationTable.updateMany).not.toHaveBeenCalled();
   });
 
+  it('checks a confirmed reservation in without releasing the hold', async () => {
+    const { tx, prisma } = transaction('CONFIRMED');
+    tx.bbqReservation.update.mockResolvedValue({ id: reservationId, status: 'CHECKED_IN' });
+    const service = new BbqReservationStateService(prisma as never);
+
+    await service.transition(reservationId, 'CHECKED_IN');
+
+    expect(tx.bbqReservationStatusHistory.create).toHaveBeenCalledWith({
+      data: { reservationId, fromStatus: 'CONFIRMED', toStatus: 'CHECKED_IN', reason: null },
+    });
+    expect(tx.resourceHold.updateMany).not.toHaveBeenCalled();
+    expect(tx.bbqReservationTable.updateMany).not.toHaveBeenCalled();
+  });
+
+  it('checks a checked-in reservation out without releasing the hold', async () => {
+    const { tx, prisma } = transaction('CHECKED_IN');
+    tx.bbqReservation.update.mockResolvedValue({ id: reservationId, status: 'CHECKED_OUT' });
+    const service = new BbqReservationStateService(prisma as never);
+
+    await service.transition(reservationId, 'CHECKED_OUT');
+
+    expect(tx.resourceHold.updateMany).not.toHaveBeenCalled();
+  });
+
+  it('rejects checking in a reservation that is not yet confirmed', async () => {
+    const { prisma } = transaction('PENDING_PAYMENT');
+    const service = new BbqReservationStateService(prisma as never);
+
+    await expect(service.transition(reservationId, 'CHECKED_IN')).rejects.toMatchObject({
+      response: expect.objectContaining({ code: 'INVALID_BBQ_RESERVATION_TRANSITION' }),
+    });
+  });
+
   it('rejects an invalid transition', async () => {
     const { prisma } = transaction('CANCELLED');
     const service = new BbqReservationStateService(prisma as never);
