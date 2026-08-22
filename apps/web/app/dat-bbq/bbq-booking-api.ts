@@ -1,4 +1,4 @@
-const apiBase = process.env.NEXT_PUBLIC_API_ORIGIN ?? 'http://localhost:3002';
+const apiBase = `${process.env.NEXT_PUBLIC_API_ORIGIN ?? 'http://localhost:3002'}/api/v1`;
 
 export interface BbqCheckoutPayload {
   tableId: string;
@@ -21,5 +21,7 @@ export async function createBbqReservation(payload: BbqCheckoutPayload, idempote
     body: JSON.stringify(payload),
   });
   if (!response.ok) throw new Error('BBQ_CHECKOUT_FAILED');
-  return response.json() as Promise<BbqCheckoutResponse>;
+  // The API wraps every response in { data, meta, correlationId } (ResponseTransformInterceptor).
+  const envelope = (await response.json()) as { data: BbqCheckoutResponse };
+  return envelope.data;
 }
