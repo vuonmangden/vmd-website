@@ -1,4 +1,4 @@
-const apiBase = process.env.NEXT_PUBLIC_API_ORIGIN ?? 'http://localhost:3002';
+const apiBase = `${process.env.NEXT_PUBLIC_API_ORIGIN ?? 'http://localhost:3002'}/api/v1`;
 
 export interface CheckoutPayload {
   roomSlug: string; checkIn: string; checkOut: string; fullName: string; phone: string;
@@ -11,5 +11,7 @@ export async function createRoomBooking(payload: CheckoutPayload, idempotencyKey
     method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey }, body: JSON.stringify(payload),
   });
   if (!response.ok) throw new Error('ROOM_CHECKOUT_FAILED');
-  return response.json() as Promise<CheckoutResponse>;
+  // The API wraps every response in { data, meta, correlationId } (ResponseTransformInterceptor).
+  const envelope = (await response.json()) as { data: CheckoutResponse };
+  return envelope.data;
 }
