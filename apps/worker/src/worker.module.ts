@@ -9,6 +9,7 @@ import { ZaloProviderFactory } from './notification/zalo/zalo-provider.factory';
 import { NotificationJobService } from './notification/notification-job.service';
 import { NotificationSendProcessor } from './notification/notification-send.processor';
 import { NotificationDispatchService } from './notification/notification-dispatch.service';
+import { ReminderScanService } from './notification/reminder-scan.service';
 
 const OUTBOX_PUBLISH_QUEUE = 'outbox-publish';
 const NOTIFICATION_SEND_QUEUE = 'notification-send';
@@ -36,6 +37,7 @@ const NOTIFICATION_SEND_QUEUE = 'notification-send';
     NotificationJobService,
     NotificationSendProcessor,
     NotificationDispatchService,
+    ReminderScanService,
   ],
   exports: [EmailDeliveryService, ZaloDeliveryService, NotificationJobService],
 })

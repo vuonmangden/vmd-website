@@ -12,7 +12,15 @@ import {
   bookingConfirmedZaloParams,
   type BookingConfirmedVars,
 } from './templates/booking-confirmed.template';
+import {
+  bookingReminderEmail,
+  bookingReminderZaloParams,
+  reminderTemplateCode,
+  type BookingReminderVars,
+  type ReminderOffset,
+} from './templates/booking-reminder.template';
 import { paymentExceptionEmail, type PaymentExceptionVars } from './templates/payment-exception.template';
+import { dateLabel } from './date-label';
 
 export interface PaymentExceptionPayload {
   paymentIntentId: string;
@@ -177,6 +185,63 @@ export class NotificationJobService {
     });
   }
 
+  /**
+   * Called by NTF-005's daily scanner, once per booking per offset. The
+   * dedup key includes the check-in date label (not just the offset), so a
+   * reschedule naturally earns a fresh key instead of colliding with the
+   * job already created for the old date — the scanner just needs to run
+   * again after the reschedule for a correctly-dated reminder to appear.
+   * `NotificationDispatchService` re-checks the booking against
+   * `targetCheckInDate` at send time to catch a reschedule that lands
+   * between this call and the scheduled 10:00 send.
+   */
+  async enqueueBookingReminder(
+    bookingId: string,
+    offset: ReminderOffset,
+    scheduledAt: Date,
+  ): Promise<void> {
+    const booking = await this.prisma.booking.findUnique({
+      where: { id: bookingId },
+      select: {
+        bookingCode: true,
+        checkInDate: true,
+        customer: { select: { fullName: true, emailNormalized: true, phoneNormalized: true } },
+      },
+    });
+    if (!booking) {
+      this.logger.warn(`Booking ${bookingId} not found — skipping T-${offset} reminder`);
+      return;
+    }
+
+    const vars: BookingReminderVars = {
+      guestName: booking.customer.fullName,
+      bookingCode: booking.bookingCode,
+      checkInDate: booking.checkInDate,
+    };
+    const targetCheckInDate = dateLabel(booking.checkInDate);
+
+    await this.createEmailJob({
+      templateCode: reminderTemplateCode(offset, 'EMAIL'),
+      deduplicationKey: `booking:${bookingId}:reminder:t${offset}:${targetCheckInDate}:email`,
+      recipientType: 'BOOKING',
+      recipientReferenceId: bookingId,
+      email: booking.customer.emailNormalized,
+      scheduledAt,
+      extraPayload: { targetCheckInDate },
+      ...bookingReminderEmail(offset, vars),
+    });
+    await this.createZaloJob({
+      templateCode: reminderTemplateCode(offset, 'ZALO'),
+      deduplicationKey: `booking:${bookingId}:reminder:t${offset}:${targetCheckInDate}:zalo`,
+      recipientType: 'BOOKING',
+      recipientReferenceId: bookingId,
+      phone: booking.customer.phoneNormalized,
+      scheduledAt,
+      extraPayload: { targetCheckInDate },
+      templateParams: bookingReminderZaloParams(offset, vars),
+    });
+  }
+
   private async resolveReferenceCode(bookingId: string | null, bbqReservationId: string | null): Promise<string> {
     if (bookingId) {
       const booking = await this.prisma.booking.findUnique({ where: { id: bookingId }, select: { bookingCode: true } });
@@ -197,6 +262,8 @@ export class NotificationJobService {
     email: string | null;
     subject: string;
     body: string;
+    scheduledAt?: Date;
+    extraPayload?: Record<string, unknown>;
   }): Promise<void> {
     if (!input.email) {
       this.logger.debug(`No email on file — skipping ${input.templateCode}`);
@@ -209,7 +276,8 @@ export class NotificationJobService {
       recipientReferenceId: input.recipientReferenceId,
       email: input.email,
       phone: null,
-      payload: { subject: input.subject, body: input.body },
+      scheduledAt: input.scheduledAt,
+      payload: { subject: input.subject, body: input.body, ...input.extraPayload },
     });
   }
 
@@ -220,6 +288,8 @@ export class NotificationJobService {
     recipientReferenceId: string;
     phone: string | null;
     templateParams: Record<string, string>;
+    scheduledAt?: Date;
+    extraPayload?: Record<string, unknown>;
   }): Promise<void> {
     if (!input.phone) {
       this.logger.debug(`No phone on file — skipping ${input.templateCode}`);
@@ -232,7 +302,8 @@ export class NotificationJobService {
       recipientReferenceId: input.recipientReferenceId,
       email: null,
       phone: input.phone,
-      payload: { templateParams: input.templateParams },
+      scheduledAt: input.scheduledAt,
+      payload: { templateParams: input.templateParams, ...input.extraPayload },
     });
   }
 
@@ -244,6 +315,7 @@ export class NotificationJobService {
     email: string | null;
     phone: string | null;
     payload: Prisma.InputJsonValue;
+    scheduledAt?: Date;
   }): Promise<void> {
     try {
       await this.prisma.notificationJob.create({
@@ -254,7 +326,7 @@ export class NotificationJobService {
           email: data.email,
           phone: data.phone,
           payload: data.payload,
-          scheduledAt: new Date(),
+          scheduledAt: data.scheduledAt ?? new Date(),
           deduplicationKey: data.deduplicationKey,
         },
       });

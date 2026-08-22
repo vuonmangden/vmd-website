@@ -152,3 +152,38 @@ describe('NotificationJobService.enqueuePaymentException', () => {
     expect(body).toContain('VMD-1');
   });
 });
+
+describe('NotificationJobService.enqueueBookingReminder', () => {
+  const SEND_AT = new Date('2026-08-25T03:00:00.000Z');
+
+  it('keys the dedup on the check-in date, so a reschedule earns a fresh job instead of colliding', async () => {
+    const prisma = prismaMock();
+    prisma.booking.findUnique.mockResolvedValue(BOOKING);
+    const service = new NotificationJobService(prisma as never);
+
+    await service.enqueueBookingReminder('booking-1', 7, SEND_AT);
+
+    expect(prisma.notificationJob.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          templateCode: 'BOOKING_REMINDER_T7_EMAIL',
+          deduplicationKey: 'booking:booking-1:reminder:t7:2026-09-01:email',
+          scheduledAt: SEND_AT,
+          payload: expect.objectContaining({ targetCheckInDate: '2026-09-01' }),
+        }),
+      }),
+    );
+  });
+
+  it('schedules for the given send time rather than immediately', async () => {
+    const prisma = prismaMock();
+    prisma.booking.findUnique.mockResolvedValue(BOOKING);
+    const service = new NotificationJobService(prisma as never);
+
+    await service.enqueueBookingReminder('booking-1', 1, SEND_AT);
+
+    for (const call of prisma.notificationJob.create.mock.calls) {
+      expect(call[0].data.scheduledAt).toBe(SEND_AT);
+    }
+  });
+});
