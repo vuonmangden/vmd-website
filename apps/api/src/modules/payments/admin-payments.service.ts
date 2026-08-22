@@ -25,6 +25,7 @@ export class AdminPaymentsService {
         select: {
           id: true,
           bookingId: true,
+          bbqReservationId: true,
           provider: true,
           status: true,
           amount: true,
@@ -34,6 +35,7 @@ export class AdminPaymentsService {
           expiresAt: true,
           createdAt: true,
           booking: { select: { bookingCode: true, customer: { select: { fullName: true } } } },
+          bbqReservation: { select: { reservationCode: true, customer: { select: { fullName: true } } } },
           reconciliationCases: { where: { status: 'OPEN' }, select: { id: true, reason: true } },
         },
         orderBy: { createdAt: 'desc' },
@@ -57,6 +59,7 @@ export class AdminPaymentsService {
       select: {
         id: true,
         bookingId: true,
+        bbqReservationId: true,
         provider: true,
         status: true,
         amount: true,
@@ -68,6 +71,9 @@ export class AdminPaymentsService {
         updatedAt: true,
         booking: {
           select: { id: true, bookingCode: true, status: true, customer: { select: { id: true, fullName: true } } },
+        },
+        bbqReservation: {
+          select: { id: true, reservationCode: true, status: true, customer: { select: { id: true, fullName: true } } },
         },
         reconciliationCases: {
           orderBy: { createdAt: 'desc' },
@@ -106,7 +112,8 @@ export class AdminPaymentsService {
 
 function toListItem(row: {
   id: string;
-  bookingId: string;
+  bookingId: string | null;
+  bbqReservationId: string | null;
   provider: string;
   status: string;
   amount: bigint;
@@ -115,14 +122,20 @@ function toListItem(row: {
   transferContent: string;
   expiresAt: Date;
   createdAt: Date;
-  booking: { bookingCode: string; customer: { fullName: string } };
+  booking: { bookingCode: string; customer: { fullName: string } } | null;
+  bbqReservation: { reservationCode: string; customer: { fullName: string } } | null;
   reconciliationCases: { id: string; reason: string }[];
 }) {
+  const reference = row.booking
+    ? { referenceType: 'BOOKING' as const, referenceCode: row.booking.bookingCode, customerName: row.booking.customer.fullName }
+    : { referenceType: 'BBQ_RESERVATION' as const, referenceCode: row.bbqReservation!.reservationCode, customerName: row.bbqReservation!.customer.fullName };
   return {
     id: row.id,
     bookingId: row.bookingId,
-    bookingCode: row.booking.bookingCode,
-    customerName: row.booking.customer.fullName,
+    bbqReservationId: row.bbqReservationId,
+    referenceType: reference.referenceType,
+    referenceCode: reference.referenceCode,
+    customerName: reference.customerName,
     provider: row.provider,
     status: row.status,
     amount: row.amount.toString(),

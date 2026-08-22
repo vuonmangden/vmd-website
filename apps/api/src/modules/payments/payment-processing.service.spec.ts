@@ -10,6 +10,8 @@ function fixture(overrides: Record<string, unknown> = {}) {
     paymentWebhookEvent: { findUnique: jest.fn().mockResolvedValue(event), updateMany: jest.fn().mockResolvedValue({ count: 1 }), update: jest.fn() },
     paymentIntent: { findMany: jest.fn().mockResolvedValue([intent]), updateMany: jest.fn().mockResolvedValue({ count: 1 }), findUnique: jest.fn() },
     booking: { findUnique: jest.fn().mockResolvedValue(booking), updateMany: jest.fn().mockResolvedValue({ count: 1 }) },
+    bbqReservation: { findUnique: jest.fn().mockResolvedValue(null), updateMany: jest.fn().mockResolvedValue({ count: 1 }) },
+    bbqReservationStatusHistory: { create: jest.fn() },
     bookingStatusHistory: { create: jest.fn() }, roomOccupancy: { updateMany: jest.fn() }, resourceHold: { updateMany: jest.fn() },
     reconciliationCase: { create: jest.fn(), findFirst: jest.fn().mockResolvedValue(null), updateMany: jest.fn().mockResolvedValue({ count: 1 }) },
     outboxEvent: { create: jest.fn() }, auditLog: { create: jest.fn() },
@@ -115,5 +117,38 @@ describe('PaymentProcessingService', () => {
     const { tx, prisma } = fixture({ booking: { findUnique: jest.fn().mockResolvedValue(booking), updateMany: jest.fn().mockRejectedValue(new Error('forced rollback')) } });
     await expect(new PaymentProcessingService(prisma as never, () => now).processWebhookEvent(event.id)).rejects.toThrow('forced rollback');
     expect(tx.bookingStatusHistory.create).not.toHaveBeenCalled(); expect(tx.outboxEvent.create).not.toHaveBeenCalled(); expect(tx.auditLog.create).not.toHaveBeenCalled();
+  });
+
+  describe('BBQ reservation deposits', () => {
+    const bbqReservationId = '00000000-0000-4000-8000-000000000020';
+    const bbqIntent = { ...intent, id: 'bbq-intent', bookingId: null, bbqReservationId, transferContent: 'VMD BBQ990813A1B2' };
+    const bbqReservation = { id: bbqReservationId, status: 'PENDING_PAYMENT' };
+    const bbqEvent = { ...event, payload: { ...event.payload, content: 'Thanh toan VMD BBQ990813A1B2' } };
+
+    function bbqFixture(overrides: Record<string, unknown> = {}) {
+      return fixture({
+        paymentIntent: { findMany: jest.fn().mockResolvedValue([bbqIntent]), updateMany: jest.fn().mockResolvedValue({ count: 1 }), findUnique: jest.fn() },
+        paymentWebhookEvent: { findUnique: jest.fn().mockResolvedValue(bbqEvent), updateMany: jest.fn().mockResolvedValue({ count: 1 }), update: jest.fn() },
+        bbqReservation: { findUnique: jest.fn().mockResolvedValue(bbqReservation), updateMany: jest.fn().mockResolvedValue({ count: 1 }) },
+        bbqReservationStatusHistory: { create: jest.fn() },
+        ...overrides,
+      });
+    }
+
+    it('confirms a BBQ deposit payment via the reservation status and resource hold, not booking tables', async () => {
+      const { tx, prisma } = bbqFixture();
+      await expect(new PaymentProcessingService(prisma as never, () => now).processWebhookEvent(bbqEvent.id)).resolves.toEqual({ outcome: 'confirmed', paymentIntentId: bbqIntent.id });
+      expect(tx.bbqReservation.updateMany).toHaveBeenCalledWith({ where: { id: bbqReservationId, status: 'PENDING_PAYMENT' }, data: { status: 'CONFIRMED' } });
+      expect(tx.bbqReservationStatusHistory.create).toHaveBeenCalledWith({ data: { reservationId: bbqReservationId, fromStatus: 'PENDING_PAYMENT', toStatus: 'CONFIRMED', reason: 'SePay Test Mode payment confirmed' } });
+      expect(tx.resourceHold.updateMany).toHaveBeenCalledWith({ where: { referenceType: 'BBQ_RESERVATION', referenceId: bbqReservationId, status: 'ACTIVE' }, data: { status: 'CONFIRMED', confirmedAt: now } });
+      expect(tx.booking.updateMany).not.toHaveBeenCalled();
+      expect(tx.outboxEvent.create).toHaveBeenCalledTimes(2);
+    });
+
+    it('opens a reconciliation case for a BBQ reservation no longer pending payment', async () => {
+      const { tx, prisma } = bbqFixture({ bbqReservation: { findUnique: jest.fn().mockResolvedValue({ ...bbqReservation, status: 'CANCELLED' }), updateMany: jest.fn() } });
+      await expect(new PaymentProcessingService(prisma as never, () => now).processWebhookEvent(bbqEvent.id)).resolves.toEqual({ outcome: 'reconciliation_required', paymentIntentId: bbqIntent.id });
+      expect(tx.reconciliationCase.create).toHaveBeenCalledWith({ data: expect.objectContaining({ reason: 'BOOKING_NOT_PENDING_PAYMENT' }) });
+    });
   });
 });

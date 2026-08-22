@@ -123,7 +123,8 @@ model BookingGuestRequest {
 
 model PaymentIntent {
   id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  bookingId       String   @map("booking_id") @db.Uuid
+  bookingId       String?  @map("booking_id") @db.Uuid
+  bbqReservationId String? @map("bbq_reservation_id") @db.Uuid
   provider        String   @default("SEPAY_TEST") @db.VarChar(50)
   status          String   @default("PENDING") @db.VarChar(30)
   amount          BigInt
@@ -134,11 +135,13 @@ model PaymentIntent {
   expiresAt       DateTime @map("expires_at") @db.Timestamptz()
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
-  booking         Booking  @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  booking         Booking?        @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  bbqReservation  BbqReservation? @relation(fields: [bbqReservationId], references: [id], onDelete: Restrict)
   reconciliationCases ReconciliationCase[]
 
   @@index([status, expiresAt])
   @@index([bookingId, status])
+  @@index([bbqReservationId, status])
   @@map("payment_intents")
 }
 
@@ -563,6 +566,7 @@ model BbqReservation {
   tables        BbqReservationTable[]
   items         BbqReservationItem[]
   statusHistory BbqReservationStatusHistory[]
+  paymentIntents PaymentIntent[]
 
   @@index([status, reservationDate])
   @@map("bbq_reservations")

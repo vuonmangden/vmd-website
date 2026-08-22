@@ -21,7 +21,7 @@ export class ReconciliationService {
       },
       include: {
         paymentIntent: {
-          select: { id: true, bookingId: true, amount: true, currency: true, status: true, expiresAt: true, transferContent: true },
+          select: { id: true, bookingId: true, bbqReservationId: true, amount: true, currency: true, status: true, expiresAt: true, transferContent: true },
         },
       },
       orderBy: { createdAt: 'desc' },
@@ -33,7 +33,7 @@ export class ReconciliationService {
       where: { id },
       include: {
         paymentIntent: {
-          select: { id: true, bookingId: true, amount: true, currency: true, status: true, expiresAt: true, transferContent: true },
+          select: { id: true, bookingId: true, bbqReservationId: true, amount: true, currency: true, status: true, expiresAt: true, transferContent: true },
         },
       },
     });
