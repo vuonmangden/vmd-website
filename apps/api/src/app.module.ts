@@ -11,8 +11,9 @@ import { SettingsModule } from './modules/settings/settings.module';
 import { ContactModule } from './modules/contact/contact.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { BbqModule } from './modules/bbq/bbq.module';
+import { CmsModule } from './modules/cms/cms.module';
 
 @Module({
-  imports: [PrismaModule, QueueModule, HealthModule, CustomersModule, AuthModule, RoomsModule, AuditModule, PaymentsModule, SettingsModule, ContactModule, NotificationsModule, BbqModule],
+  imports: [PrismaModule, QueueModule, HealthModule, CustomersModule, AuthModule, RoomsModule, AuditModule, PaymentsModule, SettingsModule, ContactModule, NotificationsModule, BbqModule, CmsModule],
 })
 export class AppModule {}

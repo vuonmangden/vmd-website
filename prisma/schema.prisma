@@ -628,6 +628,23 @@ model BbqReservationStatusHistory {
   @@map("bbq_reservation_status_history")
 }
 
+model ContentPage {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug        String    @unique @db.VarChar(150)
+  title       String    @db.VarChar(200)
+  body        String    @db.Text
+  status      String    @default("DRAFT") @db.VarChar(20)
+  publishedAt DateTime? @map("published_at") @db.Timestamptz()
+  createdBy   String?   @map("created_by") @db.Uuid
+  updatedBy   String?   @map("updated_by") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz()
+
+  @@index([status, slug])
+  @@map("content_pages")
+}
+
 model AppSetting {
   key               String   @id @db.VarChar(150)
   value             Json     @db.JsonB
