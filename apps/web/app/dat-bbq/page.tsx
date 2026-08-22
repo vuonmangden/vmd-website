@@ -1,7 +1,10 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import { SkipLink } from '../skip-link';
 import { CheckoutForm } from './checkout-form';
+
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 export default function BbqBookingPage() {
   return (
