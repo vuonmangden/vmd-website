@@ -1,7 +1,10 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- Nest needs runtime DI metadata.
 import { PrismaService } from '../../prisma/prisma.service';
 import type { AuthenticatedActor } from '../auth/auth.types';
+
+type BbqMenuQueryClient = Pick<Prisma.TransactionClient, 'bbqMenuItem' | 'bbqCombo'>;
 
 export const MENU_GROUPS = [
   'GOI_SALAD_KHAI_VI',
@@ -238,14 +241,22 @@ export class BbqMenuService {
    * Price snapshot for a reservation. Returns the current price of each code so
    * the caller can copy it onto the order line — a later menu change must not
    * alter what an existing reservation was quoted.
+   *
+   * Accepts an optional transaction client so a caller building its own
+   * reservation inside a `$transaction` (e.g. BBQ-004) can snapshot prices
+   * atomically with the rest of the write. A `tx` cannot batch via its own
+   * `$transaction`, so both branches read with `Promise.all` instead.
    */
-  async snapshotPrices(codes: { itemCodes: string[]; comboCodes: string[] }) {
-    const [items, combos] = await this.prisma.$transaction([
-      this.prisma.bbqMenuItem.findMany({
+  async snapshotPrices(
+    codes: { itemCodes: string[]; comboCodes: string[] },
+    client: BbqMenuQueryClient = this.prisma,
+  ) {
+    const [items, combos] = await Promise.all([
+      client.bbqMenuItem.findMany({
         where: { code: { in: codes.itemCodes }, isAvailable: true },
         select: { code: true, name: true, unit: true, price: true },
       }),
-      this.prisma.bbqCombo.findMany({
+      client.bbqCombo.findMany({
         where: { code: { in: codes.comboCodes }, isAvailable: true },
         select: { code: true, name: true, price: true },
       }),

@@ -12,6 +12,10 @@ import { PublicBbqAvailabilityController } from './bbq-availability.controller';
 import { BbqAvailabilityService } from './bbq-availability.service';
 import { AdminBbqMenuController, PublicBbqMenuController } from './bbq-menu.controller';
 import { BbqMenuService } from './bbq-menu.service';
+import { AdminBbqReservationController } from './bbq-reservation.controller';
+import { BbqReservationCreationService } from './bbq-reservation-creation.service';
+import { BbqReservationStateService } from './bbq-reservation-state.service';
+import { AdminBbqReservationsService } from './admin-bbq-reservations.service';
 
 @Module({
   imports: [PrismaModule, AuthModule],
@@ -23,8 +27,23 @@ import { BbqMenuService } from './bbq-menu.service';
     AdminBbqAreaController,
     AdminBbqTableController,
     AdminBbqServiceSlotController,
+    AdminBbqReservationController,
   ],
-  providers: [BbqMenuService, BbqAreaService, BbqAvailabilityService],
-  exports: [BbqMenuService, BbqAreaService, BbqAvailabilityService],
+  providers: [
+    BbqMenuService,
+    BbqAreaService,
+    BbqAvailabilityService,
+    BbqReservationCreationService,
+    BbqReservationStateService,
+    AdminBbqReservationsService,
+  ],
+  exports: [
+    BbqMenuService,
+    BbqAreaService,
+    BbqAvailabilityService,
+    BbqReservationCreationService,
+    BbqReservationStateService,
+    AdminBbqReservationsService,
+  ],
 })
 export class BbqModule {}

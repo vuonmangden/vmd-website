@@ -241,10 +241,8 @@ describe('BbqMenuService.upsertCombo', () => {
 describe('BbqMenuService.snapshotPrices', () => {
   it('returns the current price of each requested code', async () => {
     const prisma = prismaMock();
-    prisma.$transaction = jest.fn().mockResolvedValue([
-      [{ code: 'GOI', name: 'Gỏi', unit: 'đĩa', price: 155_000n }],
-      [{ code: 'SET_TU_KHOAI', name: 'Set Tứ Khoái', price: 369_000n }],
-    ]);
+    prisma.bbqMenuItem.findMany.mockResolvedValue([{ code: 'GOI', name: 'Gỏi', unit: 'đĩa', price: 155_000n }]);
+    prisma.bbqCombo.findMany.mockResolvedValue([{ code: 'SET_TU_KHOAI', name: 'Set Tứ Khoái', price: 369_000n }]);
     const service = new BbqMenuService(prisma as never);
 
     const result = await service.snapshotPrices({
@@ -259,7 +257,6 @@ describe('BbqMenuService.snapshotPrices', () => {
 
   it('fails loudly when a code is unknown rather than dropping the line', async () => {
     const prisma = prismaMock();
-    prisma.$transaction = jest.fn().mockResolvedValue([[], []]);
     const service = new BbqMenuService(prisma as never);
 
     await expect(
@@ -269,7 +266,6 @@ describe('BbqMenuService.snapshotPrices', () => {
 
   it('fails when a requested entry is no longer available', async () => {
     const prisma = prismaMock();
-    prisma.$transaction = jest.fn().mockResolvedValue([[], []]);
     const service = new BbqMenuService(prisma as never);
 
     await expect(
@@ -279,14 +275,26 @@ describe('BbqMenuService.snapshotPrices', () => {
 
   it('only snapshots available entries', async () => {
     const prisma = prismaMock();
-    prisma.$transaction = jest.fn().mockResolvedValue([
-      [{ code: 'GOI', name: 'Gỏi', unit: 'đĩa', price: 155_000n }],
-      [],
-    ]);
+    prisma.bbqMenuItem.findMany.mockResolvedValue([{ code: 'GOI', name: 'Gỏi', unit: 'đĩa', price: 155_000n }]);
     const service = new BbqMenuService(prisma as never);
 
     await service.snapshotPrices({ itemCodes: ['GOI'], comboCodes: [] });
 
     expect(prisma.bbqMenuItem.findMany.mock.calls[0][0].where.isAvailable).toBe(true);
+  });
+
+  it('accepts an explicit transaction client, reading from it instead of this.prisma', async () => {
+    const prisma = prismaMock();
+    const tx = {
+      bbqMenuItem: { findMany: jest.fn().mockResolvedValue([{ code: 'GOI', name: 'Gỏi', unit: 'đĩa', price: 155_000n }]) },
+      bbqCombo: { findMany: jest.fn().mockResolvedValue([]) },
+    };
+    const service = new BbqMenuService(prisma as never);
+
+    const result = await service.snapshotPrices({ itemCodes: ['GOI'], comboCodes: [] }, tx as never);
+
+    expect(result.items[0]?.price).toBe('155000');
+    expect(tx.bbqMenuItem.findMany).toHaveBeenCalled();
+    expect(prisma.bbqMenuItem.findMany).not.toHaveBeenCalled();
   });
 });
