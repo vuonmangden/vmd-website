@@ -33,6 +33,20 @@ async function main(): Promise<void> {
     });
   }
 
+  // Provisional: owner confirmed 100,000-200,000d/table but not an exact
+  // figure or a per-area rule (2026-08-19). 150,000 is the midpoint;
+  // adjustable here without a deploy.
+  await prisma.appSetting.upsert({
+    where: { key: 'bbq.deposit_amount_per_table' },
+    update: {},
+    create: {
+      key: 'bbq.deposit_amount_per_table',
+      value: { amount: 150000 },
+      category: 'bbq',
+      isSecretReference: false,
+    },
+  });
+
   await seedRbac(prisma);
   await seedBbqAreas(prisma);
 

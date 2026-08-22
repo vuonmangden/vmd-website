@@ -67,6 +67,7 @@ model Customer {
   createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt         DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
   bookings          Booking[]
+  bbqReservations   BbqReservation[]
   deletedAt         DateTime? @map("deleted_at") @db.Timestamptz()
 
   @@index([phoneNormalized])
@@ -493,6 +494,7 @@ model BbqArea {
 
   tables       BbqTable[]
   serviceSlots BbqServiceSlot[]
+  reservationTables BbqReservationTable[]
 
   @@index([status, sortOrder])
   @@map("bbq_areas")
@@ -512,6 +514,7 @@ model BbqTable {
   deletedAt          DateTime? @map("deleted_at") @db.Timestamptz()
 
   area BbqArea @relation(fields: [areaId], references: [id], onDelete: Restrict)
+  reservationTables BbqReservationTable[]
 
   @@index([areaId, status])
   @@map("bbq_tables")
@@ -536,6 +539,84 @@ model BbqServiceSlot {
 
   @@index([status])
   @@map("bbq_service_slots")
+}
+
+model BbqReservation {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reservationCode String    @unique @map("reservation_code") @db.VarChar(30)
+  customerId      String    @map("customer_id") @db.Uuid
+  reservationDate DateTime  @map("reservation_date") @db.Date
+  startTime       String    @map("start_time") @db.VarChar(5)
+  endTime         String    @map("end_time") @db.VarChar(5)
+  adults          Int
+  children        Int       @default(0)
+  status          String    @db.VarChar(30)
+  source          String    @db.VarChar(50)
+  itemsAmount     BigInt    @default(0) @map("items_amount")
+  depositAmount   BigInt    @map("deposit_amount")
+  currency        String    @default("VND") @db.Char(3)
+  specialRequest  String?   @map("special_request") @db.Text
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  customer      Customer                      @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  tables        BbqReservationTable[]
+  items         BbqReservationItem[]
+  statusHistory BbqReservationStatusHistory[]
+
+  @@index([status, reservationDate])
+  @@map("bbq_reservations")
+}
+
+model BbqReservationTable {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reservationId String   @map("reservation_id") @db.Uuid
+  tableId       String   @map("table_id") @db.Uuid
+  areaId        String   @map("area_id") @db.Uuid
+  startAt       DateTime @map("start_at") @db.Timestamptz()
+  endAt         DateTime @map("end_at") @db.Timestamptz()
+  status        String   @default("ACTIVE") @db.VarChar(30)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  reservation BbqReservation @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+  table       BbqTable       @relation(fields: [tableId], references: [id], onDelete: Restrict)
+  area        BbqArea        @relation(fields: [areaId], references: [id], onDelete: Restrict)
+
+  @@index([reservationId])
+  @@index([tableId, status])
+  @@map("bbq_reservation_tables")
+}
+
+model BbqReservationItem {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reservationId String   @map("reservation_id") @db.Uuid
+  itemType      String   @map("item_type") @db.VarChar(20)
+  code          String   @db.VarChar(80)
+  nameSnapshot  String   @map("name_snapshot") @db.VarChar(200)
+  unitSnapshot  String?  @map("unit_snapshot") @db.VarChar(20)
+  unitPrice     BigInt   @map("unit_price")
+  quantity      Int
+  lineTotal     BigInt   @map("line_total")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  reservation BbqReservation @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+
+  @@index([reservationId])
+  @@map("bbq_reservation_items")
+}
+
+model BbqReservationStatusHistory {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reservationId String   @map("reservation_id") @db.Uuid
+  fromStatus    String?  @map("from_status") @db.VarChar(30)
+  toStatus      String   @map("to_status") @db.VarChar(30)
+  reason        String?  @db.Text
+  changedAt     DateTime @default(now()) @map("changed_at") @db.Timestamptz()
+
+  reservation BbqReservation @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+
+  @@index([reservationId, changedAt])
+  @@map("bbq_reservation_status_history")
 }
 
 model AppSetting {
