@@ -666,6 +666,47 @@ model MediaAsset {
   @@map("media_assets")
 }
 
+model ArticleCategory {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String   @db.VarChar(150)
+  slug        String   @unique @db.VarChar(150)
+  description String?  @db.Text
+  sortOrder   Int      @default(0) @map("sort_order")
+  status      String   @default("ACTIVE") @db.VarChar(20)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  articles Article[]
+
+  @@index([status, sortOrder])
+  @@map("article_categories")
+}
+
+model Article {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  categoryId     String?   @map("category_id") @db.Uuid
+  title          String    @db.VarChar(250)
+  slug           String    @unique @db.VarChar(250)
+  excerpt        String?   @db.Text
+  content        Json      @db.JsonB
+  coverMediaId   String?   @map("cover_media_id") @db.Uuid
+  authorId       String?   @map("author_id") @db.Uuid
+  status         String    @default("DRAFT") @db.VarChar(20)
+  seoTitle       String?   @map("seo_title") @db.VarChar(200)
+  seoDescription String?   @map("seo_description") @db.VarChar(300)
+  canonicalUrl   String?   @map("canonical_url") @db.Text
+  publishedAt    DateTime? @map("published_at") @db.Timestamptz()
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt      DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz()
+
+  category ArticleCategory? @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@index([status, publishedAt])
+  @@index([categoryId, status])
+  @@map("articles")
+}
+
 model AppSetting {
   key               String   @id @db.VarChar(150)
   value             Json     @db.JsonB
