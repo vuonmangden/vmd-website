@@ -33,8 +33,8 @@ export default function Page() {
               Vườn Măng Đen — Homestay &amp; BBQ.
             </p>
             <div className="hero-actions">
-              <a className="button button-primary" href="tel:19009085">
-                Gọi 1900 9085
+              <a className="button button-primary" href="tel:0972947942">
+                Gọi 0972 947 942
               </a>
               <a
                 className="button button-secondary"
@@ -78,14 +78,14 @@ export default function Page() {
           </div>
 
           <address>
-            <a href="tel:19009085">1900 9085</a>
-            <a href="mailto:vuongmangden.com@gmail.com">vuongmangden.com@gmail.com</a>
+            <a href="tel:0972947942">0972 947 942</a>
+            <a href="mailto:vuonmangden.com@gmail.com">vuonmangden.com@gmail.com</a>
             <a
               href="https://maps.app.goo.gl/DtzdH58QEz2p1iYW8"
               target="_blank"
               rel="noopener noreferrer"
             >
-              26 Đường Phạm Văn Đồng, Măng Đen, Quảng Ngãi
+              24 Đường Phạm Văn Đồng, Măng Đen, Quảng Ngãi
             </a>
           </address>
 
