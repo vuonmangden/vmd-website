@@ -595,7 +595,11 @@ Chủ dự án hỏi có cần nâng cấp gói để tạo project production r
 - **Giới thiệu ngắn:** “Nơi nghỉ dưỡng, giao lưu kết nối bạn bè”.
 - **URL public do chủ dự án cung cấp ngày 2026-08-10:** [Facebook](https://www.facebook.com/MangDenGarden/); [TikTok](https://www.tiktok.com/@vuonmangden); [Instagram](https://www.instagram.com/vuonmangden); [Google Maps](https://maps.app.goo.gl/DtzdH58QEz2p1iYW8).
 
-### ⚠️ Mâu thuẫn thông tin liên hệ — cần chủ dự án chốt
+### ✅ Thông tin liên hệ — đã chốt 2026-08-22
+
+Chủ dự án xác nhận bản **2026-08-17** (hai bảng giá) là đúng: địa chỉ **24 Đường Phạm Văn Đồng**, hotline **0972 947 942**, email **vuonmangden.com@gmail.com**. Website công khai (`apps/web/app/page.tsx`, `apps/web/app/thanh-toan/payment-status.tsx`) đã sửa theo đúng ba giá trị này (nhánh `fix/public-contact-info`). Phần đối chiếu bên dưới giữ lại để tra cứu lịch sử.
+
+### ⚠️ Mâu thuẫn thông tin liên hệ (đã giải quyết, xem trên) — nguyên văn lúc phát hiện
 
 Hai tài liệu giá nhận ngày 2026-08-17 — bản khách hàng và bản Travel Agent — ghi **cùng một** thông tin liên hệ, và nó **khác** dữ liệu PRE-008 nhận ngày 2026-08-10:
 
@@ -615,7 +619,7 @@ Ba mục đều lệch. Email chênh đúng một chữ (`vuong` với `vuon`) n
 
 1. Cung cấp hoặc tạm hoãn các link pháp lý và CTA/đích đến ngoài hotline, email, Maps và social URL đã duyệt; không tự tạo link không có trang đích.
 2. Cung cấp ảnh không gian/phòng/BBQ có quyền sử dụng trước khi thêm ảnh venue vào website.
-3. Chốt địa chỉ, hotline và email chính xác theo bảng mâu thuẫn ở trên.
+3. ~~Chốt địa chỉ, hotline và email chính xác theo bảng mâu thuẫn ở trên.~~ Đã chốt 2026-08-22, xem mục trên.
 
 ### Phê duyệt phạm vi CMS-005 ngày 2026-08-10
 

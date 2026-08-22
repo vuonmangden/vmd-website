@@ -16,8 +16,8 @@ describe('public web layout', () => {
 
   it('renders semantic navigation, contact links and approved public destinations', () => {
     expect(html).toContain('aria-label="Điều hướng chính"');
-    expect(html).toContain('href="tel:19009085"');
-    expect(html).toContain('href="mailto:vuongmangden.com@gmail.com"');
+    expect(html).toContain('href="tel:0972947942"');
+    expect(html).toContain('href="mailto:vuonmangden.com@gmail.com"');
     expect(html).toContain('https://www.facebook.com/MangDenGarden/');
     expect(html).toContain('https://www.tiktok.com/@vuonmangden');
     expect(html).toContain('https://www.instagram.com/vuonmangden');
