@@ -6,6 +6,9 @@ import { EmailDeliveryService } from './notification/email/email-delivery.servic
 import { EmailProviderFactory } from './notification/email/email-provider.factory';
 import { ZaloDeliveryService } from './notification/zalo/zalo-delivery.service';
 import { ZaloProviderFactory } from './notification/zalo/zalo-provider.factory';
+import { NotificationJobService } from './notification/notification-job.service';
+import { NotificationSendProcessor } from './notification/notification-send.processor';
+import { NotificationDispatchService } from './notification/notification-dispatch.service';
 
 const OUTBOX_PUBLISH_QUEUE = 'outbox-publish';
 const NOTIFICATION_SEND_QUEUE = 'notification-send';
@@ -30,7 +33,10 @@ const NOTIFICATION_SEND_QUEUE = 'notification-send';
     EmailDeliveryService,
     ZaloProviderFactory,
     ZaloDeliveryService,
+    NotificationJobService,
+    NotificationSendProcessor,
+    NotificationDispatchService,
   ],
-  exports: [EmailDeliveryService, ZaloDeliveryService],
+  exports: [EmailDeliveryService, ZaloDeliveryService, NotificationJobService],
 })
 export class WorkerModule {}
