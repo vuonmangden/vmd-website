@@ -47,8 +47,10 @@ export class PaymentProcessingService {
         return this.createOrUpdateReconciliation(tx, event, intent, amount, 'PAYMENT_AFTER_INTENT_EXPIRY', now);
       }
 
-      const booking = await tx.booking.findUnique({ where: { id: intent.bookingId } });
-      if (booking?.status !== 'PENDING_PAYMENT') {
+      const referenceStatus = intent.bookingId
+        ? (await tx.booking.findUnique({ where: { id: intent.bookingId } }))?.status
+        : (await tx.bbqReservation.findUnique({ where: { id: intent.bbqReservationId! } }))?.status;
+      if (referenceStatus !== 'PENDING_PAYMENT') {
         return this.createOrUpdateReconciliation(tx, event, intent, amount, 'BOOKING_NOT_PENDING_PAYMENT', now);
       }
 
@@ -57,7 +59,7 @@ export class PaymentProcessingService {
 
       // Underpaid within tolerance (or an exact/overshoot match) confirms like a full payment.
       if (shortfall <= UNDERPAYMENT_TOLERANCE && shortfall >= 0n) {
-        return this.confirmPayment(tx, event, intent, booking, cumulativePaid, now);
+        return this.confirmPayment(tx, event, intent, cumulativePaid, now);
       }
       if (shortfall > UNDERPAYMENT_TOLERANCE) {
         return this.createOrUpdateReconciliation(tx, event, intent, amount, 'UNDERPAYMENT', now, cumulativePaid);
@@ -69,8 +71,7 @@ export class PaymentProcessingService {
   private async confirmPayment(
     tx: Prisma.TransactionClient,
     event: { id: string; headers: Prisma.JsonValue },
-    intent: { id: string; bookingId: string; amount: bigint; currency: string },
-    booking: { id: string; status: string },
+    intent: { id: string; bookingId: string | null; bbqReservationId: string | null; amount: bigint; currency: string },
     paidAmount: bigint,
     now: Date,
   ): Promise<PaymentProcessingResult> {
@@ -79,15 +80,28 @@ export class PaymentProcessingService {
 
     const payment = await tx.paymentIntent.updateMany({ where: { id: intent.id, status: 'PENDING' }, data: { status: 'PAID', paidAmount } });
     if (payment.count !== 1) return { outcome: 'already_processed' };
-    const bookingUpdate = await tx.booking.updateMany({ where: { id: booking.id, status: 'PENDING_PAYMENT' }, data: { status: 'CONFIRMED' } });
-    if (bookingUpdate.count !== 1) throw new Error('booking state changed during payment confirmation');
 
-    await tx.bookingStatusHistory.create({ data: { bookingId: booking.id, fromStatus: 'PENDING_PAYMENT', toStatus: 'CONFIRMED', reason: 'SePay Test Mode payment confirmed' } });
-    await tx.roomOccupancy.updateMany({ where: { bookingId: booking.id, status: 'HOLD' }, data: { status: 'CONFIRMED' } });
-    await tx.resourceHold.updateMany({ where: { referenceType: 'BOOKING', referenceId: booking.id, status: 'ACTIVE' }, data: { status: 'CONFIRMED', confirmedAt: now } });
-    await tx.outboxEvent.create({ data: { aggregateType: 'PAYMENT_INTENT', aggregateId: intent.id, eventType: 'payment.intent.confirmed.sandbox', payload: { paymentIntentId: intent.id, bookingId: booking.id, amount: paidAmount.toString(), currency: intent.currency } } });
-    await tx.outboxEvent.create({ data: { aggregateType: 'BOOKING', aggregateId: booking.id, eventType: 'booking.confirmed.payment.sandbox', payload: { bookingId: booking.id, paymentIntentId: intent.id } } });
-    await tx.auditLog.create({ data: audit('payment.intent.confirmed', intent.id, { bookingId: booking.id, amount: paidAmount.toString(), provider: PROVIDER, eventId: event.id }, correlationId(event.headers)) });
+    if (intent.bookingId) {
+      const bookingId = intent.bookingId;
+      const bookingUpdate = await tx.booking.updateMany({ where: { id: bookingId, status: 'PENDING_PAYMENT' }, data: { status: 'CONFIRMED' } });
+      if (bookingUpdate.count !== 1) throw new Error('booking state changed during payment confirmation');
+      await tx.bookingStatusHistory.create({ data: { bookingId, fromStatus: 'PENDING_PAYMENT', toStatus: 'CONFIRMED', reason: 'SePay Test Mode payment confirmed' } });
+      await tx.roomOccupancy.updateMany({ where: { bookingId, status: 'HOLD' }, data: { status: 'CONFIRMED' } });
+      await tx.resourceHold.updateMany({ where: { referenceType: 'BOOKING', referenceId: bookingId, status: 'ACTIVE' }, data: { status: 'CONFIRMED', confirmedAt: now } });
+      await tx.outboxEvent.create({ data: { aggregateType: 'PAYMENT_INTENT', aggregateId: intent.id, eventType: 'payment.intent.confirmed.sandbox', payload: { paymentIntentId: intent.id, bookingId, amount: paidAmount.toString(), currency: intent.currency } } });
+      await tx.outboxEvent.create({ data: { aggregateType: 'BOOKING', aggregateId: bookingId, eventType: 'booking.confirmed.payment.sandbox', payload: { bookingId, paymentIntentId: intent.id } } });
+      await tx.auditLog.create({ data: audit('payment.intent.confirmed', intent.id, { bookingId, amount: paidAmount.toString(), provider: PROVIDER, eventId: event.id }, correlationId(event.headers)) });
+    } else {
+      const reservationId = intent.bbqReservationId!;
+      const reservationUpdate = await tx.bbqReservation.updateMany({ where: { id: reservationId, status: 'PENDING_PAYMENT' }, data: { status: 'CONFIRMED' } });
+      if (reservationUpdate.count !== 1) throw new Error('bbq reservation state changed during payment confirmation');
+      await tx.bbqReservationStatusHistory.create({ data: { reservationId, fromStatus: 'PENDING_PAYMENT', toStatus: 'CONFIRMED', reason: 'SePay Test Mode payment confirmed' } });
+      await tx.resourceHold.updateMany({ where: { referenceType: 'BBQ_RESERVATION', referenceId: reservationId, status: 'ACTIVE' }, data: { status: 'CONFIRMED', confirmedAt: now } });
+      await tx.outboxEvent.create({ data: { aggregateType: 'PAYMENT_INTENT', aggregateId: intent.id, eventType: 'payment.intent.confirmed.sandbox', payload: { paymentIntentId: intent.id, bbqReservationId: reservationId, amount: paidAmount.toString(), currency: intent.currency } } });
+      await tx.outboxEvent.create({ data: { aggregateType: 'BBQ_RESERVATION', aggregateId: reservationId, eventType: 'bbq_reservation.confirmed.payment.sandbox', payload: { reservationId, paymentIntentId: intent.id } } });
+      await tx.auditLog.create({ data: audit('payment.intent.confirmed', intent.id, { bbqReservationId: reservationId, amount: paidAmount.toString(), provider: PROVIDER, eventId: event.id }, correlationId(event.headers)) });
+    }
+
     // A prior underpayment case for this intent is now moot — the shortfall closed.
     await tx.reconciliationCase.updateMany({ where: { paymentIntentId: intent.id, status: 'OPEN', reason: 'UNDERPAYMENT' }, data: { status: 'RESOLVED', resolvedAt: now, resolutionOutcome: 'TOPPED_UP' } });
     await tx.paymentWebhookEvent.update({ where: { id: event.id }, data: { processingStatus: PROCESSED, processedAt: now, errorMessage: null } });
@@ -135,7 +149,7 @@ export class PaymentProcessingService {
   private async createOrUpdateReconciliation(
     tx: Prisma.TransactionClient,
     event: { id: string; headers: Prisma.JsonValue },
-    intent: { id: string; bookingId: string; amount: bigint; currency: string },
+    intent: { id: string; bookingId: string | null; bbqReservationId: string | null; amount: bigint; currency: string },
     receivedAmount: bigint,
     reason: string,
     now: Date,
@@ -158,8 +172,8 @@ export class PaymentProcessingService {
       await tx.reconciliationCase.create({ data: { paymentIntentId: intent.id, reason, expectedAmount: intent.amount, receivedAmount: totalReceived } });
     }
 
-    await tx.outboxEvent.create({ data: { aggregateType: 'PAYMENT_INTENT', aggregateId: intent.id, eventType: 'payment.reconciliation.required.sandbox', payload: { paymentIntentId: intent.id, bookingId: intent.bookingId, reason, expectedAmount: intent.amount.toString(), receivedAmount: totalReceived.toString(), currency: intent.currency } } });
-    await tx.auditLog.create({ data: audit('payment.reconciliation.created', intent.id, { bookingId: intent.bookingId, reason, expectedAmount: intent.amount.toString(), receivedAmount: totalReceived.toString(), eventId: event.id }, correlationId(event.headers)) });
+    await tx.outboxEvent.create({ data: { aggregateType: 'PAYMENT_INTENT', aggregateId: intent.id, eventType: 'payment.reconciliation.required.sandbox', payload: { paymentIntentId: intent.id, bookingId: intent.bookingId, bbqReservationId: intent.bbqReservationId, reason, expectedAmount: intent.amount.toString(), receivedAmount: totalReceived.toString(), currency: intent.currency } } });
+    await tx.auditLog.create({ data: audit('payment.reconciliation.created', intent.id, { bookingId: intent.bookingId, bbqReservationId: intent.bbqReservationId, reason, expectedAmount: intent.amount.toString(), receivedAmount: totalReceived.toString(), eventId: event.id }, correlationId(event.headers)) });
     await tx.paymentWebhookEvent.update({ where: { id: event.id }, data: { processingStatus: PROCESSED, processedAt: now, errorMessage: reason } });
     return { outcome: 'reconciliation_required', paymentIntentId: intent.id };
   }

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '../../prisma/prisma.module';
 import { AuthModule } from '../auth/auth.module';
+import { PaymentsModule } from '../payments/payments.module';
 import {
   AdminBbqAreaController,
   AdminBbqServiceSlotController,
@@ -16,9 +17,11 @@ import { AdminBbqReservationController } from './bbq-reservation.controller';
 import { BbqReservationCreationService } from './bbq-reservation-creation.service';
 import { BbqReservationStateService } from './bbq-reservation-state.service';
 import { AdminBbqReservationsService } from './admin-bbq-reservations.service';
+import { PublicBbqReservationsController } from './public-bbq-reservations.controller';
+import { PublicBbqReservationsService } from './public-bbq-reservations.service';
 
 @Module({
-  imports: [PrismaModule, AuthModule],
+  imports: [PrismaModule, AuthModule, PaymentsModule],
   controllers: [
     PublicBbqMenuController,
     PublicBbqAreaController,
@@ -28,6 +31,7 @@ import { AdminBbqReservationsService } from './admin-bbq-reservations.service';
     AdminBbqTableController,
     AdminBbqServiceSlotController,
     AdminBbqReservationController,
+    PublicBbqReservationsController,
   ],
   providers: [
     BbqMenuService,
@@ -36,6 +40,7 @@ import { AdminBbqReservationsService } from './admin-bbq-reservations.service';
     BbqReservationCreationService,
     BbqReservationStateService,
     AdminBbqReservationsService,
+    PublicBbqReservationsService,
   ],
   exports: [
     BbqMenuService,

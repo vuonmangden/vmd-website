@@ -8,6 +8,7 @@ function fakeListRow(overrides?: Record<string, unknown>) {
   return {
     id: INTENT_ID,
     bookingId: BOOKING_ID,
+    bbqReservationId: null,
     provider: 'SEPAY_TEST',
     status: 'PENDING',
     amount: 2500000n,
@@ -17,6 +18,7 @@ function fakeListRow(overrides?: Record<string, unknown>) {
     expiresAt: new Date('2026-08-21T12:00:00.000Z'),
     createdAt: new Date('2026-08-20T12:00:00.000Z'),
     booking: { bookingCode: 'SYN-ABC123', customer: { fullName: 'Nguyễn Văn A' } },
+    bbqReservation: null,
     reconciliationCases: [],
     ...overrides,
   };
@@ -45,7 +47,9 @@ describe('AdminPaymentsService.list', () => {
     expect(result.items[0]).toEqual({
       id: INTENT_ID,
       bookingId: BOOKING_ID,
-      bookingCode: 'SYN-ABC123',
+      bbqReservationId: null,
+      referenceType: 'BOOKING',
+      referenceCode: 'SYN-ABC123',
       customerName: 'Nguyễn Văn A',
       provider: 'SEPAY_TEST',
       status: 'PENDING',
@@ -58,6 +62,22 @@ describe('AdminPaymentsService.list', () => {
       openReconciliationCases: [],
     });
     expect(result.total).toBe(1);
+  });
+
+  it('flattens a BBQ reservation reference for a BBQ-linked intent', async () => {
+    const prisma = prismaMock();
+    prisma.paymentIntent.findMany.mockResolvedValue([fakeListRow({
+      bookingId: null,
+      booking: null,
+      bbqReservationId: 'bbq-res-1',
+      bbqReservation: { reservationCode: 'BBQ-XYZ789', customer: { fullName: 'Trần Thị B' } },
+    })]);
+    prisma.paymentIntent.count.mockResolvedValue(1);
+    const service = new AdminPaymentsService(prisma as never);
+
+    const result = await service.list({ page: 1, pageSize: 50 });
+
+    expect(result.items[0]).toMatchObject({ referenceType: 'BBQ_RESERVATION', referenceCode: 'BBQ-XYZ789', customerName: 'Trần Thị B' });
   });
 
   it('filters by status and bookingId when given', async () => {
