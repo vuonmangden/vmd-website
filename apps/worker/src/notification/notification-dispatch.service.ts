@@ -8,6 +8,7 @@ import { EmailDeliveryService } from './email/email-delivery.service';
 import { ZaloDeliveryService } from './zalo/zalo-delivery.service';
 import { EmailDeliveryError } from './email/email.types';
 import { ZaloDeliveryError } from './zalo/zalo.types';
+import { dateLabel } from './date-label';
 
 const POLL_INTERVAL_MS = 5_000;
 const BATCH_SIZE = 20;
@@ -77,12 +78,21 @@ export class NotificationDispatchService implements OnModuleInit, OnModuleDestro
   private async dispatchOne(job: {
     id: string;
     templateCode: string;
+    recipientReferenceId: string;
     email: string | null;
     phone: string | null;
     payload: unknown;
     attemptCount: number;
   }): Promise<boolean> {
     const channel = job.templateCode.endsWith('_ZALO') ? 'zalo' : 'email';
+
+    if (job.templateCode.includes('_REMINDER_') && !(await this.reminderStillDue(job.recipientReferenceId, job.payload))) {
+      await this.prisma.notificationJob.update({
+        where: { id: job.id },
+        data: { status: 'skipped', completedAt: new Date(), lastError: 'Booking no longer confirmed for this date — reminder skipped' },
+      });
+      return false;
+    }
 
     try {
       const result =
@@ -155,6 +165,26 @@ export class NotificationDispatchService implements OnModuleInit, OnModuleDestro
       templateCode: job.templateCode,
       templateParams: payload.templateParams,
     });
+  }
+
+  /**
+   * A reminder job's payload carries the check-in date it was created for
+   * (`targetCheckInDate`). If the booking was cancelled, or rescheduled to a
+   * different date, since the job was created, this returns false so the
+   * caller skips a now-stale send — the confirmation-notification jobs
+   * don't need this check, their creation-to-send window is seconds, not
+   * the hours-to-days a reminder can sit pending.
+   */
+  private async reminderStillDue(bookingId: string, payload: unknown): Promise<boolean> {
+    const targetCheckInDate = (payload as { targetCheckInDate?: string }).targetCheckInDate;
+    if (!targetCheckInDate) return true;
+
+    const booking = await this.prisma.booking.findUnique({
+      where: { id: bookingId },
+      select: { status: true, checkInDate: true },
+    });
+    if (!booking || booking.status !== 'CONFIRMED') return false;
+    return dateLabel(booking.checkInDate) === targetCheckInDate;
   }
 }
 

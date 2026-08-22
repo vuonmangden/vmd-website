@@ -6,6 +6,7 @@ function prismaMock() {
   return {
     notificationJob: { findMany: jest.fn().mockResolvedValue([]), update: jest.fn() },
     notificationDelivery: { create: jest.fn() },
+    booking: { findUnique: jest.fn() },
     $transaction: jest.fn((ops: unknown[]) => Promise.all(ops as Promise<unknown>[])),
   };
 }
@@ -32,6 +33,16 @@ const ZALO_JOB = {
   email: null,
   phone: '0987654321',
   payload: { templateParams: { bookingCode: 'VMD-1' } },
+  attemptCount: 0,
+};
+
+const REMINDER_JOB = {
+  id: 'job-3',
+  templateCode: 'BOOKING_REMINDER_T7_EMAIL',
+  recipientReferenceId: 'booking-1',
+  email: 'guest@example.test',
+  phone: null,
+  payload: { subject: 'Còn 7 ngày', body: 'Nội dung', targetCheckInDate: '2026-09-01' },
   attemptCount: 0,
 };
 
@@ -117,5 +128,46 @@ describe('NotificationDispatchService.pollAndDispatch', () => {
 
     expect(prisma.notificationDelivery.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: 'failed', channel: 'zalo' }) }));
     expect(prisma.notificationJob.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: 'failed' }) }));
+  });
+
+  it('sends a reminder normally when the booking is still confirmed for the same check-in date', async () => {
+    const prisma = prismaMock();
+    prisma.notificationJob.findMany.mockResolvedValue([REMINDER_JOB]);
+    prisma.booking.findUnique.mockResolvedValue({ status: 'CONFIRMED', checkInDate: new Date('2026-09-01T00:00:00.000Z') });
+    const email = emailMock();
+    email.send.mockResolvedValue({ provider: 'mailpit', providerMessageId: 'job-3', status: 'sent' });
+    const service = new NotificationDispatchService(prisma as never, email as never, zaloMock() as never);
+
+    const dispatched = await service.pollAndDispatch();
+
+    expect(dispatched).toBe(1);
+    expect(email.send).toHaveBeenCalled();
+  });
+
+  it('skips a reminder without sending when the booking is no longer confirmed (cancelled)', async () => {
+    const prisma = prismaMock();
+    prisma.notificationJob.findMany.mockResolvedValue([REMINDER_JOB]);
+    prisma.booking.findUnique.mockResolvedValue({ status: 'CANCELLED', checkInDate: new Date('2026-09-01T00:00:00.000Z') });
+    const email = emailMock();
+    const service = new NotificationDispatchService(prisma as never, email as never, zaloMock() as never);
+
+    await service.pollAndDispatch();
+
+    expect(email.send).not.toHaveBeenCalled();
+    expect(prisma.notificationJob.update).toHaveBeenCalledWith({ where: { id: 'job-3' }, data: expect.objectContaining({ status: 'skipped' }) });
+    expect(prisma.notificationDelivery.create).not.toHaveBeenCalled();
+  });
+
+  it('skips a stale reminder without sending when the booking was rescheduled to a different date', async () => {
+    const prisma = prismaMock();
+    prisma.notificationJob.findMany.mockResolvedValue([REMINDER_JOB]);
+    prisma.booking.findUnique.mockResolvedValue({ status: 'CONFIRMED', checkInDate: new Date('2026-09-15T00:00:00.000Z') });
+    const email = emailMock();
+    const service = new NotificationDispatchService(prisma as never, email as never, zaloMock() as never);
+
+    await service.pollAndDispatch();
+
+    expect(email.send).not.toHaveBeenCalled();
+    expect(prisma.notificationJob.update).toHaveBeenCalledWith({ where: { id: 'job-3' }, data: expect.objectContaining({ status: 'skipped' }) });
   });
 });
