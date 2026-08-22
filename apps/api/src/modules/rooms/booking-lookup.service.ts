@@ -6,14 +6,24 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { BookingStateService } from './booking-state.service';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- Nest needs runtime DI metadata.
 import { BookingLookupRateLimitService } from './booking-lookup-rate-limit.service';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports -- Nest needs runtime DI metadata.
+import { CancellationPolicyService, type CancellationPolicy } from './cancellation-policy.service';
 import type { AuthenticatedActor } from '../auth/auth.types';
 import type { CreateGuestRequestDto } from './dto/booking-lookup.dto';
 
 const NOT_FOUND = () => new NotFoundException({ code: 'BOOKING_NOT_FOUND', message: 'Booking was not found' });
+/** Asia/Ho_Chi_Minh is UTC+7 with no DST; a fixed offset is exact and matches every other operational-date computation in this project. */
+const HO_CHI_MINH_OFFSET_MS = 7 * 60 * 60 * 1000;
 
 @Injectable()
 export class BookingLookupService {
-  constructor(private readonly prisma: PrismaService, private readonly rateLimit: BookingLookupRateLimitService, private readonly bookingState: BookingStateService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly rateLimit: BookingLookupRateLimitService,
+    private readonly bookingState: BookingStateService,
+    private readonly cancellationPolicy: CancellationPolicyService,
+    private readonly now: () => Date = () => new Date(),
+  ) {}
 
   async lookup(code: string, phoneInput: string, ip: string) {
     this.rateLimit.assertAllowed(ip);
@@ -56,16 +66,55 @@ export class BookingLookupService {
     });
   }
 
-  async decide(requestId: string, decision: 'APPROVED' | 'REJECTED', note: string | undefined, actor: AuthenticatedActor, correlationId?: string) {
+  /**
+   * Only a Manager (or Super Admin) may decide a guest request — approved
+   * 2026-08-19 (docs/09_MILESTONE_0_INPUT_PACK.md §8, line 418). Approving a
+   * CANCELLATION also computes and records the refund via
+   * CancellationPolicyService (pure calculation; no money moves here — see
+   * that service's header) and reports whether the refund SLA was met: "trong
+   * ngày sử dụng dịch vụ" (§8 line 419) means the deadline is the booking's
+   * own check-in date, not the day the guest filed the request.
+   */
+  async decide(requestId: string, decision: 'APPROVED' | 'REJECTED', note: string | undefined, policy: CancellationPolicy | undefined, actor: AuthenticatedActor, correlationId?: string) {
     if (!actor.roles.includes('MANAGER') && !actor.roles.includes('SUPER_ADMIN')) throw new ForbiddenException({ code: 'MANAGER_APPROVAL_REQUIRED', message: 'Manager approval is required' });
     return this.prisma.$transaction(async (tx) => {
       const request = await tx.bookingGuestRequest.findUnique({ where: { id: requestId } });
       if (!request || !['PENDING_REVIEW', 'REVIEWED'].includes(request.status)) throw NOT_FOUND();
-      if (decision === 'APPROVED' && request.requestType === 'CANCELLATION') await this.bookingState.transitionInTransaction(tx, request.bookingId, 'CANCELLED', `guest cancellation request ${request.id}`);
-      const updated = await tx.bookingGuestRequest.update({ where: { id: request.id }, data: { status: decision, decidedBy: actor.staffProfileId, decidedAt: new Date(), decisionNote: note?.trim() || null } });
-      await tx.auditLog.create({ data: audit(`booking.guest_request.${decision.toLowerCase()}`, request.id, { bookingId: request.bookingId, status: decision }, actor.staffProfileId, correlationId) });
+
+      let refund: ReturnType<CancellationPolicyService['quote']> | null = null;
+      let slaMet: boolean | null = null;
+      const isCancellationApproval = decision === 'APPROVED' && request.requestType === 'CANCELLATION';
+      const decidedAt = this.now();
+      if (isCancellationApproval) {
+        if (!policy) throw new BadRequestException({ code: 'REFUND_POLICY_REQUIRED', message: 'A cancellation policy (STANDARD or HOLIDAY) is required to approve a cancellation' });
+        const booking = await tx.booking.findUnique({ where: { id: request.bookingId }, select: { checkInDate: true, paymentIntents: { where: { status: 'PAID' }, select: { paidAmount: true } } } });
+        if (!booking) throw NOT_FOUND();
+        const amountPaid = booking.paymentIntents.reduce((sum, intent) => sum + intent.paidAmount, 0n);
+        refund = this.cancellationPolicy.quote({ policy, checkInAt: booking.checkInDate, amountPaid, now: decidedAt });
+        slaMet = operationalDay(decidedAt) <= operationalDay(booking.checkInDate);
+        await this.bookingState.transitionInTransaction(tx, request.bookingId, 'CANCELLED', `guest cancellation request ${request.id}`);
+      }
+
+      const updated = await tx.bookingGuestRequest.update({
+        where: { id: request.id },
+        data: {
+          status: decision,
+          decidedBy: actor.staffProfileId,
+          decidedAt,
+          decisionNote: note?.trim() || null,
+          ...(refund ? { refundPolicy: policy, refundTierCode: refund.tierCode, refundPercent: refund.refundPercent, refundAmount: refund.refundAmount, forfeitedAmount: refund.forfeitedAmount } : {}),
+        },
+      });
+
+      await tx.auditLog.create({ data: audit(`booking.guest_request.${decision.toLowerCase()}`, request.id, { bookingId: request.bookingId, status: decision, ...(refund ? { slaMet, refundPolicy: policy, refundAmount: refund.refundAmount.toString() } : {}) }, actor.staffProfileId, correlationId) });
       await tx.outboxEvent.create({ data: { aggregateType: 'BOOKING_GUEST_REQUEST', aggregateId: request.id, eventType: `booking.guest_request.${decision.toLowerCase()}`, payload: { bookingId: request.bookingId, requestId: request.id, status: decision } } });
-      return { requestId: updated.id, status: updated.status };
+
+      return {
+        requestId: updated.id,
+        status: updated.status,
+        slaMet,
+        refund: refund ? { policy, tierCode: refund.tierCode, refundPercent: refund.refundPercent, refundAmount: refund.refundAmount.toString(), forfeitedAmount: refund.forfeitedAmount.toString() } : null,
+      };
     });
   }
 
@@ -82,6 +131,18 @@ export class BookingLookupService {
   }
 }
 
+/**
+ * The Asia/Ho_Chi_Minh calendar date a real UTC instant falls on, as a
+ * lexicographically-sortable `YYYY-MM-DD` string. `checkInDate` is already a
+ * date-only column written as the literal UTC-midnight label for that local
+ * date (the same convention BBQ reservation times and every other
+ * operational-date field in this project use) — running it through this same
+ * function is safe and a no-op, since +7h from UTC midnight never crosses a
+ * day boundary.
+ */
+function operationalDay(instant: Date): string {
+  return new Date(instant.getTime() + HO_CHI_MINH_OFFSET_MS).toISOString().slice(0, 10);
+}
 function normalizePhone(value: string) { const match = value.replace(/[\s.-]/g, '').match(/^(?:\+84|84|0)([35789]\d{8})$/); return match ? `+84${match[1]}` : null; }
 function maskPhone(value: string | null) { return value ? `****${value.slice(-4)}` : null; }
 function maskEmail(value: string | null) { if (!value) return null; const [local = '', domain = ''] = value.split('@'); return `${local.slice(0, 3)}***@${domain}`; }
