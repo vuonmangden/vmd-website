@@ -114,6 +114,11 @@ model BookingGuestRequest {
   decidedBy       String?  @map("decided_by") @db.Uuid
   decidedAt       DateTime? @map("decided_at") @db.Timestamptz()
   decisionNote    String?  @map("decision_note") @db.Text
+  refundPolicy    String?  @map("refund_policy") @db.VarChar(20)
+  refundTierCode  String?  @map("refund_tier_code") @db.VarChar(50)
+  refundPercent   Int?     @map("refund_percent")
+  refundAmount    BigInt?  @map("refund_amount")
+  forfeitedAmount BigInt?  @map("forfeited_amount")
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
   booking         Booking  @relation(fields: [bookingId], references: [id], onDelete: Restrict)
 
