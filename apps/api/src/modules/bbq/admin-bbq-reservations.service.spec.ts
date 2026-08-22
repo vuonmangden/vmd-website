@@ -95,6 +95,26 @@ describe('AdminBbqReservationsService.list', () => {
   });
 });
 
+describe('AdminBbqReservationsService.calendar', () => {
+  it('lists one date\'s CONFIRMED/CHECKED_IN/CHECKED_OUT reservations ordered by start time', async () => {
+    const prisma = prismaMock();
+    const date = new Date('2026-08-22T00:00:00.000Z');
+    prisma.bbqReservation.findMany.mockResolvedValue([
+      { id: RESERVATION_ID, reservationCode: 'BBQ-ABCD1234', status: 'CONFIRMED', startTime: '12:00', endTime: '13:00', adults: 4, children: 0, customer: { fullName: 'Nguyễn Văn A' }, tables: [{ table: { code: 'VUON_THONG-01', name: 'Bàn 1' }, area: { name: 'Vườn Thông' } }] },
+    ]);
+    const service = new AdminBbqReservationsService(prisma as never, stateMock() as never);
+
+    const result = await service.calendar(date);
+
+    expect(prisma.bbqReservation.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { reservationDate: date, status: { in: ['CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT'] } }, orderBy: { startTime: 'asc' } }),
+    );
+    expect(result.reservations[0]).toEqual(
+      expect.objectContaining({ id: RESERVATION_ID, tables: [{ code: 'VUON_THONG-01', name: 'Bàn 1', areaName: 'Vườn Thông' }] }),
+    );
+  });
+});
+
 describe('AdminBbqReservationsService.detail', () => {
   it('serializes BigInt fields on the reservation and its items', async () => {
     const prisma = prismaMock();
@@ -153,6 +173,18 @@ describe('AdminBbqReservationsService.transition', () => {
     const service = new AdminBbqReservationsService(prisma as never, stateMock() as never);
 
     await expect(service.transition(ACTOR, RESERVATION_ID, 'EXPIRED', 'x', CORRELATION_ID)).rejects.toThrow(BadRequestException);
+  });
+
+  it('checks a reservation in and out without requiring a reason', async () => {
+    const prisma = prismaMock();
+    const state = stateMock();
+    state.transitionInTransaction.mockResolvedValue({ id: RESERVATION_ID, status: 'CHECKED_IN' });
+    const service = new AdminBbqReservationsService(prisma as never, state as never);
+
+    const result = await service.transition(ACTOR, RESERVATION_ID, 'CHECKED_IN', undefined, CORRELATION_ID);
+
+    expect(state.transitionInTransaction).toHaveBeenCalledWith(expect.anything(), RESERVATION_ID, 'CHECKED_IN', undefined);
+    expect(result).toEqual({ id: RESERVATION_ID, status: 'CHECKED_IN' });
   });
 
   it('throws NotFoundException for an unknown reservation', async () => {
