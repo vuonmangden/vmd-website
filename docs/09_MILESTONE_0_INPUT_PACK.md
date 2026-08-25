@@ -87,7 +87,7 @@ Giường phụ: chỉ bố trí khi diện tích phòng phù hợp và có xác
 
 ### Còn thiếu cho PRE-001
 
-1. Cấu hình giường của 6 hạng còn lại trong 201–207 (chỉ `Family Loft Balcony`/202 được mô tả).
+1. Cấu hình giường của 6 hạng còn lại trong 201–207 (chỉ `Family Loft Balcony`/202 được mô tả). **Đính chính 2026-08-23**: trước đó Claude báo nhầm với chủ dự án là hệ thống "chưa có trường lưu cấu hình giường" — thực ra cột `bed_configuration` đã có sẵn từ `RMS-001`, admin đã sửa được ngay qua API `room-types` hiện có (không cần code/migration mới). Khoảng trống thật duy nhất còn lại là **dữ liệu**: chủ dự án cung cấp mô tả giường của 6 hạng còn lại là nhập được ngay.
 2. Xác nhận wifi/nước nóng có ở tất cả các phòng không.
 3. Xác nhận cả 7 hạng 201–207 đều mở bán Phase 1. Phòng 301: **chốt 2026-08-19** — xử lý thủ công (liên hệ trực tiếp) tạm thời, giữ ngoài Price Engine/luồng đặt online; chủ dự án sẽ báo lại khi chốt cơ chế giá riêng để triển khai.
 4. Duyệt mã loại phòng, hoặc cung cấp mã nội bộ đang dùng.
