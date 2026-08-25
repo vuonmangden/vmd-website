@@ -387,6 +387,14 @@ h2 {
 .payment-support { font-weight: 700; }
 .payment-support a { text-underline-offset: .22rem; }
 .payment-success { border-color: var(--forest); }
+.article-list { display: grid; gap: 1px; margin: 2rem 0 0; padding: 0; list-style: none; background: var(--line); border: 1px solid var(--line); }
+.article-card { display: grid; gap: .5rem; padding: 1.5rem; background: var(--paper); }
+.article-card h2 { max-width: none; font-size: clamp(1.5rem, 3vw, 2.1rem); }
+.article-card p { font-family: Arial, sans-serif; line-height: 1.6; }
+.article-meta { margin: 0; color: var(--wood); font-family: Arial, sans-serif; font-size: .88rem; font-weight: 700; }
+.article-detail { max-width: 42rem; }
+.article-detail h1 { max-width: none; margin-top: 1.4rem; }
+.article-body { display: grid; gap: 1.1rem; margin-top: 1.5rem; font-family: Arial, sans-serif; font-size: 1.05rem; line-height: 1.75; }
 
 .loading-pulse {
   display: grid;

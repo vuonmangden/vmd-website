@@ -6,13 +6,16 @@ describe('sitemap', () => {
     vi.unstubAllGlobals();
   });
 
-  it('lists the static routes plus one entry per room slug from the public API', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(
-      new Response(
-        JSON.stringify({ data: { items: [{ slug: 'phong-vuon' }, { slug: 'phong-suoi' }] }, meta: {}, correlationId: 'x' }),
-        { status: 200 },
-      ),
-    );
+  it('lists the static routes plus one entry per room slug and published article slug', async () => {
+    const fetchMock = vi.fn().mockImplementation((url: string) => {
+      if (url.includes('/public/rooms')) {
+        return Promise.resolve(new Response(JSON.stringify({ data: { items: [{ slug: 'phong-vuon' }, { slug: 'phong-suoi' }] }, meta: {}, correlationId: 'x' }), { status: 200 }));
+      }
+      if (url.includes('/public/articles')) {
+        return Promise.resolve(new Response(JSON.stringify({ data: [{ slug: 'khai-truong' }], meta: {}, correlationId: 'x' }), { status: 200 }));
+      }
+      return Promise.resolve(new Response('not found', { status: 404 }));
+    });
     vi.stubGlobal('fetch', fetchMock);
 
     const result = await sitemap();
@@ -21,8 +24,10 @@ describe('sitemap', () => {
       'http://localhost:3000',
       'http://localhost:3000/phong',
       'http://localhost:3000/bbq',
+      'http://localhost:3000/tin-tuc',
       'http://localhost:3000/phong/phong-vuon',
       'http://localhost:3000/phong/phong-suoi',
+      'http://localhost:3000/tin-tuc/khai-truong',
     ]);
   });
 
@@ -35,6 +40,7 @@ describe('sitemap', () => {
       'http://localhost:3000',
       'http://localhost:3000/phong',
       'http://localhost:3000/bbq',
+      'http://localhost:3000/tin-tuc',
     ]);
   });
 });
