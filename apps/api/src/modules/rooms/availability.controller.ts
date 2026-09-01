@@ -8,11 +8,11 @@ import { AvailabilitySearchDto } from './dto/availability-search.dto';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- Nest needs runtime DI metadata.
 import { AvailabilityService } from './availability.service';
 
-@ApiTags('Sandbox availability') @ApiBearerAuth() @Controller('admin/sandbox/room-availability') @UseGuards(AdminAuthGuard, PermissionsGuard) @RequirePermissions('room.manage')
+@ApiTags('Room availability') @ApiBearerAuth() @Controller('admin/room-availability') @UseGuards(AdminAuthGuard, PermissionsGuard) @RequirePermissions('room.manage')
 @ApiUnauthorizedResponse({ description: 'Missing, invalid, expired, or revoked staff session' })
 @ApiForbiddenResponse({ description: 'Authenticated staff lacks room.manage' })
 export class AvailabilityController {
   constructor(private readonly availability: AvailabilityService) {}
-  @Post() @ApiOperation({ summary: 'Search synthetic room availability; excludes blocks, not booking occupancy' })
+  @Post() @ApiOperation({ summary: 'Search production room availability excluding blocks and booking occupancy' })
   search(@Body() dto: AvailabilitySearchDto) { return this.availability.search(dto.checkIn, dto.checkOut, dto.guests); }
 }

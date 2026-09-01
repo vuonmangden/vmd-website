@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 
 import { applySyntheticFixtures, authorizeSyntheticData } from '../scripts/synthetic-fixtures-lib.mjs';
+import { applyProductionRoomCatalog } from '../scripts/production-room-catalog-lib.mjs';
 import { seedBbqAreas } from './bbq-area-seed';
 import { seedRbac } from './rbac-seed';
 
@@ -48,9 +49,13 @@ async function main(): Promise<void> {
   });
 
   await seedRbac(prisma);
+  const roomCatalog = await applyProductionRoomCatalog(prisma);
   await seedBbqAreas(prisma);
 
-  console.log('Seed completed: app_settings, RBAC matrix, and BBQ areas inserted.');
+  console.log(
+    `Production room catalog ${roomCatalog.applied ? 'applied' : 'already current'}: version=${roomCatalog.version}, activeRooms=${roomCatalog.activeRoomCount}, rateRules=${roomCatalog.rateRuleCount}.`,
+  );
+  console.log('Seed completed: app_settings, RBAC matrix, production rooms/rates, and BBQ areas inserted.');
 
   if (!syntheticAuthorization) {
     console.log('Synthetic fixtures skipped: set an explicit non-production environment and ALLOW_SYNTHETIC_DATA=true.');

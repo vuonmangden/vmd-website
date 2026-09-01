@@ -1,11 +1,12 @@
 import { AvailabilityService } from './availability.service';
 
 describe('AvailabilityService', () => {
-  it('queries only active rooms with no overlapping active block', async () => {
+  it('queries only active rooms with no overlapping block or booking occupancy', async () => {
     const findMany = jest.fn().mockResolvedValue([]);
     const service = new AvailabilityService({ roomType: { findMany } } as never);
     await service.search('2099-01-10', '2099-01-12', 2);
-    expect(findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ maxTotalGuests: { gte: 2 }, rooms: { some: expect.objectContaining({ blocks: { none: { cancelledAt: null, startDate: { lt: new Date('2099-01-12T00:00:00.000Z') }, endDate: { gt: new Date('2099-01-10T00:00:00.000Z') } } } }) } }) }));
+    const range = { gte: new Date('2099-01-10T00:00:00.000Z'), lt: new Date('2099-01-12T00:00:00.000Z') };
+    expect(findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ maxTotalGuests: { gte: 2 }, rooms: { some: expect.objectContaining({ blocks: { none: { cancelledAt: null, startDate: { lt: range.lt }, endDate: { gt: range.gte } } }, occupancies: { none: { stayDate: range } } }) } }) }));
   });
   it('rejects invalid date ranges and guest counts', async () => {
     const service = new AvailabilityService({ roomType: { findMany: jest.fn() } } as never);
