@@ -45,6 +45,49 @@ Các trạng thái hợp lệ: `Chờ dữ liệu`, `Đang rà soát`, `Đã duy
 | P1 | PRE-007 | Payment, email, Zalo và deployment |
 | P2 | PRE-008 | Public Website, SEO và content production |
 
+## 3A. Snapshot vận hành ưu tiên hiện hành — 2026-09-01
+
+Snapshot này do chủ dự án xác nhận trực tiếp ngày 2026-09-01 và **thay thế mọi giá trị cũ ở các phần lịch sử bên dưới khi có mâu thuẫn**. Các section PRE chi tiết tiếp tục được giữ để audit nguồn và lịch sử quyết định.
+
+### PRE-001/PRE-002 — phòng
+
+- Tiện nghi tạm để trống, cập nhật qua CMS sau.
+- Phòng 201–207 ở tầng 2 và `ACTIVE`; Dorm 301 ở tầng 2, `INACTIVE`, chưa mở bán và chỉ hiển thị “Liên hệ”.
+- Mỗi hạng phòng được kê tối đa 1 đệm; một đệm tính thêm 1 khách; phụ thu 200.000 VND/đệm.
+- Sức chứa tối đa: phòng 201, 203–207 là 3 khách; phòng 202 là 5 khách. Dorm 301 chưa tham gia booking online.
+
+### PRE-003 — giá và booking phòng
+
+- Giá hiệu lực từ 2026-09-01; ngày thường là Chủ Nhật–Thứ Năm, cuối tuần là Thứ Sáu–Thứ Bảy.
+- Giá phòng **chưa gồm VAT**.
+- Giá ngày thường/cuối tuần/lễ lần lượt: 201 = 550.000/650.000/780.000; 202 = 800.000/900.000/1.080.000; 203 = 500.000/600.000/720.000; 204 = 550.000/650.000/780.000; 205 = 600.000/700.000/840.000; 206 = 700.000/800.000/960.000; 207 = 700.000/800.000/960.000 VND/đêm.
+- Các đợt Lễ/Tết/cao điểm mới dùng mức giá lễ nói trên; khoảng ngày do vận hành cấu hình trong CMS.
+- Cọc phòng: 50% ngày thường/cuối tuần; 100% nếu đặt trong vòng 3 ngày trước check-in hoặc vào Lễ/Tết/cao điểm.
+- Hold thanh toán: 30 phút. Chưa áp dụng voucher; voucher cấu hình CMS sau.
+
+### PRE-004 — BBQ
+
+- Ba khu: `SAN-DO`, `TRONG-NHA`, `NGOAI-SAN`; mỗi khu 10 bàn, toàn bộ `ACTIVE`.
+- Mã bàn: `<MA-KHU>-01` đến `<MA-KHU>-10`.
+- Mỗi bàn 2–4 khách; nhóm 5–20 khách không được gán bàn trước, lễ tân sắp xếp khi khách đến.
+- Quota toàn hệ thống: 120 khách/ngày. Nhóm 2–4 đặt online theo luồng thường; nhóm 5–20 tạo booking chờ lễ tân xác nhận. Booking chờ xác nhận vẫn chiếm quota đến khi bị từ chối hoặc hủy.
+- Phục vụ từ 10:30; last order 21:30; không giới hạn cố định thời lượng lượt; dọn bàn 10 phút; giữ bàn khi khách đến muộn 30 phút.
+- Không thu cọc giữ bàn. Thành phần/số người đề xuất của set và quyền đổi món cấu hình CMS sau; cho phép đổi món.
+- Menu và giá theo bốn ảnh menu chủ dự án cung cấp ngày 2026-09-01; giá menu đã gồm VAT.
+
+### PRE-005 — hủy, đổi và hoàn tiền
+
+- Chính sách hiệu lực từ 2026-08-25 theo file `Chinh-sach-huy-hoan-VMD.docx` chủ dự án cung cấp ngày 2026-09-01.
+- Mỗi booking được đổi lịch tự động tối đa 1 lần; lần thứ hai chuyển sang liên hệ Homestay để xử lý thủ công.
+- Ngày Lễ/Tết/cao điểm được vận hành tạo theo từng khoảng ngày trong CMS.
+- Không tự động hoàn tiền trong Phase 1; Manager phê duyệt và mọi thao tác phải có audit/lý do.
+
+### PRE-007 — tích hợp production
+
+- SePay và tài khoản ngân hàng đã có; identifier/credential chỉ cung cấp qua kênh an toàn khi cấu hình integration.
+- Supabase production project riêng đã có; URL/ref/region/secret chỉ cấu hình trong `REL-001`, không ghi vào Git.
+- Google Drive cá nhân 5 TB là phương án media do chủ dự án đề xuất, chưa được duyệt production trước khi đạt review quyền truy cập, signed URL tương đương, audit, backup và giới hạn API.
+
 ## 4. PRE-001 — Loại phòng
 
 **Trạng thái:** Partial — nhận bảng giá khách hàng ngày 2026-08-17; còn thiếu cấu hình giường, sức chứa tối đa và tiện nghi chi tiết
