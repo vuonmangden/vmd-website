@@ -5,8 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { formatVnd, getPublicPaymentStatus, nextPaymentPollDelay, type PublicPaymentStatusResponse, validPaymentReference } from './payment-api';
 
-const SUPPORT_PHONE = '1900 9085';
-const SUPPORT_EMAIL = 'vuongmangden.com@gmail.com';
+const SUPPORT_PHONE = '0972 947 942';
+const SUPPORT_EMAIL = 'vuonmangden.com@gmail.com';
 
 type View = { kind: 'loading' } | { kind: 'error' } | { kind: 'ready'; payment: PublicPaymentStatusResponse };
 

@@ -145,6 +145,19 @@ Task chỉ hoàn thành khi: code đã triển khai; lint, type check, unit test
 
 Không tự đoán giá, chính sách cọc/hủy, quyền người dùng, tài khoản ngân hàng, nội dung Zalo, quy tắc kế toán, dữ liệu phòng hoặc bàn. Phải dừng và đặt câu hỏi cụ thể.
 
-## 17. Báo cáo cuối task
+## 17. Phối hợp nhiều agent
+
+Dự án có cả Claude Code và Codex làm song song. Trước khi bắt đầu bất kỳ task nào, bắt buộc:
+
+1. `git fetch origin main`
+2. Đọc tracker từ `origin/main`: `git show origin/main:docs/08_PROGRESS_TRACKER.md` — không đọc bản trên nhánh đang làm, vì bản đó phản ánh thời điểm nhánh được tạo.
+3. Đối chiếu `git log --oneline origin/main -25`. Khi tracker mâu thuẫn với commit log, tin commit log.
+4. Claim task bằng một commit tracker riêng (`In progress (<agent>, <ngày>)`) và push trước khi code.
+
+Nhánh đặt tiền tố theo agent: `codex/` hoặc `claude/`. Tracker phải được cập nhật trong cùng PR với code.
+
+Chi tiết đầy đủ: `docs/10_AGENT_COORDINATION.md`.
+
+## 18. Báo cáo cuối task
 
 Sau mỗi task phải trả: đã thực hiện gì; file đã thay đổi; migration đã tạo; API đã thêm/thay đổi; test đã chạy và kết quả; cách kiểm thử thủ công; ảnh hưởng bảo mật; rủi ro hoặc nội dung chưa hoàn thành.

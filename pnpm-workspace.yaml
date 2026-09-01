@@ -10,6 +10,7 @@ overrides:
   '@playwright/test': 1.55.1
   playwright: 1.55.1
   js-yaml: 5.2.2
+  deepmerge-ts: ^8.0.1
 
 allowBuilds:
   '@prisma/engines': true

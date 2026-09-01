@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module';
 import { QueueModule } from '../../common/queues/queue.module';
+import { AdminPaymentsController } from './admin-payments.controller';
+import { AdminPaymentsService } from './admin-payments.service';
 import { PaymentsController } from './payments.controller';
 import { PaymentsService } from './payments.service';
 import { SePayWebhookConfigService } from './sepay-webhook.config';
@@ -10,11 +12,28 @@ import { PaymentWebhookProcessor } from './payment-webhook.processor';
 import { PaymentProcessingService } from './payment-processing.service';
 import { PublicPaymentStatusController } from './public-payment-status.controller';
 import { PublicPaymentStatusRateLimitService } from './public-payment-status-rate-limit.service';
+import { ReconciliationController } from './reconciliation.controller';
+import { ReconciliationService } from './reconciliation.service';
 
 @Module({
   imports: [AuthModule, QueueModule],
-  controllers: [PaymentsController, SePayWebhookController, PublicPaymentStatusController],
-  providers: [PaymentsService, SePayWebhookConfigService, SePayWebhookService, PaymentProcessingService, PaymentWebhookProcessor, PublicPaymentStatusRateLimitService],
+  controllers: [
+    PaymentsController,
+    SePayWebhookController,
+    PublicPaymentStatusController,
+    ReconciliationController,
+    AdminPaymentsController,
+  ],
+  providers: [
+    PaymentsService,
+    SePayWebhookConfigService,
+    SePayWebhookService,
+    PaymentProcessingService,
+    PaymentWebhookProcessor,
+    PublicPaymentStatusRateLimitService,
+    ReconciliationService,
+    AdminPaymentsService,
+  ],
   exports: [PaymentsService],
 })
 export class PaymentsModule {}

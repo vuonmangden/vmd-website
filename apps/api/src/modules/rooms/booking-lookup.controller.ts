@@ -22,5 +22,5 @@ export class BookingLookupController {
 export class BookingGuestRequestsController {
   constructor(private readonly lookup: BookingLookupService) {}
   @Post(':requestId/review') @RequirePermissions('booking.update') review(@Param('requestId') requestId: string, @Body() dto: ReviewGuestRequestDto, @Req() request: AuthenticatedRequest, @Headers(CORRELATION_ID_HEADER) correlationId?: string) { return this.lookup.review(requestId, dto.note, request.actor!, correlationId); }
-  @Post(':requestId/decision') @RequirePermissions('booking.cancel') decide(@Param('requestId') requestId: string, @Body() dto: DecideGuestRequestDto, @Req() request: AuthenticatedRequest, @Headers(CORRELATION_ID_HEADER) correlationId?: string) { return this.lookup.decide(requestId, dto.decision, dto.note, request.actor!, correlationId); }
+  @Post(':requestId/decision') @RequirePermissions('booking.cancel') decide(@Param('requestId') requestId: string, @Body() dto: DecideGuestRequestDto, @Req() request: AuthenticatedRequest, @Headers(CORRELATION_ID_HEADER) correlationId?: string) { return this.lookup.decide(requestId, dto.decision, dto.note, dto.policy, request.actor!, correlationId); }
 }

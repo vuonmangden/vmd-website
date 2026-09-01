@@ -4,6 +4,12 @@ import { PrismaModule } from './prisma/prisma.module';
 import { OutboxProcessor } from './outbox/outbox.processor';
 import { EmailDeliveryService } from './notification/email/email-delivery.service';
 import { EmailProviderFactory } from './notification/email/email-provider.factory';
+import { ZaloDeliveryService } from './notification/zalo/zalo-delivery.service';
+import { ZaloProviderFactory } from './notification/zalo/zalo-provider.factory';
+import { NotificationJobService } from './notification/notification-job.service';
+import { NotificationSendProcessor } from './notification/notification-send.processor';
+import { NotificationDispatchService } from './notification/notification-dispatch.service';
+import { ReminderScanService } from './notification/reminder-scan.service';
 
 const OUTBOX_PUBLISH_QUEUE = 'outbox-publish';
 const NOTIFICATION_SEND_QUEUE = 'notification-send';
@@ -22,7 +28,17 @@ const NOTIFICATION_SEND_QUEUE = 'notification-send';
       { name: NOTIFICATION_SEND_QUEUE },
     ),
   ],
-  providers: [OutboxProcessor, EmailProviderFactory, EmailDeliveryService],
-  exports: [EmailDeliveryService],
+  providers: [
+    OutboxProcessor,
+    EmailProviderFactory,
+    EmailDeliveryService,
+    ZaloProviderFactory,
+    ZaloDeliveryService,
+    NotificationJobService,
+    NotificationSendProcessor,
+    NotificationDispatchService,
+    ReminderScanService,
+  ],
+  exports: [EmailDeliveryService, ZaloDeliveryService, NotificationJobService],
 })
 export class WorkerModule {}

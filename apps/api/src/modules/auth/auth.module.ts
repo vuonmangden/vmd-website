@@ -9,10 +9,13 @@ import { AdminAccessController } from './admin-access.controller';
 import { RolesService } from './roles.service';
 import { LoginRateLimitService } from './login-rate-limit.service';
 import { SecurityConfigService } from '../../common/security/security.config';
+import { StaffManagementController } from './staff-management.controller';
+import { StaffManagementService } from './staff-management.service';
+import { SupabaseAdminService } from './supabase-admin.service';
 
 @Module({
-  controllers: [AuthController, AdminAccessController],
-  providers: [AuthConfigService, AuthService, SupabaseJwtVerifier, AdminAuthGuard, PermissionsGuard, RolesService, LoginRateLimitService, SecurityConfigService],
-  exports: [AuthService, AdminAuthGuard, PermissionsGuard, RolesService],
+  controllers: [AuthController, AdminAccessController, StaffManagementController],
+  providers: [AuthConfigService, AuthService, SupabaseJwtVerifier, AdminAuthGuard, PermissionsGuard, RolesService, LoginRateLimitService, SecurityConfigService, StaffManagementService, SupabaseAdminService],
+  exports: [AuthService, AdminAuthGuard, PermissionsGuard, RolesService, StaffManagementService],
 })
 export class AuthModule {}

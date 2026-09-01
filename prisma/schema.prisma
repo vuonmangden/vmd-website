@@ -67,6 +67,7 @@ model Customer {
   createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt         DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
   bookings          Booking[]
+  bbqReservations   BbqReservation[]
   deletedAt         DateTime? @map("deleted_at") @db.Timestamptz()
 
   @@index([phoneNormalized])
@@ -113,6 +114,11 @@ model BookingGuestRequest {
   decidedBy       String?  @map("decided_by") @db.Uuid
   decidedAt       DateTime? @map("decided_at") @db.Timestamptz()
   decisionNote    String?  @map("decision_note") @db.Text
+  refundPolicy    String?  @map("refund_policy") @db.VarChar(20)
+  refundTierCode  String?  @map("refund_tier_code") @db.VarChar(50)
+  refundPercent   Int?     @map("refund_percent")
+  refundAmount    BigInt?  @map("refund_amount")
+  forfeitedAmount BigInt?  @map("forfeited_amount")
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
   booking         Booking  @relation(fields: [bookingId], references: [id], onDelete: Restrict)
 
@@ -122,7 +128,8 @@ model BookingGuestRequest {
 
 model PaymentIntent {
   id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  bookingId       String   @map("booking_id") @db.Uuid
+  bookingId       String?  @map("booking_id") @db.Uuid
+  bbqReservationId String? @map("bbq_reservation_id") @db.Uuid
   provider        String   @default("SEPAY_TEST") @db.VarChar(50)
   status          String   @default("PENDING") @db.VarChar(30)
   amount          BigInt
@@ -133,11 +140,13 @@ model PaymentIntent {
   expiresAt       DateTime @map("expires_at") @db.Timestamptz()
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
-  booking         Booking  @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  booking         Booking?        @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  bbqReservation  BbqReservation? @relation(fields: [bbqReservationId], references: [id], onDelete: Restrict)
   reconciliationCases ReconciliationCase[]
 
   @@index([status, expiresAt])
   @@index([bookingId, status])
+  @@index([bbqReservationId, status])
   @@map("payment_intents")
 }
 
@@ -162,15 +171,18 @@ model PaymentWebhookEvent {
 }
 
 model ReconciliationCase {
-  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  paymentIntentId String   @map("payment_intent_id") @db.Uuid
-  status          String   @default("OPEN") @db.VarChar(30)
-  reason          String   @db.VarChar(100)
-  expectedAmount  BigInt   @map("expected_amount")
-  receivedAmount  BigInt   @map("received_amount")
-  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  resolvedAt      DateTime? @map("resolved_at") @db.Timestamptz()
-  paymentIntent   PaymentIntent @relation(fields: [paymentIntentId], references: [id], onDelete: Restrict)
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  paymentIntentId   String    @map("payment_intent_id") @db.Uuid
+  status            String    @default("OPEN") @db.VarChar(30)
+  reason            String    @db.VarChar(100)
+  expectedAmount    BigInt    @map("expected_amount")
+  receivedAmount    BigInt    @map("received_amount")
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  resolvedAt        DateTime? @map("resolved_at") @db.Timestamptz()
+  resolvedBy        String?   @map("resolved_by") @db.Uuid
+  resolutionOutcome String?   @map("resolution_outcome") @db.VarChar(30)
+  resolutionNote    String?   @map("resolution_note") @db.Text
+  paymentIntent     PaymentIntent @relation(fields: [paymentIntentId], references: [id], onDelete: Restrict)
 
   @@index([status, createdAt])
   @@map("reconciliation_cases")
@@ -438,6 +450,263 @@ model NotificationDelivery {
   @@map("notification_deliveries")
 }
 
+model BbqMenuItem {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code              String   @unique @db.VarChar(80)
+  name              String   @db.VarChar(200)
+  menuGroup         String   @map("menu_group") @db.VarChar(50)
+  unit              String   @db.VarChar(20)
+  price             BigInt
+  publicDescription String?  @map("public_description") @db.Text
+  internalNote      String?  @map("internal_note") @db.Text
+  isAvailable       Boolean  @default(true) @map("is_available")
+  displayOrder      Int      @default(0) @map("display_order")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt         DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@index([menuGroup, displayOrder])
+  @@map("bbq_menu_items")
+}
+
+model BbqCombo {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code         String   @unique @db.VarChar(80)
+  name         String   @db.VarChar(200)
+  price        BigInt
+  minGuests    Int?     @map("min_guests")
+  maxGuests    Int?     @map("max_guests")
+  composition  String?  @db.Text
+  internalNote String?  @map("internal_note") @db.Text
+  isAvailable  Boolean  @default(true) @map("is_available")
+  displayOrder Int      @default(0) @map("display_order")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@index([displayOrder])
+  @@map("bbq_combos")
+}
+
+model BbqArea {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code          String    @unique @db.VarChar(50)
+  name          String    @db.VarChar(150)
+  description   String?   @db.Text
+  minCapacity   Int       @map("min_capacity")
+  maxCapacity   Int       @map("max_capacity")
+  coverMediaId  String?   @map("cover_media_id") @db.Uuid
+  status        String    @default("ACTIVE") @db.VarChar(30)
+  sortOrder     Int       @default(0) @map("sort_order")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+  deletedAt     DateTime? @map("deleted_at") @db.Timestamptz()
+
+  tables       BbqTable[]
+  serviceSlots BbqServiceSlot[]
+  reservationTables BbqReservationTable[]
+
+  @@index([status, sortOrder])
+  @@map("bbq_areas")
+}
+
+model BbqTable {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  areaId             String    @map("area_id") @db.Uuid
+  code               String    @unique @db.VarChar(50)
+  name               String    @db.VarChar(100)
+  minCapacity        Int       @map("min_capacity")
+  maxCapacity        Int       @map("max_capacity")
+  status             String    @default("ACTIVE") @db.VarChar(30)
+  turnaroundMinutes  Int       @default(30) @map("turnaround_minutes")
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt          DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+  deletedAt          DateTime? @map("deleted_at") @db.Timestamptz()
+
+  area BbqArea @relation(fields: [areaId], references: [id], onDelete: Restrict)
+  reservationTables BbqReservationTable[]
+
+  @@index([areaId, status])
+  @@map("bbq_tables")
+}
+
+model BbqServiceSlot {
+  id                      String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  areaId                  String?   @map("area_id") @db.Uuid
+  name                    String    @db.VarChar(100)
+  startTime               String    @map("start_time") @db.VarChar(5)
+  endTime                 String    @map("end_time") @db.VarChar(5)
+  bookingIntervalMinutes  Int?      @map("booking_interval_minutes")
+  maxTotalGuests          Int?      @map("max_total_guests")
+  daysOfWeek              Int[]     @default([]) @map("days_of_week")
+  dateFrom                DateTime? @map("date_from") @db.Date
+  dateTo                  DateTime? @map("date_to") @db.Date
+  status                  String    @default("ACTIVE") @db.VarChar(30)
+  createdAt               DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt               DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  area BbqArea? @relation(fields: [areaId], references: [id], onDelete: Restrict)
+
+  @@index([status])
+  @@map("bbq_service_slots")
+}
+
+model BbqReservation {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reservationCode String    @unique @map("reservation_code") @db.VarChar(30)
+  customerId      String    @map("customer_id") @db.Uuid
+  reservationDate DateTime  @map("reservation_date") @db.Date
+  startTime       String    @map("start_time") @db.VarChar(5)
+  endTime         String    @map("end_time") @db.VarChar(5)
+  adults          Int
+  children        Int       @default(0)
+  status          String    @db.VarChar(30)
+  source          String    @db.VarChar(50)
+  itemsAmount     BigInt    @default(0) @map("items_amount")
+  depositAmount   BigInt    @map("deposit_amount")
+  currency        String    @default("VND") @db.Char(3)
+  specialRequest  String?   @map("special_request") @db.Text
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  customer      Customer                      @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  tables        BbqReservationTable[]
+  items         BbqReservationItem[]
+  statusHistory BbqReservationStatusHistory[]
+  paymentIntents PaymentIntent[]
+
+  @@index([status, reservationDate])
+  @@map("bbq_reservations")
+}
+
+model BbqReservationTable {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reservationId String   @map("reservation_id") @db.Uuid
+  tableId       String   @map("table_id") @db.Uuid
+  areaId        String   @map("area_id") @db.Uuid
+  startAt       DateTime @map("start_at") @db.Timestamptz()
+  endAt         DateTime @map("end_at") @db.Timestamptz()
+  status        String   @default("ACTIVE") @db.VarChar(30)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  reservation BbqReservation @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+  table       BbqTable       @relation(fields: [tableId], references: [id], onDelete: Restrict)
+  area        BbqArea        @relation(fields: [areaId], references: [id], onDelete: Restrict)
+
+  @@index([reservationId])
+  @@index([tableId, status])
+  @@map("bbq_reservation_tables")
+}
+
+model BbqReservationItem {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reservationId String   @map("reservation_id") @db.Uuid
+  itemType      String   @map("item_type") @db.VarChar(20)
+  code          String   @db.VarChar(80)
+  nameSnapshot  String   @map("name_snapshot") @db.VarChar(200)
+  unitSnapshot  String?  @map("unit_snapshot") @db.VarChar(20)
+  unitPrice     BigInt   @map("unit_price")
+  quantity      Int
+  lineTotal     BigInt   @map("line_total")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  reservation BbqReservation @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+
+  @@index([reservationId])
+  @@map("bbq_reservation_items")
+}
+
+model BbqReservationStatusHistory {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reservationId String   @map("reservation_id") @db.Uuid
+  fromStatus    String?  @map("from_status") @db.VarChar(30)
+  toStatus      String   @map("to_status") @db.VarChar(30)
+  reason        String?  @db.Text
+  changedAt     DateTime @default(now()) @map("changed_at") @db.Timestamptz()
+
+  reservation BbqReservation @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+
+  @@index([reservationId, changedAt])
+  @@map("bbq_reservation_status_history")
+}
+
+model ContentPage {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug        String    @unique @db.VarChar(150)
+  title       String    @db.VarChar(200)
+  body        String    @db.Text
+  status      String    @default("DRAFT") @db.VarChar(20)
+  publishedAt DateTime? @map("published_at") @db.Timestamptz()
+  createdBy   String?   @map("created_by") @db.Uuid
+  updatedBy   String?   @map("updated_by") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz()
+
+  @@index([status, slug])
+  @@map("content_pages")
+}
+
+model MediaAsset {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bucket       String    @db.VarChar(100)
+  objectKey    String    @map("object_key") @db.Text
+  originalName String    @map("original_name") @db.Text
+  mimeType     String    @map("mime_type") @db.VarChar(100)
+  sizeBytes    BigInt?   @map("size_bytes")
+  width        Int?
+  height       Int?
+  altText      String?   @map("alt_text") @db.Text
+  visibility   String    @default("PUBLIC") @db.VarChar(30)
+  status       String    @default("PENDING") @db.VarChar(20)
+  uploadedBy   String?   @map("uploaded_by") @db.Uuid
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz()
+
+  @@unique([bucket, objectKey])
+  @@index([status, deletedAt])
+  @@map("media_assets")
+}
+
+model ArticleCategory {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String   @db.VarChar(150)
+  slug        String   @unique @db.VarChar(150)
+  description String?  @db.Text
+  sortOrder   Int      @default(0) @map("sort_order")
+  status      String   @default("ACTIVE") @db.VarChar(20)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  articles Article[]
+
+  @@index([status, sortOrder])
+  @@map("article_categories")
+}
+
+model Article {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  categoryId     String?   @map("category_id") @db.Uuid
+  title          String    @db.VarChar(250)
+  slug           String    @unique @db.VarChar(250)
+  excerpt        String?   @db.Text
+  content        Json      @db.JsonB
+  coverMediaId   String?   @map("cover_media_id") @db.Uuid
+  authorId       String?   @map("author_id") @db.Uuid
+  status         String    @default("DRAFT") @db.VarChar(20)
+  seoTitle       String?   @map("seo_title") @db.VarChar(200)
+  seoDescription String?   @map("seo_description") @db.VarChar(300)
+  canonicalUrl   String?   @map("canonical_url") @db.Text
+  publishedAt    DateTime? @map("published_at") @db.Timestamptz()
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt      DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz()
+
+  category ArticleCategory? @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@index([status, publishedAt])
+  @@index([categoryId, status])
+  @@map("articles")
+}
+
 model AppSetting {
   key               String   @id @db.VarChar(150)
   value             Json     @db.JsonB
@@ -447,4 +716,24 @@ model AppSetting {
   updatedAt         DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
 
   @@map("app_settings")
+}
+
+model ContactSubmission {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  fullName      String    @map("full_name") @db.VarChar(150)
+  email         String?   @db.Citext
+  phone         String?   @db.VarChar(20)
+  subject       String    @db.VarChar(200)
+  message       String    @db.Text
+  status        String    @default("NEW") @db.VarChar(30)
+  handledBy     String?   @map("handled_by") @db.Uuid
+  handledAt     DateTime? @map("handled_at") @db.Timestamptz()
+  internalNote  String?   @map("internal_note") @db.Text
+  ipHash        String?   @map("ip_hash") @db.VarChar(64)
+  correlationId String?   @map("correlation_id") @db.Uuid
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@index([status, createdAt])
+  @@map("contact_submissions")
 }

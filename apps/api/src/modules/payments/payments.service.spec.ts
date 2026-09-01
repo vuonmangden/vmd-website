@@ -7,6 +7,9 @@ function transaction(overrides: Record<string, unknown> = {}) {
   const tx = {
     idempotencyKey: { findUnique: jest.fn().mockResolvedValue(null), create: jest.fn() },
     booking: { findUnique: jest.fn().mockResolvedValue(booking), update: jest.fn() },
+    bbqReservation: { findUnique: jest.fn().mockResolvedValue(null), update: jest.fn() },
+    bbqReservationTable: { updateMany: jest.fn() },
+    bbqReservationStatusHistory: { create: jest.fn() },
     resourceHold: { findFirst: jest.fn().mockResolvedValue({ id: 'hold' }), update: jest.fn(), updateMany: jest.fn() },
     appSetting: { findUnique: jest.fn().mockResolvedValue({ value: { hours: 24 } }) },
     paymentIntent: { create: jest.fn().mockResolvedValue({ id: '00000000-0000-4000-8000-000000000004', status: 'PENDING', amount: 2500000n, currency: 'VND', qrPayload: 'VMD-SANDBOX', expiresAt: new Date('2099-08-14T00:00:00.000Z') }), findUnique: jest.fn(), findMany: jest.fn().mockResolvedValue([]), updateMany: jest.fn() },
@@ -50,5 +53,33 @@ describe('PaymentsService', () => {
   it('does not overwrite an already settled or retried payment state', async () => {
     const { tx, prisma } = transaction({ paymentIntent: { create: jest.fn(), findUnique: jest.fn().mockResolvedValue({ id: 'intent', status: 'PAID', expiresAt: new Date('2099-08-12T00:00:00.000Z') }), findMany: jest.fn(), updateMany: jest.fn() } });
     await expect(new PaymentsService(prisma as never, () => now).expireOne('intent', now)).resolves.toBe(false); expect(tx.booking.update).not.toHaveBeenCalled();
+  });
+
+  it('creates a BBQ deposit intent using the BBQ expiry setting and a distinct transfer prefix', async () => {
+    const reservation = { id: '00000000-0000-4000-8000-000000000005', depositAmount: 150000n, currency: 'VND', createdAt: new Date('2099-08-13T00:00:00.000Z') };
+    const { tx, prisma } = transaction({ paymentIntent: { create: jest.fn().mockResolvedValue({ id: 'bbq-intent', bookingId: null, bbqReservationId: reservation.id, status: 'PENDING', amount: reservation.depositAmount, currency: 'VND', qrPayload: 'VMD-SANDBOX', expiresAt: new Date('2099-08-13T12:00:00.000Z') }), findUnique: jest.fn(), findMany: jest.fn().mockResolvedValue([]), updateMany: jest.fn() } });
+    const service = new PaymentsService(prisma as never, () => now);
+    const result = await service.createSandboxIntentForBbqCheckout(tx as never, reservation, 'hold-1', actor);
+    expect(result.transferContent).toMatch(/^VMD BBQ\d{6}[A-F0-9]{4}$/);
+    expect(tx.appSetting.findUnique).toHaveBeenCalledWith({ where: { key: 'payment.expiry_hours.bbq' } });
+    expect(tx.paymentIntent.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ bbqReservationId: reservation.id, amount: reservation.depositAmount }) }));
+    expect(tx.resourceHold.update).toHaveBeenCalledWith({ where: { id: 'hold-1' }, data: { expiresAt: expect.any(Date) } });
+  });
+
+  it('expires a BBQ reservation intent, releases its table hold, and records status history', async () => {
+    const reservationId = '00000000-0000-4000-8000-000000000006';
+    const expiredIntent = { id: 'bbq-intent', bookingId: null, bbqReservationId: reservationId, status: 'PENDING', expiresAt: new Date('2099-08-12T00:00:00.000Z'), amount: 150000n, paidAmount: 0n };
+    const { tx, prisma } = transaction({
+      paymentIntent: { create: jest.fn(), findUnique: jest.fn().mockResolvedValue(expiredIntent), findMany: jest.fn(), updateMany: jest.fn().mockResolvedValue({ count: 1 }) },
+      bbqReservation: { findUnique: jest.fn().mockResolvedValue({ id: reservationId, status: 'PENDING_PAYMENT' }), update: jest.fn() },
+      bbqReservationStatusHistory: { create: jest.fn() },
+      bbqReservationTable: { updateMany: jest.fn() },
+    });
+    const service = new PaymentsService(prisma as never, () => now);
+    await expect(service.expireOne('bbq-intent', now)).resolves.toBe(true);
+    expect(tx.bbqReservation.update).toHaveBeenCalledWith({ where: { id: reservationId }, data: { status: 'EXPIRED' } });
+    expect(tx.bbqReservationTable.updateMany).toHaveBeenCalledWith({ where: { reservationId, status: 'ACTIVE' }, data: { status: 'RELEASED' } });
+    expect(tx.resourceHold.updateMany).toHaveBeenCalledWith({ where: { referenceType: 'BBQ_RESERVATION', referenceId: reservationId, status: 'ACTIVE' }, data: { status: 'RELEASED', releasedAt: now } });
+    expect(tx.booking.update).not.toHaveBeenCalled();
   });
 });

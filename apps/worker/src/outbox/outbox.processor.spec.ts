@@ -48,7 +48,7 @@ describe('OutboxProcessor', () => {
         id: 'event-1',
         aggregateType: 'customer',
         aggregateId: 'cust-1',
-        eventType: 'customer.created',
+        eventType: 'booking.confirmed.payment.sandbox',
         payload: { customerId: 'cust-1' },
         status: 'pending',
         attemptCount: 0,
@@ -63,12 +63,12 @@ describe('OutboxProcessor', () => {
 
       expect(result).toBe(1);
       expect(mockQueue.add).toHaveBeenCalledWith(
-        'customer.created',
+        'booking.confirmed.payment.sandbox',
         {
           eventId: 'event-1',
           aggregateType: 'customer',
           aggregateId: 'cust-1',
-          eventType: 'customer.created',
+          eventType: 'booking.confirmed.payment.sandbox',
           payload: { customerId: 'cust-1' },
         },
         { jobId: 'event-1' },
@@ -88,7 +88,7 @@ describe('OutboxProcessor', () => {
         id: 'event-2',
         aggregateType: 'customer',
         aggregateId: 'cust-2',
-        eventType: 'customer.created',
+        eventType: 'booking.confirmed.payment.sandbox',
         payload: {},
         status: 'pending',
         attemptCount: 4,
@@ -118,7 +118,7 @@ describe('OutboxProcessor', () => {
         id: 'event-3',
         aggregateType: 'booking',
         aggregateId: 'bkg-1',
-        eventType: 'booking.created',
+        eventType: 'bbq_reservation.confirmed.payment.sandbox',
         payload: {},
         status: 'pending',
         attemptCount: 1,
@@ -172,7 +172,7 @@ describe('OutboxProcessor', () => {
     it('does not mark an event published when its queue is unavailable', async () => {
       const event = {
         id: 'event-5', aggregateType: 'customer', aggregateId: 'cust-5',
-        eventType: 'customer.created', payload: {}, status: 'pending',
+        eventType: 'booking.confirmed.payment.sandbox', payload: {}, status: 'pending',
         attemptCount: 0, createdAt: new Date(),
       };
       prisma.outboxEvent.findMany.mockResolvedValue([event]);

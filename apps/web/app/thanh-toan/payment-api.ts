@@ -9,7 +9,7 @@ export interface PublicPaymentStatusResponse {
   transferContent: string;
 }
 
-const apiBase = process.env.NEXT_PUBLIC_API_ORIGIN ?? 'http://localhost:3002';
+const apiBase = `${process.env.NEXT_PUBLIC_API_ORIGIN ?? 'http://localhost:3002'}/api/v1`;
 const uuidV4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export function validPaymentReference(reference: string | null): reference is string {
@@ -23,7 +23,9 @@ export async function getPublicPaymentStatus(reference: string): Promise<PublicP
     cache: 'no-store',
   });
   if (!response.ok) throw new Error('PAYMENT_STATUS_UNAVAILABLE');
-  return response.json() as Promise<PublicPaymentStatusResponse>;
+  // The API wraps every response in { data, meta, correlationId } (ResponseTransformInterceptor).
+  const envelope = (await response.json()) as { data: PublicPaymentStatusResponse };
+  return envelope.data;
 }
 
 export function formatVnd(amount: string): string {
