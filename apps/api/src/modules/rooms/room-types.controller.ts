@@ -20,7 +20,7 @@ import { RoomTypesService } from './room-types.service';
 export class RoomTypesController {
   constructor(private readonly roomTypes: RoomTypesService) {}
 
-  @Post() @ApiOperation({ summary: 'Create a room type (synthetic/staging-only until PRE-001)' })
+  @Post() @ApiOperation({ summary: 'Create a room type' })
   create(@Body() dto: CreateRoomTypeDto) { return this.roomTypes.create(dto); }
 
   @Get() @ApiOperation({ summary: 'List non-archived room types' })

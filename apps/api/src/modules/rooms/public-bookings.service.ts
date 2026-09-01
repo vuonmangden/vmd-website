@@ -33,7 +33,7 @@ export class PublicBookingsService {
       return await this.prisma.$transaction(async (tx) => {
         const previous = await tx.idempotencyKey.findUnique({ where: { key } });
         if (previous?.responseBody) return previous.responseBody;
-        const roomType = await tx.roomType.findFirst({ where: { slug: dto.roomSlug, status: 'ACTIVE', deletedAt: null }, select: { id: true, maxAdults: true, maxChildren: true, maxTotalGuests: true } });
+        const roomType = await tx.roomType.findFirst({ where: { slug: dto.roomSlug, status: 'ACTIVE', deletedAt: null }, select: { id: true, standardAdults: true, maxAdults: true, maxChildren: true, maxTotalGuests: true } });
         if (!roomType || dto.adults > roomType.maxAdults || dto.children > roomType.maxChildren || dto.adults + dto.children > roomType.maxTotalGuests) throw invalid();
         const room = await tx.room.findFirst({
           where: { roomTypeId: roomType.id, status: 'ACTIVE', deletedAt: null, blocks: { none: { cancelledAt: null, startDate: { lt: end }, endDate: { gt: start } } }, occupancies: { none: { stayDate: { gte: start, lt: end } } } },
@@ -41,7 +41,7 @@ export class PublicBookingsService {
         });
         if (!room) throw unavailable();
         const rules = await tx.roomRateRule.findMany({ where: { roomTypeId: roomType.id, status: 'ACTIVE' }, orderBy: [{ priority: 'desc' }, { id: 'asc' }] });
-        const quote = this.pricing.quote(rules, dto.checkIn, dto.checkOut, dto.adults, dto.children);
+        const quote = this.pricing.quote(rules, dto.checkIn, dto.checkOut, dto.adults, dto.children, roomType.standardAdults);
         const customer = await tx.customer.findFirst({ where: { deletedAt: null, OR: [{ phoneNormalized: phone }, ...(email ? [{ emailNormalized: email }] : [])] }, orderBy: { createdAt: 'asc' } })
           ?? await tx.customer.create({ data: { customerCode: CustomersService.generateCode(), fullName: dto.fullName.trim(), phoneNormalized: phone, emailNormalized: email, source: 'DIRECT' } });
         const booking = await tx.booking.create({ data: { bookingCode: bookingCode(), customerId: customer.id, checkInDate: start, checkOutDate: end, adults: dto.adults, children: dto.children, status: 'PENDING_PAYMENT', source: 'SYNTHETIC', totalAmount: quote.total, specialRequest: dto.specialRequest?.trim() || null, expectedArrivalTime: dto.expectedArrivalTime?.trim() || null } });

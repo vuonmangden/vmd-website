@@ -13,7 +13,7 @@ import { RoomsService } from './rooms.service';
 @ApiForbiddenResponse({ description: 'Authenticated staff lacks room.manage' })
 export class RoomsController {
   constructor(private readonly rooms: RoomsService) {}
-  @Post() @ApiOperation({ summary: 'Create a physical room (synthetic/staging-only until PRE-002)' })
+  @Post() @ApiOperation({ summary: 'Create a physical room' })
   create(@Body() dto: CreateRoomDto) { return this.rooms.create(dto); }
   @Get() @ApiOperation({ summary: 'List non-archived physical rooms' })
   list() { return this.rooms.list(); }

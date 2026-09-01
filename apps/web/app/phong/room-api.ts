@@ -6,7 +6,9 @@ export interface PublicRoom {
   capacity: { standardAdults: number; maxAdults: number; maxChildren: number; maxTotalGuests: number };
   bedConfiguration: unknown;
   amenities: unknown;
-  isSandbox: true;
+  isSandbox: false;
+  pricesIncludeVat: false;
+  extraMattress: { maxPerRoom: number; guestCapacityPerMattress: number; price: number; currency: 'VND' };
 }
 
 export interface PublicQuote {
@@ -15,7 +17,9 @@ export interface PublicQuote {
   nightlySubtotal: number;
   extraGuestSubtotal: number;
   total: number;
-  isSandbox: true;
+  isSandbox: false;
+  pricesIncludeVat: false;
+  extraMattress: { maxPerRoom: number; guestCapacityPerMattress: number; price: number; currency: 'VND' };
 }
 
 const apiBase = `${process.env.NEXT_PUBLIC_API_ORIGIN ?? 'http://localhost:3002'}/api/v1`;
