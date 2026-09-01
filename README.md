@@ -4,7 +4,7 @@ Foundation-only pnpm/Turborepo workspace for the Phase 1 modular monolith. It co
 
 ## Prerequisites
 
-- Node.js 24.14.0 (Node.js 24 LTS; see `.node-version` and `.nvmrc`)
+- Node.js 24 LTS, tối thiểu 24.14.0 (CI và các file version pin 24.14.0 để tái lập)
 - Corepack with pnpm 11.9.0
 
 Enable the pinned package manager with `corepack enable`, then use the commands below from the repository root.

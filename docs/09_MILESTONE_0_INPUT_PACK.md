@@ -47,7 +47,7 @@ Các trạng thái hợp lệ: `Chờ dữ liệu`, `Đang rà soát`, `Đã duy
 
 ## 4. PRE-001 — Loại phòng
 
-**Trạng thái:** Ready cho `CMS-005` — chủ dự án đã duyệt phạm vi layout ngày 2026-08-10; dữ liệu legal/CTA ngoài phạm vi vẫn chưa được cung cấp
+**Trạng thái:** Đã duyệt — tiện nghi được chủ dự án chủ động để trống và sẽ cập nhật qua CMS; mỗi hạng được kê tối đa 1 đệm, tính thêm 1 khách
 **Owner:** Chủ dự án
 **Người duyệt:** Chủ dự án
 **Ngày duyệt:** 2026-08-10
@@ -56,30 +56,44 @@ Các trạng thái hợp lệ: `Chờ dữ liệu`, `Đang rà soát`, `Đã duy
 
 | Mã loại | Tên hiển thị | Sức chứa chuẩn | Sức chứa tối đa | Cấu hình giường | Tiện nghi chính | Mô tả ngắn | Trạng thái mở bán |
 |---|---|---:|---:|---|---|---|---|
-| Cần chủ dự án cung cấp |  |  |  |  |  |  |  |
+| Chưa xác định | Double Lake Window | 2 | 3 | Chưa xác định; tối đa 1 đệm thêm | Để trống, cập nhật CMS sau | Chưa xác định | ACTIVE |
+| Chưa xác định | Family Loft Balcony | 4 | 5 | Chưa xác định; tối đa 1 đệm thêm | Để trống, cập nhật CMS sau | Chưa xác định | ACTIVE |
+| Chưa xác định | Double City View | 2 | 3 | Chưa xác định; tối đa 1 đệm thêm | Để trống, cập nhật CMS sau | Chưa xác định | ACTIVE |
+| Chưa xác định | Double Balcony | 2 | 3 | Chưa xác định; tối đa 1 đệm thêm | Để trống, cập nhật CMS sau | Chưa xác định | ACTIVE |
+| Chưa xác định | Garden View | 2 | 3 | Chưa xác định; tối đa 1 đệm thêm | Để trống, cập nhật CMS sau | Chưa xác định | ACTIVE |
+| Chưa xác định | Premium Garden View | 2 | 3 | Chưa xác định; tối đa 1 đệm thêm | Để trống, cập nhật CMS sau | Chưa xác định | ACTIVE |
+| Chưa xác định | Premium Balcony View | 2 | 3 | Chưa xác định; tối đa 1 đệm thêm | Để trống, cập nhật CMS sau | Chưa xác định | ACTIVE |
+| Chưa xác định | Dorm | 16 | 17 | Chưa xác định; tối đa 1 đệm thêm | Để trống, cập nhật CMS sau | Chưa xác định | INACTIVE |
 
 Quyết định bổ sung:
 
 - Trẻ em được tính vào sức chứa theo quy tắc nào?
-- Có cho phép kê thêm giường/nệm không? Nếu có, giới hạn và phụ thu thuộc PRE-003.
+- Có cho phép kê thêm giường/nệm không? Có, tối đa 1 đệm cho mỗi hạng phòng, phụ thu 200.000 VND/đệm; mỗi đệm tính thêm 1 khách. Khách có thể nằm chung nhưng hệ thống vẫn tính theo số khách khai báo.
 - Loại phòng nào chưa sẵn sàng mở bán trong Phase 1?
 
 ## 5. PRE-002 — Phòng thực tế
 
-**Trạng thái:** Chờ dữ liệu
+**Trạng thái:** Đang rà soát — tất cả phòng ở tầng 2; phòng 201–207 đã được duyệt `ACTIVE`; trạng thái mở bán của Dorm 301 còn chờ xác nhận
 **Owner:** Chủ dự án
 **Người duyệt:** Chưa xác định
 **Ngày duyệt:** Chưa xác định
 
 | Mã phòng duy nhất | Loại phòng | Tên nội bộ | Tầng/khu | Sức chứa | Trạng thái ban đầu | Ghi chú vận hành |
 |---|---|---|---|---:|---|---|
-| Cần chủ dự án cung cấp |  |  |  |  |  |  |
+| 201 | Double Lake Window | Chưa xác định | Tầng 2 | 2 | ACTIVE |  |
+| 202 | Family Loft Balcony | Chưa xác định | Tầng 2 | 4 | ACTIVE |  |
+| 203 | Double City View | Chưa xác định | Tầng 2 | 2 | ACTIVE |  |
+| 204 | Double Balcony | Chưa xác định | Tầng 2 | 2 | ACTIVE |  |
+| 205 | Garden View | Chưa xác định | Tầng 2 | 2 | ACTIVE |  |
+| 206 | Premium Garden View | Chưa xác định | Tầng 2 | 2 | ACTIVE |  |
+| 207 | Premium Balcony View | Chưa xác định | Tầng 2 | 2 | ACTIVE |  |
+| 301 | Dorm | Chưa xác định | Tầng 2 | 16 | INACTIVE | Giá liên hệ; chưa mở bán, không tự mở booking online |
 
 Trạng thái ban đầu đề nghị dùng một trong: `ACTIVE`, `INACTIVE`, `MAINTENANCE`; chủ dự án cần duyệt vocabulary cuối cùng trước khi tạo schema nghiệp vụ.
 
 ## 6. PRE-003 — Giá, phụ thu, thuế/phí và tiền cọc
 
-**Trạng thái:** Chờ dữ liệu
+**Trạng thái:** Đã duyệt — giá thường/cuối tuần hiệu lực từ 2026-09-01; Lễ/Tết/cao điểm tạo rule theo từng khoảng ngày trong CMS; đệm thêm tính một khách và phụ thu 200.000 VND
 **Owner:** Chủ dự án
 **Người duyệt:** Chưa xác định
 **Ngày duyệt:** Chưa xác định
@@ -88,11 +102,24 @@ Tất cả số tiền dùng số nguyên VND.
 
 | Loại phòng | Giá ngày thường/đêm | Giá cuối tuần/đêm | Định nghĩa cuối tuần | Giá lễ | Giai đoạn áp dụng | Số khách bao gồm |
 |---|---:|---:|---|---|---|---:|
-| Cần chủ dự án cung cấp |  |  |  |  |  |  |
+| Double Lake Window (201) | 550.000 | 650.000 | Thứ Sáu–Thứ Bảy; ngày thường là Chủ Nhật–Thứ Năm | 780.000 | Giá thường/cuối tuần từ 2026-09-01; Lễ/Tết/cao điểm theo khoảng ngày cấu hình CMS | 2 |
+| Family Loft Balcony (202) | 800.000 | 900.000 | Thứ Sáu–Thứ Bảy; ngày thường là Chủ Nhật–Thứ Năm | 1.080.000 | Giá thường/cuối tuần từ 2026-09-01; Lễ/Tết/cao điểm theo khoảng ngày cấu hình CMS | 4 |
+| Double City View (203) | 500.000 | 600.000 | Thứ Sáu–Thứ Bảy; ngày thường là Chủ Nhật–Thứ Năm | 720.000 | Giá thường/cuối tuần từ 2026-09-01; Lễ/Tết/cao điểm theo khoảng ngày cấu hình CMS | 2 |
+| Double Balcony (204) | 550.000 | 650.000 | Thứ Sáu–Thứ Bảy; ngày thường là Chủ Nhật–Thứ Năm | 780.000 | Giá thường/cuối tuần từ 2026-09-01; Lễ/Tết/cao điểm theo khoảng ngày cấu hình CMS | 2 |
+| Garden View (205) | 600.000 | 700.000 | Thứ Sáu–Thứ Bảy; ngày thường là Chủ Nhật–Thứ Năm | 840.000 | Giá thường/cuối tuần từ 2026-09-01; Lễ/Tết/cao điểm theo khoảng ngày cấu hình CMS | 2 |
+| Premium Garden View (206) | 700.000 | 800.000 | Thứ Sáu–Thứ Bảy; ngày thường là Chủ Nhật–Thứ Năm | 960.000 | Giá thường/cuối tuần từ 2026-09-01; Lễ/Tết/cao điểm theo khoảng ngày cấu hình CMS | 2 |
+| Premium Balcony View (207) | 700.000 | 800.000 | Thứ Sáu–Thứ Bảy; ngày thường là Chủ Nhật–Thứ Năm | 960.000 | Giá thường/cuối tuần từ 2026-09-01; Lễ/Tết/cao điểm theo khoảng ngày cấu hình CMS | 2 |
+| Dorm (301) | Liên hệ | Liên hệ | Không áp dụng | Liên hệ | Không tự tạo quote/booking online | 16 |
 
 | Loại phụ thu | Điều kiện áp dụng | Số tiền VND | Theo đêm/lần/người | Có chịu thuế/phí không |
 |---|---|---:|---|---|
-| Cần chủ dự án cung cấp |  |  |  |  |
+| Đệm thêm | Có thể kê; giới hạn theo từng hạng phòng chưa xác định | 200.000 | Đệm | Chưa xác định |
+| Trẻ 6–11 tuổi dùng bữa sáng | 50.000 | VND/trẻ | Người | Chưa xác định |
+| Trả phòng muộn 12:00–15:00 | 30% giá phòng một đêm | Theo giá phòng | Lần | Chưa xác định |
+| Trả phòng muộn 15:00–18:00 | 50% giá phòng một đêm | Theo giá phòng | Lần | Chưa xác định |
+| Trả phòng sau 18:00 | 100% giá phòng một đêm | Theo giá phòng | Lần | Chưa xác định |
+
+Quyết định đã nhận: cọc phòng là 50% giá trị booking cho ngày thường/cuối tuần; 100% nếu đặt trong vòng 3 ngày trước check-in hoặc vào Lễ/Tết/cao điểm. Giá phòng chưa gồm VAT. Hold thanh toán là 30 phút. Chưa áp dụng voucher; voucher sẽ cấu hình trong CMS sau. Lễ/Tết/cao điểm dùng giá lễ đã chốt, với khoảng ngày do vận hành tạo/cập nhật trong CMS.
 
 Quyết định bắt buộc:
 
@@ -105,7 +132,7 @@ Quyết định bắt buộc:
 
 ## 7. PRE-004 — Khu vực, bàn, khung giờ và combo BBQ
 
-**Trạng thái:** Chờ dữ liệu
+**Trạng thái:** Đang rà soát — đã duyệt ba khu vực, 10 bàn/khu, giờ phục vụ, thời gian dọn bàn, không cọc và thời gian giữ bàn; còn thiếu sức chứa từng bàn để chống overbooking
 **Owner:** Chủ dự án
 **Người duyệt:** Chưa xác định
 **Ngày duyệt:** Chưa xác định
@@ -114,25 +141,27 @@ Quyết định bắt buộc:
 
 | Mã khu vực | Tên khu vực | Mã bàn | Sức chứa tối thiểu | Sức chứa tối đa | Cho phép ghép bàn | Trạng thái |
 |---|---|---|---:|---:|---|---|
-| Cần chủ dự án cung cấp |  |  |  |  |  |  |
+| SAN-DO | Khu vực sân đỏ | SAN-DO-01 đến SAN-DO-10 | 2 | 4 | Có, tối đa 20 khách khi ghép; lễ tân sắp xếp lúc khách đến | ACTIVE |
+| TRONG-NHA | Khu vực trong nhà | TRONG-NHA-01 đến TRONG-NHA-10 | 2 | 4 | Có, tối đa 20 khách khi ghép; lễ tân sắp xếp lúc khách đến | ACTIVE |
+| NGOAI-SAN | Khu vực ngoài sân | NGOAI-SAN-01 đến NGOAI-SAN-10 | 2 | 4 | Có, tối đa 20 khách khi ghép; lễ tân sắp xếp lúc khách đến | ACTIVE |
 
 ### Khung giờ
 
 | Mã khung giờ | Giờ bắt đầu | Thời lượng sử dụng | Thời gian dọn bàn | Ngày áp dụng | Giới hạn khách |
 |---|---|---|---|---|---:|
-| Cần chủ dự án cung cấp |  |  |  |  |  |
+| BBQ-OPEN | 10:30 | Không cố định; nhận last order 21:30 | 10 phút | Mỗi ngày | Quota toàn bộ 120 khách/ngày; nhóm tối đa 20 khách/booking |
 
 ### Combo/menu Phase 1
 
 | Mã combo | Tên | Số người đề xuất | Thành phần | Giá VND | Có cho chỉnh món | Trạng thái mở bán |
 |---|---|---:|---|---:|---|---|
-| Cần chủ dự án cung cấp |  |  |  |  |  |  |
+| Ghi nhận nguồn | Menu BBQ được chủ dự án cung cấp ngày 2026-09-01 | Chưa xác định | Danh sách món, set, lẩu và đồ uống theo asset đính kèm | Theo asset | Có; thành phần/số người đề xuất sẽ cấu hình CMS sau | Chưa xác định |
 
-Quyết định bổ sung: quy tắc ghép bàn, giới hạn đặt trước, mức cọc, phụ thu quá giờ và chính sách khách không đến.
+Quyết định bổ sung: giữ quota toàn bộ 120 khách cho mỗi ngày hoạt động, không cấp trước tổ hợp bàn. Nhóm 2–4 khách được đặt online theo luồng thường. Nhóm 5–20 khách tạo booking chờ lễ tân xác nhận; lễ tân tự xếp bàn khi khách đến. Quota ngày được tính từ tổng số khách của các booking hợp lệ, bao gồm booking chờ xác nhận cho đến khi bị từ chối hoặc hủy, để không overbook.
 
 ## 8. PRE-005 — Chính sách vận hành và tài chính
 
-**Trạng thái:** Chờ dữ liệu
+**Trạng thái:** Đã duyệt — chính sách hiệu lực từ 2026-08-25; lịch Lễ/Tết/cao điểm sẽ do vận hành cấu hình trong CMS, lần đổi lịch thứ hai chuyển sang xử lý thủ công qua Homestay
 **Owner:** Chủ dự án
 **Người duyệt:** Chưa xác định
 **Ngày duyệt:** Chưa xác định
@@ -141,23 +170,23 @@ Quyết định bổ sung: quy tắc ghép bàn, giới hạn đặt trước, m
 
 | Nội dung | Quyết định cần duyệt |
 |---|---|
-| Giờ check-in | Cần chủ dự án cung cấp |
-| Giờ check-out | Cần chủ dự án cung cấp |
-| Check-in sớm/check-out muộn | Điều kiện và phụ thu |
-| Chính sách trẻ em | Độ tuổi, miễn phí/phụ thu, sức chứa |
-| Hủy booking | Các mốc thời gian và số tiền/tỷ lệ được giữ lại |
-| Đổi lịch | Số lần, thời hạn báo trước, chênh lệch giá |
-| No-show | Trạng thái booking và xử lý tiền đã thu |
-| Hoàn tiền | Điều kiện, người phê duyệt, SLA xử lý |
+| Giờ check-in | Từ 14:00 |
+| Giờ check-out | Trước 12:00 |
+| Check-in sớm/check-out muộn | Check-in sớm theo tình trạng thực tế, không có phụ thu cố định; checkout 12:00–15:00: 30%, 15:00–18:00: 50%, sau 18:00: 100% giá một đêm |
+| Chính sách trẻ em | Dưới 6 tuổi miễn phí khi ngủ chung; 6–11 tuổi phụ thu 50.000 VND nếu dùng bữa sáng; từ 12 tuổi tính như người lớn |
+| Hủy booking | Ngày thường/cuối tuần: ≥7 ngày hoàn 100%, 4–6 ngày hoàn 50%, 2–3 ngày không hoàn nhưng đổi một lần, <48 giờ không hoàn/không đổi; Lễ/Tết/cao điểm: ≥14 ngày hoàn 100%, 7–13 ngày hoàn 50%, <7 ngày không hoàn |
+| Đổi lịch | Tối đa một lần; ngày mới trong 60 ngày, tùy tồn phòng; giá cao hơn thu chênh, giá thấp hơn không hoàn chênh. Lần đổi thứ hai: liên hệ Homestay để xử lý booking |
+| No-show | Ngày thường/cuối tuần: không hoàn, tính đủ 100% giá trị booking; Lễ/Tết/cao điểm: không hoàn |
+| Hoàn tiền | Manager phê duyệt; xử lý trong ngày sử dụng dịch vụ; refund Phase 1 vẫn phải thao tác thủ công, audit và có lý do |
 
 ### BBQ
 
 | Nội dung | Quyết định cần duyệt |
 |---|---|
-| Hủy/đổi lịch | Các mốc thời gian và số tiền/tỷ lệ được giữ lại |
-| No-show | Xử lý tiền cọc và tài nguyên bàn |
-| Đến muộn | Thời gian giữ bàn và ảnh hưởng thời lượng sử dụng |
-| Hoàn cọc | Điều kiện, người phê duyệt, SLA xử lý |
+| Hủy/đổi lịch | Báo trước từ 1 giờ: hoàn 100% cọc; dưới 1 giờ: mất cọc. Đổi giờ/ngày tối đa một lần nếu báo trước từ 1 giờ và còn bàn trống |
+| No-show | Mất cọc, không hoàn |
+| Đến muộn | Giữ bàn 30 phút; thời lượng sử dụng không cố định |
+| Hoàn cọc | Không áp dụng cọc giữ bàn ở cấu hình hiện hành; mọi điều chỉnh tài chính vẫn cần Manager phê duyệt, thao tác thủ công có audit và lý do |
 
 ### Kế toán/đối soát
 
@@ -229,12 +258,12 @@ Chỉ ghi identifier/reference; không ghi secret.
 |---|---|---|---|
 | Public domain | Chưa cung cấp | DNS credential lưu ngoài repo | Chờ dữ liệu |
 | Admin domain | Development: `http://localhost:3001`; production `https://admin.vuonmangden.vn` đã chốt | DNS credential lưu ngoài repo | Đã nhận |
-| Supabase/PostgreSQL | Staging: project ref `atefkvykvwgtuaiscxnm`, URL `https://atefkvykvwgtuaiscxnm.supabase.co`, Singapore (`ap-southeast-1`); production chưa tạo và phải dùng project riêng trong `REL-001` trước go-live | `DATABASE_URL`, service credentials trong secret manager | Đủ staging-only |
-| SePay | Merchant/account identifier, môi trường test | API/webhook secret trong secret manager | Chờ dữ liệu |
-| Tài khoản ngân hàng | Tên ngân hàng, tên chủ tài khoản, số tài khoản chỉ chia sẻ qua kênh an toàn | Reference secret/config | Chờ dữ liệu |
+| Supabase/PostgreSQL | Staging: project ref `atefkvykvwgtuaiscxnm`, URL `https://atefkvykvwgtuaiscxnm.supabase.co`, Singapore (`ap-southeast-1`); production project riêng đã có, URL/ref/region chỉ cung cấp khi cấu hình deployment | `DATABASE_URL`, service credentials trong secret manager | Đủ staging-only; production configuration chờ `REL-001` |
+| SePay | Đã có; merchant/account identifier và môi trường production cung cấp khi triển khai integration | API/webhook secret trong secret manager | Chờ cấu hình integration |
+| Tài khoản ngân hàng | Đã có; tên ngân hàng, chủ tài khoản và số tài khoản chỉ cung cấp qua kênh an toàn khi cấu hình payment | Reference secret/config | Chờ cấu hình integration |
 | Email | Resend đã chốt; staging dùng Resend test mode hoặc Mailpit local; from `Vườn Măng Đen <noreply@vuonmangden.vn>`; reply-to `info@vuonmangden.vn`; domain `vuonmangden.vn` cần xác minh SPF/DKIM trước gửi production | Railway Variables: `RESEND_API_KEY` | Đủ staging-only |
 | Zalo | OA identifier, trạng thái ZNS template | App secret/token trong secret manager | Chờ dữ liệu |
-| Object storage | Provider, region, bucket naming | Access key trong secret manager | Chờ dữ liệu |
+| Object storage | Đề xuất Google Drive 5 TB cá nhân của chủ dự án | OAuth credential/token trong secret manager | Cần review: không được bật production trước khi xác minh least-privilege, quyền private/public, signed URL tương đương, audit, backup và giới hạn API |
 | Hosting | Staging: Railway Variables; production secret store: Railway Variables đã chốt | Deploy credential trong secret manager | Đã nhận |
 
 ### Đầu vào identity đã nhận ngày 2026-08-10
@@ -334,3 +363,5 @@ Chỉ ghi identifier/reference; không ghi secret.
 |---|---|---|---|---|
 | Chờ cập nhật |  |  |  |  |
 | 2026-08-11 | PRE-007 staging-only | Chủ dự án | Cho phép `IAM-001` và `NTF-002` triển khai trên staging; production fail-closed đến `REL-001` và DNS verification | Tin nhắn chủ dự án ngày 2026-08-11 |
+| 2026-09-01 | PRE-001 đến PRE-005 | Chủ dự án | Cung cấp bảng giá phòng, menu BBQ và chính sách hủy/đổi/hoàn; xác nhận dùng giá Lễ 2/9 cho các Lễ/Tết/cao điểm khác cho đến khi cập nhật trong CMS, Dorm để liên hệ, ba khu BBQ, và lần đổi lịch thứ hai phải liên hệ Homestay | Tệp người dùng đính kèm và tin nhắn chủ dự án ngày 2026-09-01 |
+| 2026-09-01 | PRE-001 đến PRE-007 | Chủ dự án | Xác nhận phòng tầng 2/ACTIVE, đệm thêm 200.000 VND, giá chưa gồm VAT, hold 30 phút, chưa voucher, cấu hình BBQ không cọc/giữ bàn 30 phút; SePay, ngân hàng và Supabase production đã có; đề xuất Google Drive cá nhân làm media storage cần review production | Tin nhắn chủ dự án ngày 2026-09-01 |

@@ -15,21 +15,21 @@
 |---|---|
 | Phase | Phase 1 — MVP |
 | Trạng thái tổng thể | Baseline local và GitHub-hosted đã xác minh; `main` có required CI checks và branch protection |
-| Milestone hiện tại | Milestone 0 — hoàn thiện dữ liệu thật; chuẩn bị Identity/CMS/Notification theo readiness gate |
+| Milestone hiện tại | Milestone 0 — hoàn thiện dữ liệu vận hành thật và đồng bộ tracker với code đã merge |
 | Task đang thực hiện | IAM-001 Review trên PR #13, chờ Supabase staging sandbox E2E |
 | Task hoàn thành | 20 (FND-001–FND-005, BKG-001, NTF-001–NTF-002, MNT-002–MNT-011, TST-001, CMS-005) |
 | Blocker mở | BLK-001 — dữ liệu vận hành thật PRE-001–PRE-008 chưa được duyệt |
-| Cập nhật gần nhất | 2026-08-11 |
+| Cập nhật gần nhất | 2026-09-01 |
 
 ## 3. Milestone 0 — Chốt đầu vào
 
 | Task ID | Nội dung | Trạng thái | Owner | Bằng chứng/Link | Blocker/Ghi chú |
 |---|---|---|---|---|---|
-| PRE-001 | Chốt danh sách loại phòng | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §4 | Chờ chủ dự án điền và duyệt; không được giả định |
-| PRE-002 | Chốt danh sách phòng thực tế | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §5 | Chờ mã phòng, sức chứa, trạng thái được duyệt |
-| PRE-003 | Chốt bảng giá, phụ thu và cọc | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §6 | P0 blocker cho Price Engine/Booking |
-| PRE-004 | Chốt khu vực, bàn, khung giờ và combo BBQ | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §7 | Chờ dữ liệu vận hành BBQ được duyệt |
-| PRE-005 | Chốt chính sách hủy, đổi lịch, hoàn tiền | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §8 | P0 blocker cho Booking/Payment |
+| PRE-001 | Chốt danh sách loại phòng | Ready | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §4; intake 2026-09-01 | Tiện nghi để trống có chủ đích/CMS sau; tối đa 1 đệm/hạng, tính 1 khách/đệm |
+| PRE-002 | Chốt danh sách phòng thực tế | Ready | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §5; intake 2026-09-01 | Tất cả tầng 2; 201–207 ACTIVE; Dorm 301 INACTIVE, chưa mở bán |
+| PRE-003 | Chốt bảng giá, phụ thu và cọc | Ready | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §6; intake 2026-09-01 | Giá chưa VAT, từ 2026-09-01; cọc, hold 30 phút, đệm thêm và không voucher đã chốt |
+| PRE-004 | Chốt khu vực, bàn, khung giờ và combo BBQ | Ready | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §7; intake 2026-09-01 | Ba khu × 10 bàn ACTIVE; quota 120 khách/ngày; 2–4 online theo luồng thường, 5–20 chờ lễ tân xác nhận |
+| PRE-005 | Chốt chính sách hủy, đổi lịch, hoàn tiền | Ready | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §8; policy effective 2026-08-25 | Đã duyệt; ngày Lễ/Tết/cao điểm cấu hình qua CMS, lần đổi thứ hai xử lý thủ công |
 | PRE-006 | Chốt vai trò và quyền nhân sự | Ready | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §9 | Duyệt toàn bộ decision packet ngày 2026-08-11; mở IAM-002 |
 | PRE-007 | Chuẩn bị domain, Supabase, SePay, email, Zalo | Blocked | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §10 | IAM-001/NTF-002 được mở staging-only ngày 2026-08-11; production vẫn chờ Supabase project riêng (`REL-001`) và SPF/DKIM. SePay/Zalo/object storage vẫn blocked; không ghi secret vào Git |
 | PRE-008 | Chốt bộ nhận diện, ảnh và nội dung ban đầu | Ready | Chủ dự án | `docs/09_MILESTONE_0_INPUT_PACK.md` §11 | Đủ phạm vi CMS-005: quyền logo/brand board, photo-free homepage và system-font fallback được duyệt 2026-08-10; legal/CTA và ảnh venue vẫn ngoài phạm vi |
