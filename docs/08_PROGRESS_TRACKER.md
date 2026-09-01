@@ -218,7 +218,7 @@
 | MNT-014 | Synthetic booking lane authorization | Done | DEC-004, TST-001 | `codex/rms-001-room-types-synthetic` | Owner duyệt lane RMS → Booking → Payment sandbox; PRE-001–005 và BLK-001 giữ Blocked | RMS-001 được mở synthetic/staging-only; thông số nhạy cảm vẫn chờ cấu hình thật |
 | MNT-012 | PRE-006 decision packet and IAM wave handoff | Done | IAM-001, MNT-011 | PR #15 / `codex/mnt-012-pre006-iam-wave` | IAM-002–IAM-005 planning-only specs; full local gate và hosted run `31484012208` đạt; PRE-006 vẫn chờ owner approval |
 | MNT-013 | PRE-006 owner approval | Done | MNT-012, IAM-001 | PR #16 / `codex/mnt-013-pre006-approval` | Owner duyệt matrix/MFA/owner/SLA; mở IAM-002; full local gate và hosted run `31484717378` đạt; không code/migration/seed |
-| MNT-015 | Production readiness rebaseline | Review | PR #1–#88, intake 2026-09-01 | PR #89 / `codex/mnt-015-production-readiness-rebaseline` | Đồng bộ `origin/main` `13da64a`; local lint/typecheck/test/build, Compose config và 28 migration đạt; xác định P0 cutover RMS/BKG/BBQ/PAY/Admin/Notification và PRE-007. Chờ hosted CI của PR #89. |
+| MNT-015 | Production readiness rebaseline | Done | PR #1–#88, intake 2026-09-01 | PR #89 / `codex/mnt-015-production-readiness-rebaseline` | Đồng bộ `origin/main` `13da64a`; local lint/typecheck/test/build, Compose config và 28 migration đạt; hosted Quality/Security run `33505995730` đạt; xác định P0 cutover RMS/BKG/BBQ/PAY/Admin/Notification và PRE-007. |
 
 ## 14d. Phối hợp agent
 

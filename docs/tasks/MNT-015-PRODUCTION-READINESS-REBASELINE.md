@@ -3,7 +3,7 @@
 ## 1. Thông tin task
 
 - **Task ID:** `MNT-015`
-- **Trạng thái:** Review — PR #89
+- **Trạng thái:** Done — PR #89; hosted CI run `33505995730`
 - **Mục tiêu:** Khôi phục một baseline điều phối và quality gate chính xác sau khi các PR sandbox đã merge và dữ liệu vận hành PRE-001–PRE-005 được chủ dự án duyệt.
 - **Branch:** `codex/mnt-015-production-readiness-rebaseline`
 - **Phụ thuộc:** `MNT-014`, implementation đã merge tới PR #88, intake chủ dự án ngày 2026-09-01.
