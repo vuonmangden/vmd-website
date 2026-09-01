@@ -14,11 +14,11 @@
 | Chỉ số | Giá trị hiện tại |
 |---|---|
 | Phase | Phase 1 — MVP |
-| Trạng thái tổng thể | `origin/main` đã merge tới PR #88 (`13da64a`) và GitHub-hosted CI run `32818075910` đạt. Code đã bao phủ phần lớn CMS/BBQ/Booking/Payment/Notification/OPS/Reports; chưa được coi production-ready trước khi rebaseline dữ liệu 2026-09-01, chạy lại full gate và hoàn tất PRE-007/REL-001. |
-| Milestone hiện tại | Production cutover — chuyển lần lượt dữ liệu và luồng nghiệp vụ từ sandbox sang cấu hình đã duyệt, bắt đầu bằng `RMS-008`. |
-| Task đang thực hiện | `RMS-008` do Codex claim ngày 2026-09-01 trên branch `codex/rms-008-production-room-rate-cutover`. `REL-001` tạm chờ các task P0 cutover. |
+| Trạng thái tổng thể | `origin/main` đã merge tới PR #89 (`4875ae5`) và hosted CI đạt. `RMS-008` đã có implementation/CI xanh trên PR #90; toàn hệ thống chưa production-ready trước khi hoàn tất booking, BBQ, payment, admin, notification và REL gates. |
+| Milestone hiện tại | Production cutover — `RMS-008` đang Review; đường găng tiếp theo là `BKG-010` sau khi PR #90 merge. |
+| Task đang thực hiện | `RMS-008` trên draft PR #90 (`codex/rms-008-production-room-rate-cutover`) đã qua local full gate và hosted CI `33508679811`; chờ review/merge. |
 | Task hoàn thành | `MNT-015` đã merge PR #89 (`4875ae5`) với Quality/Security CI đạt; tracker/readiness đã rebaseline tới code PR #88 và dữ liệu chủ dự án ngày 2026-09-01. |
-| Blocker mở | PRE-007/production secrets và provider configuration; dữ liệu vận hành mới 2026-09-01 chưa được áp dụng/kiểm thử với code và seed cũ; Google Drive cá nhân chưa đạt storage security review. |
+| Blocker mở | PRE-007/production secrets và provider configuration; booking/BBQ/payment/admin/notification production cutover; seed rehearsal trên PostgreSQL tách biệt; Google Drive cá nhân chưa đạt storage security review. |
 | Cập nhật gần nhất | 2026-09-01 |
 
 ## 3. Milestone 0 — Chốt đầu vào
@@ -85,7 +85,7 @@
 | RMS-005 | Price Engine | Done | RMS-003, MNT-014 | PR #24 / `codex/rms-005-price-engine-sandbox` / merge `2151e10` | API 81/81, full local gate; hosted CI đạt khi merge | Synthetic-only; PRE-003/PRE-005 vẫn Blocked |
 | RMS-006 | Availability Search | Done | RMS-002, RMS-004, MNT-014 | PR #25 / `codex/rms-006-availability-search-sandbox` / merge `0121c36` | Integration test đạt; hosted CI đạt khi merge | Synthetic-only; chưa bao gồm occupancy/hold/booking |
 | RMS-007 | Public room pages | Done | RMS-001, RMS-005, RMS-006, CMS-005 | PR #33 / `codex/rms-007-public-room-pages` / merge `c979f40` | API/web unit tests, typecheck và build đạt; hosted CI đạt khi merge | Synthetic-only safe public API; no room IDs, inventory, holds or booking creation |
-| RMS-008 | Production room/rate cutover | In progress (Codex, 2026-09-01) | MNT-015, RMS-007, PRE-001–PRE-003 | `codex/rms-008-production-room-rate-cutover` |  | Import/upsert có version cho 201–207, archive 301 khỏi mở bán, rate 2026-09-01, đệm 200.000 và VAT chưa gồm; không đổi tên fixture synthetic thành dữ liệu thật. |
+| RMS-008 | Production room/rate cutover | Review | MNT-015, RMS-007, PRE-001–PRE-003 | PR #90 / `codex/rms-008-production-room-rate-cutover` | Local lint/typecheck/test/build 12/12; API 438, web 52, worker 72, admin 11; Prisma 28 migrations; Compose đạt; hosted CI `33508679811` đạt | Catalog seed `2026-09-01.v1`: 201–207 active, 301 inactive, rate 2026-09-01, holiday metadata, đệm 200.000, VAT chưa gồm; availability loại occupancy; rate mutation có audit. Không migration/dependency; DB container rehearsal chuyển REL-001 do Docker engine local không sẵn sàng. |
 
 **Gate:** Price Engine unit test và Availability integration test đạt.
 

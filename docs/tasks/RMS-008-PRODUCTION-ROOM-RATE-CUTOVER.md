@@ -3,7 +3,7 @@
 ## 1. Thông tin task
 
 - **Task ID:** `RMS-008`
-- **Trạng thái:** In progress (Codex, 2026-09-01)
+- **Trạng thái:** Review — PR #90; hosted CI run `33508679811` đạt
 - **Mục tiêu:** Thay dữ liệu phòng/giá public synthetic bằng catalog production đã được chủ dự án duyệt, theo cơ chế seed versioned và idempotent.
 - **Branch:** `codex/rms-008-production-room-rate-cutover`
 - **Phụ thuộc:** `MNT-015`, `RMS-007`, `PRE-001`, `PRE-002`, `PRE-003`.
@@ -73,3 +73,21 @@
 - Public API tiếp tục không trả ID nội bộ, room code hoặc rule IDs.
 - Phụ thu đệm tự chọn cho khách vẫn phải được `BKG-010` lưu thành booking add-on/snapshot; RMS-008 chỉ đưa dữ liệu giá/capacity production và sửa baseline tính khách thêm.
 - Không kích hoạt holiday rule toàn dải ngày; khoảng ngày luôn là input vận hành cụ thể.
+
+## 9. Kết quả implementation
+
+- Catalog `2026-09-01.v1` seed đúng 201–207 active, 301 inactive, tầng 2, capacity 3/5, amenities/bed configuration rỗng, 14 weekday/weekend rules và 7 holiday-price metadata.
+- Seed chạy trong transaction, marker cùng version là no-op và marker khác version fail closed; fixture synthetic không bị đổi tên hoặc chỉnh guard.
+- Public room API/UI bỏ nhãn sandbox, trả giá chưa VAT và chính sách một đệm 200.000 VND; không trả room/rate ID nội bộ.
+- Price Engine dùng `standardAdults` nên phòng đôi không còn tính sai phụ thu người lớn thứ hai; quote từ chối vượt sức chứa.
+- Availability loại cả block và occupancy hiện hữu.
+- Tạo/sửa room rate qua admin ghi audit cùng transaction; update bắt buộc lý do. CMS có `GET /admin/room-rate-rules/catalog-policy` để lấy holiday-price metadata và tạo rule theo khoảng ngày cụ thể.
+- Không có migration hoặc dependency mới.
+
+## 10. Evidence
+
+- Local Node 24.19.0 + pnpm 11.9.0: lint 12/12, typecheck 12/12, test 12/12, build 12/12, Prisma schema + 28 migration directories và Compose config đều đạt.
+- Test chính: API 438/438, web 52/52, worker 72/72, admin 11/11; script tests 26 pass và 1 integration test synthetic được skip do không có test DB opt-in.
+- Production dependency audit: 0 High/Critical, còn 3 Moderate đã có từ baseline.
+- Hosted CI run `33508679811`: Quality/schema/Compose và Secret/dependency đều đạt.
+- Docker Desktop engine local không khởi động được trong phiên verification, nên chưa chạy seed trên PostgreSQL container; seed transaction/idempotency được kiểm thử bằng unit mock và schema/hosted CI đạt. Việc chạy seed thật vẫn thuộc migration rehearsal của `REL-001`, không được chạy thẳng vào production trong RMS-008.

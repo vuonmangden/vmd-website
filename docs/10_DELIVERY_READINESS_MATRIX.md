@@ -38,7 +38,7 @@ Foundation, IAM/RBAC/audit/security middleware, CMS, room/booking/payment sandbo
 
 | Finding | Hiện trạng code | Yêu cầu đã duyệt | Task xử lý đề xuất |
 |---|---|---|---|
-| Phòng và giá production chưa tồn tại | Production seed không tạo room type/phòng/rate thật; public API/UI còn gắn `SYNTHETIC`/sandbox | Phòng 201–207 active, 301 inactive; bảng giá hiệu lực 2026-09-01; đệm 200.000; giá chưa VAT | `RMS-008` |
+| Phòng và giá production | PR #90 đã tạo catalog seed versioned, public room/rate production, capacity/occupancy guard và audited rate mutation; hosted CI đạt. Chưa chạy seed rehearsal trên PostgreSQL container vì Docker engine local không sẵn sàng | Phòng 201–207 active, 301 inactive; bảng giá hiệu lực 2026-09-01; đệm 200.000; giá chưa VAT | `RMS-008` Review; DB rehearsal tại `REL-001` |
 | Booking phòng chưa phải luồng thật | Booking code/source/event/API/UI và payment eligibility vẫn giới hạn synthetic | Booking thật, hold 30 phút, 1 lần đổi tự động | `BKG-010` |
 | Public booking dùng TTL không thống nhất | `PublicBookingsService` hard-code 15 phút; hai service khác mặc định 120 phút | Hold phòng 30 phút | `BKG-010` |
 | Duyệt đổi ngày không thực thi nghiệp vụ | `CancellationPolicyService` có rule 60 ngày/1 lần nhưng `BookingLookupService.decide()` chỉ xử lý hủy; nhánh `DATE_CHANGE` không đổi booking/occupancy/giá và không lưu lượt đổi | Một lần đổi; lần hai liên hệ; occupancy và history cùng transaction | `BKG-010` |
@@ -67,7 +67,7 @@ Foundation, IAM/RBAC/audit/security middleware, CMS, room/booking/payment sandbo
 ## 5. Đường găng nhanh nhất
 
 1. Hoàn tất `MNT-015`: baseline, evidence và backlog chính xác.
-2. `RMS-008`: import/upsert dữ liệu phòng/giá đã duyệt, không dùng fixture synthetic.
+2. `RMS-008`: implementation/CI hoàn tất trên PR #90; merge và chạy DB rehearsal trong REL lane.
 3. `BKG-010`: chuyển public room browse/quote/booking từ sandbox sang production-safe.
 4. `BBQ-007`: thay seed/policy/menu, quota ngày và luồng xác nhận nhóm.
 5. `ADM-003`: dựng giao diện vận hành tối thiểu trên các API đã có.
