@@ -12,14 +12,19 @@ const BATCH_SIZE = 50;
  * Maps real `outbox_events.event_type` values to a queue. Keep this in sync
  * with the actual `eventType` strings each API service writes — event names
  * carry a `.sandbox`/`.public_sandbox` suffix while the booking/payment flow
- * is on the Phase 1 synthetic lane; NTF-004 only wires the three that have
+ * is on the Phase 1 synthetic lane. Production payment events omit that suffix;
+ * both forms are intentionally accepted until historical events are drained.
+ * NTF-004 only wires the three that have
  * an approved notification template (see docs/08_PROGRESS_TRACKER.md
  * NTF-004). Everything else falls through to `outbox-publish` and is a
  * deliberate no-op — there's no template for it (yet).
  */
 const EVENT_QUEUE_MAP: Record<string, string> = {
+  'booking.confirmed.payment': 'notification-send',
   'booking.confirmed.payment.sandbox': 'notification-send',
+  'bbq_reservation.confirmed.payment': 'notification-send',
   'bbq_reservation.confirmed.payment.sandbox': 'notification-send',
+  'payment.reconciliation.required': 'notification-send',
   'payment.reconciliation.required.sandbox': 'notification-send',
 };
 

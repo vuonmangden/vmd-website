@@ -10,8 +10,6 @@ import type { SePayWebhookDto } from './dto/sepay-webhook.dto';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- Nest needs runtime DI metadata.
 import { SePayWebhookConfigService } from './sepay-webhook.config';
 
-const PROVIDER = 'SEPAY_TEST';
-
 @Injectable()
 export class SePayWebhookService {
   private readonly logger = new Logger(SePayWebhookService.name);
@@ -22,7 +20,8 @@ export class SePayWebhookService {
   ) {}
 
   async receive(payload: SePayWebhookDto, authorization: string | undefined, correlationId?: string) {
-    if (!matchesApiKey(authorization, this.config.get().apiKey)) {
+    const config = this.config.get();
+    if (!matchesApiKey(authorization, config.apiKey)) {
       this.logger.warn({ event: 'payment_webhook_auth_failed', correlationId });
       throw new UnauthorizedException({ code: 'WEBHOOK_UNAUTHORIZED', message: 'Webhook authentication failed' });
     }
@@ -30,7 +29,7 @@ export class SePayWebhookService {
     try {
       const event = await this.prisma.paymentWebhookEvent.create({
         data: {
-          provider: PROVIDER,
+          provider: config.provider,
           providerEventId: payload.id,
           providerTransactionId: providerTransactionId(payload),
           signatureValid: true,
@@ -47,11 +46,11 @@ export class SePayWebhookService {
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
         const existingByEvent = await this.prisma.paymentWebhookEvent.findUnique({
-          where: { provider_providerEventId: { provider: PROVIDER, providerEventId: payload.id } },
+          where: { provider_providerEventId: { provider: config.provider, providerEventId: payload.id } },
           select: { id: true, processingStatus: true },
         });
         const existing = existingByEvent ?? await this.prisma.paymentWebhookEvent.findUnique({
-          where: { provider_providerTransactionId: { provider: PROVIDER, providerTransactionId: providerTransactionId(payload) } },
+          where: { provider_providerTransactionId: { provider: config.provider, providerTransactionId: providerTransactionId(payload) } },
           select: { id: true, processingStatus: true },
         });
         if (existing?.processingStatus === 'RECEIVED') {

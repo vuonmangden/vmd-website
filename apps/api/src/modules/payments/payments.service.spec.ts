@@ -78,6 +78,35 @@ describe('PaymentsService', () => {
     });
   });
 
+  it('uses the configured SePay production provider and a URL-encoded VietQR payload only when production configuration is complete', async () => {
+    const { tx, prisma } = transaction({
+      paymentIntent: {
+        create: jest.fn(async ({ data }) => ({ id: 'production-intent', bookingId: booking.id, bbqReservationId: null, status: 'PENDING', amount: data.amount, currency: data.currency, qrPayload: data.qrPayload, expiresAt: data.expiresAt })),
+        findUnique: jest.fn(), findMany: jest.fn(), updateMany: jest.fn(),
+      },
+    });
+    const config = {
+      get: jest.fn().mockReturnValue({ apiKey: 'production-key', mode: 'production', provider: 'SEPAY' }),
+      getPayment: jest.fn().mockReturnValue({ apiKey: 'production-key', mode: 'production', provider: 'SEPAY', bankAccountNumber: '1234567890', bankCode: 'MB', bankAccountName: 'VUON MANG DEN', qrBaseUrl: 'https://vietqr.app/img' }),
+    };
+    const service = new PaymentsService(prisma as never, config as never, () => now);
+    const result = await service.createIntentForRoomCheckout(
+      tx as never,
+      { id: booking.id, depositRequiredAmount: 750000n, currency: 'VND', createdAt: booking.createdAt },
+      { id: 'hold-1', expiresAt: new Date('2099-08-13T00:30:00.000Z') },
+      actor,
+    );
+
+    expect(tx.paymentIntent.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ provider: 'SEPAY' }) }));
+    const url = new URL(result.qrPayload);
+    expect(url.origin).toBe('https://vietqr.app');
+    expect(url.searchParams.get('acc')).toBe('1234567890');
+    expect(url.searchParams.get('bank')).toBe('MB');
+    expect(url.searchParams.get('amount')).toBe('750000');
+    expect(url.searchParams.get('des')).toMatch(/^VMD BK\d{6}[A-F0-9]{4}$/);
+    expect(url.searchParams.get('template')).toBe('qronly');
+  });
+
   it('creates an idempotent sandbox intent with an uppercase unique safe transfer reference', async () => {
     const { tx, prisma } = transaction(); const service = new PaymentsService(prisma as never, () => now);
     const result = await service.createSandboxIntent(booking.id, 'pay-key', actor);
