@@ -114,3 +114,15 @@ body { margin: 0; }
 .bbq-actions { display: flex; gap: .6rem; flex-wrap: wrap; }
 .bbq-actions button:not(.button-danger) { border: none; border-radius: .35rem; background: var(--vmd-forest); color: #fff; font: inherit; font-weight: 700; padding: .55rem 1rem; cursor: pointer; }
 .bbq-actions button:disabled { opacity: .6; cursor: wait; }
+
+.settings-page { display: grid; gap: 2rem; max-width: 42rem; }
+.settings-list { display: grid; gap: .75rem; }
+.setting-row { display: grid; grid-template-columns: 14rem 1fr auto auto; align-items: center; gap: .75rem; padding: .6rem 0; border-bottom: 1px solid var(--vmd-line); }
+.setting-row label { font-weight: 700; font-size: .88rem; }
+.setting-row input[type="text"], .setting-row input[type="number"] { border: 1px solid var(--vmd-line); border-radius: .35rem; padding: .45rem .6rem; font: inherit; width: 100%; }
+.setting-row input:disabled { background: #f5f2ec; color: var(--vmd-wood); }
+.setting-row button { border: 1px solid var(--vmd-forest); border-radius: .35rem; background: #fff; color: var(--vmd-forest); font: inherit; font-weight: 700; padding: .4rem .8rem; cursor: pointer; }
+.setting-row button:disabled { opacity: .5; cursor: wait; }
+.setting-saved { color: var(--vmd-forest); font-size: .82rem; font-weight: 700; }
+.setting-error { color: #9d2d20; font-size: .82rem; grid-column: 1 / -1; }
+.setting-disabled-reason { color: var(--vmd-wood); font-size: .78rem; grid-column: 1 / -1; }
