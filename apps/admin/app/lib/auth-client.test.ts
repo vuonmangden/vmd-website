@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { clearSession, login, logout, me, meWithRefresh, refresh } from './auth-client';
+import { clearSession, hasSession, login, logout, me, meWithRefresh, refresh } from './auth-client';
 
 const session = {
   accessToken: 'access-token',
@@ -21,6 +21,49 @@ describe('admin auth client', () => {
   afterEach(() => {
     clearSession();
     vi.unstubAllGlobals();
+  });
+
+  it('persists the session to localStorage on login so a page reload does not lose it', async () => {
+    const storage = fakeLocalStorage();
+    vi.stubGlobal('window', { localStorage: storage });
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(jsonResponse({ data: { session, actor } })));
+
+    await login('staff@example.test', 'not-a-real-password');
+
+    expect(JSON.parse(storage.getItem('vmd-admin-session') ?? '{}')).toEqual(session);
+  });
+
+  it('hydrates from a persisted session on a fresh page load, with nothing in memory yet', async () => {
+    const storage = fakeLocalStorage();
+    storage.setItem('vmd-admin-session', JSON.stringify(session));
+    vi.stubGlobal('window', { localStorage: storage });
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(jsonResponse({ data: { actor } })));
+
+    expect(hasSession()).toBe(true);
+    await expect(me()).resolves.toEqual(actor);
+  });
+
+  it('ignores a corrupted persisted session instead of throwing', () => {
+    const storage = fakeLocalStorage();
+    storage.setItem('vmd-admin-session', 'not-json');
+    vi.stubGlobal('window', { localStorage: storage });
+
+    expect(hasSession()).toBe(false);
+  });
+
+  it('clears the persisted session on logout and after the one refresh attempt fails', async () => {
+    const storage = fakeLocalStorage();
+    vi.stubGlobal('window', { localStorage: storage });
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce(jsonResponse({ data: { session, actor } }))
+      .mockResolvedValueOnce(jsonResponse({ error: {} }, 401))
+      .mockResolvedValueOnce(jsonResponse({ error: {} }, 401)));
+
+    await login('staff@example.test', 'not-a-real-password');
+    expect(storage.getItem('vmd-admin-session')).not.toBeNull();
+
+    await expect(meWithRefresh()).rejects.toThrow('Authentication failed');
+    expect(storage.getItem('vmd-admin-session')).toBeNull();
   });
 
   it('keeps a Supabase session in memory, refreshes it, and sends the access token to /auth/me', async () => {
@@ -81,4 +124,16 @@ function jsonResponse(payload: unknown, status = 200): Response {
     status,
     headers: { 'content-type': 'application/json' },
   });
+}
+
+function fakeLocalStorage(): Storage {
+  const store = new Map<string, string>();
+  return {
+    getItem: (key: string) => store.get(key) ?? null,
+    setItem: (key: string, value: string) => { store.set(key, value); },
+    removeItem: (key: string) => { store.delete(key); },
+    clear: () => store.clear(),
+    key: (index: number) => Array.from(store.keys())[index] ?? null,
+    get length() { return store.size; },
+  } as Storage;
 }

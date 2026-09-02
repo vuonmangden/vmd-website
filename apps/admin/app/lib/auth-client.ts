@@ -31,6 +31,13 @@ export class AuthClientError extends Error {
   }
 }
 
+/**
+ * Held in memory for the lifetime of the tab, and mirrored to localStorage
+ * so a page reload or a direct link into a deep admin route doesn't bounce
+ * the user back to /login. Bearer tokens in localStorage are readable by
+ * any script on the page — an accepted tradeoff of the Bearer-only design
+ * IAM-005 chose over cookies (see its CSRF note); XSS-hardening is SEC-001/002.
+ */
 let currentSession: AuthSession | undefined;
 
 export async function login(email: string, password: string): Promise<AuthSessionResponse> {
@@ -39,19 +46,22 @@ export async function login(email: string, password: string): Promise<AuthSessio
     body: JSON.stringify({ email, password }),
   });
   currentSession = result.session;
+  persistSession(result.session);
   return result;
 }
 
 export async function refresh(): Promise<AuthSessionResponse> {
-  if (!currentSession) {
+  const session = currentSession ?? loadPersistedSession();
+  if (!session) {
     throw new AuthClientError('No active session');
   }
 
   const result = await request<AuthSessionResponse>('/auth/refresh', {
     method: 'POST',
-    body: JSON.stringify({ refreshToken: currentSession.refreshToken }),
+    body: JSON.stringify({ refreshToken: session.refreshToken }),
   });
   currentSession = result.session;
+  persistSession(result.session);
   return result;
 }
 
@@ -80,6 +90,7 @@ export async function meWithRefresh(): Promise<AuthenticatedActor> {
 }
 
 export function hasSession(): boolean {
+  currentSession ??= loadPersistedSession();
   return currentSession !== undefined;
 }
 
@@ -92,11 +103,55 @@ export async function logout(): Promise<void> {
     });
   } finally {
     currentSession = undefined;
+    clearPersistedSession();
   }
 }
 
 export function clearSession(): void {
   currentSession = undefined;
+  clearPersistedSession();
+}
+
+const SESSION_STORAGE_KEY = 'vmd-admin-session';
+
+function loadPersistedSession(): AuthSession | undefined {
+  if (typeof window === 'undefined') return undefined;
+  try {
+    const raw = window.localStorage.getItem(SESSION_STORAGE_KEY);
+    if (!raw) return undefined;
+    const parsed: unknown = JSON.parse(raw);
+    return isAuthSession(parsed) ? parsed : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function persistSession(session: AuthSession): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+  } catch {
+    // Storage can fail (private browsing, quota exceeded) — the tab still
+    // works off the in-memory copy for the rest of its own lifetime.
+  }
+}
+
+function clearPersistedSession(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.removeItem(SESSION_STORAGE_KEY);
+  } catch {
+    // ignore
+  }
+}
+
+function isAuthSession(value: unknown): value is AuthSession {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    typeof (value as Partial<AuthSession>).accessToken === 'string' &&
+    typeof (value as Partial<AuthSession>).refreshToken === 'string'
+  );
 }
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
@@ -130,6 +185,7 @@ async function readPayload(response: Response): Promise<unknown> {
 }
 
 function requireSession(): AuthSession {
+  currentSession ??= loadPersistedSession();
   if (!currentSession) {
     throw new AuthClientError('No active session');
   }
