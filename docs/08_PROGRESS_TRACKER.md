@@ -169,7 +169,7 @@
 | Task ID | Nội dung | Trạng thái | Dependency | Owner | Bằng chứng | Ghi chú |
 |---|---|---|---|---|---|---|
 | QLT-001 | Test suite hoàn chỉnh | Backlog | Các module Phase 1 | TBD |  | Critical regression |
-| SEC-001 | ASVS Level 2 Review | Backlog | IAM/PAY/BKG hoàn chỉnh | TBD |  |  |
+| SEC-001 | ASVS Level 2 Review | In progress | IAM/PAY/BKG hoàn chỉnh | Claude | `claude/sec-001-*` | **Claimed 2026-09-02.** Rà soát OWASP ASVS 4.0.3 Level 2 tập trung vào `apps/api/src/modules/auth` (IAM), `apps/api/src/modules/payments` (PAY), `apps/api/src/modules/rooms`+`bbq` (BKG), và cấu hình cross-cutting (`main.ts`, `common/`). Đang tiến hành — cập nhật dòng này khi có báo cáo phát hiện. |
 | SEC-002 | Security Testing | Backlog | SEC-001 | TBD |  | SAST/DAST/manual |
 | PERF-001 | Load Test | Backlog | Critical flows ổn định | TBD |  | 2.000–5.000 lượt/ngày |
 | PERF-002 | Cache và Capacity | Backlog | PERF-001 | TBD |  | Pool/index/backpressure |
