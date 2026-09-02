@@ -113,7 +113,15 @@ export class NotificationDispatchService implements OnModuleInit, OnModuleDestro
       const { code, retryable, provider, message } = normalizeError(error, channel);
       const nextAttempt = job.attemptCount + 1;
 
-      await this.settleFailure(job, channel, { code, retryable, provider, message, nextAttempt });
+      await this.settleFailure(job, channel, {
+        code,
+        // A timeout or lost connection may have reached a provider. Retrying
+        // is safe only when that provider deduplicates the stable job key.
+        retryable: retryable && canSafelyRetry(code, provider),
+        provider,
+        message,
+        nextAttempt,
+      });
 
       this.logger.warn(`Notification job ${job.id} (${job.templateCode}) failed: ${message}`);
       return false;
@@ -260,4 +268,13 @@ function normalizeError(
     provider: channel,
     message: error instanceof Error ? error.message : String(error),
   };
+}
+
+function canSafelyRetry(code: string, provider: string): boolean {
+  if (code !== 'timeout' && code !== 'provider_unavailable') return true;
+
+  // Resend documents idempotency for the email endpoint. The development
+  // Mailpit adapter and the pre-production Zalo mock do not make that
+  // guarantee, so an uncertain outcome is terminal for operator review.
+  return provider === 'resend';
 }

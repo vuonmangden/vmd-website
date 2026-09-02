@@ -117,7 +117,7 @@ describe('NotificationDispatchService.pollAndDispatch', () => {
     const prisma = prismaMock();
     prisma.notificationJob.findMany.mockResolvedValue([{ ...EMAIL_JOB, attemptCount: 1 }]);
     const email = emailMock();
-    email.send.mockRejectedValue(new EmailDeliveryError('provider_unavailable', true, 'mailpit'));
+    email.send.mockRejectedValue(new EmailDeliveryError('provider_unavailable', true, 'resend'));
     const service = new NotificationDispatchService(prisma as never, email as never, zaloMock() as never);
 
     await service.pollAndDispatch();
@@ -129,7 +129,7 @@ describe('NotificationDispatchService.pollAndDispatch', () => {
     const prisma = prismaMock();
     prisma.notificationJob.findMany.mockResolvedValue([{ ...EMAIL_JOB, attemptCount: 4 }]);
     const email = emailMock();
-    email.send.mockRejectedValue(new EmailDeliveryError('provider_unavailable', true, 'mailpit'));
+    email.send.mockRejectedValue(new EmailDeliveryError('provider_unavailable', true, 'resend'));
     const service = new NotificationDispatchService(prisma as never, email as never, zaloMock() as never);
 
     await service.pollAndDispatch();
@@ -147,6 +147,20 @@ describe('NotificationDispatchService.pollAndDispatch', () => {
     await service.pollAndDispatch();
 
     expect(prisma.notificationJob.updateMany).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: 'failed' }) }));
+  });
+
+  it('does not blindly retry an uncertain timeout from a provider without idempotency', async () => {
+    const prisma = prismaMock();
+    prisma.notificationJob.findMany.mockResolvedValue([EMAIL_JOB]);
+    const email = emailMock();
+    email.send.mockRejectedValue(new EmailDeliveryError('timeout', true, 'mailpit'));
+    const service = new NotificationDispatchService(prisma as never, email as never, zaloMock() as never);
+
+    await service.pollAndDispatch();
+
+    expect(prisma.notificationJob.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ status: 'failed' }),
+    }));
   });
 
   it('records a disabled Zalo channel as a normal non-retryable failure, per §22.3 (email still stands alone)', async () => {
