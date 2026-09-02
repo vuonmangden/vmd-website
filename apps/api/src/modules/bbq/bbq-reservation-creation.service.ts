@@ -3,7 +3,6 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
-  ServiceUnavailableException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { createHash, randomUUID } from 'node:crypto';
@@ -12,7 +11,6 @@ import { PrismaService } from '../../prisma/prisma.service';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- Nest needs runtime DI metadata.
 import { BbqMenuService } from './bbq-menu.service';
 
-const DEPOSIT_SETTING_KEY = 'bbq.deposit_amount_per_table';
 const IDEMPOTENCY_KEY_PREFIX = 'bbq-reservation:';
 const IDEMPOTENCY_SCOPE = 'bbq.reservation.create';
 
@@ -77,7 +75,7 @@ export class BbqReservationCreationService {
 
         const lineRows = buildLineRows(input.items, snapshot);
         const itemsAmount = lineRows.reduce((sum, row) => sum + row.lineTotal, 0n);
-        const depositAmount = await readDepositAmount(tx.appSetting);
+        const depositAmount = 0n;
 
         const now = this.now();
         const reservation = await tx.bbqReservation.create({
@@ -89,7 +87,7 @@ export class BbqReservationCreationService {
             endTime: input.endTime,
             adults: input.adults,
             children: input.children,
-            status: 'PENDING_PAYMENT',
+            status: 'PENDING_CONFIRMATION',
             source: 'ADMIN',
             itemsAmount,
             depositAmount,
@@ -130,7 +128,7 @@ export class BbqReservationCreationService {
         });
 
         await tx.bbqReservationStatusHistory.create({
-          data: { reservationId: reservation.id, toStatus: 'PENDING_PAYMENT', reason: 'reservation created' },
+          data: { reservationId: reservation.id, toStatus: 'PENDING_CONFIRMATION', reason: 'reservation created awaiting confirmation' },
         });
 
         const response = {
@@ -280,23 +278,8 @@ function toTimestamp(date: string, time: string): Date {
 }
 
 function holdMinutes(): number {
-  const value = Number.parseInt(process.env['BBQ_HOLD_MINUTES'] ?? '120', 10);
-  return Number.isInteger(value) && value > 0 && value <= 360 ? value : 120;
-}
-
-async function readDepositAmount(settings: { findUnique(args: unknown): Promise<{ value: unknown } | null> }): Promise<bigint> {
-  const setting = await settings.findUnique({ where: { key: DEPOSIT_SETTING_KEY } });
-  const value =
-    setting?.value && typeof setting.value === 'object' && typeof (setting.value as { amount?: unknown }).amount === 'number'
-      ? (setting.value as { amount: number }).amount
-      : NaN;
-  if (!Number.isInteger(value) || value <= 0) {
-    throw new ServiceUnavailableException({
-      code: 'BBQ_DEPOSIT_NOT_CONFIGURED',
-      message: 'BBQ deposit amount is not configured',
-    });
-  }
-  return BigInt(value);
+  const value = Number.parseInt(process.env['BBQ_HOLD_MINUTES'] ?? '30', 10);
+  return Number.isInteger(value) && value > 0 && value <= 360 ? value : 30;
 }
 
 function invalidInput(): BadRequestException {

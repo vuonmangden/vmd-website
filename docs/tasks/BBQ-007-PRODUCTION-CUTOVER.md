@@ -3,7 +3,7 @@
 ## 1. Thông tin task
 
 - **Task ID:** `BBQ-007`
-- **Trạng thái:** In progress (Codex, 2026-09-02)
+- **Trạng thái:** Review (Codex, 2026-09-02)
 - **Branch:** `codex/bbq-007-production-cutover`
 - **Dependency:** `MNT-015`, `BBQ-006`, `PRE-004`
 
@@ -36,7 +36,7 @@
 ## 6. Ngoài phạm vi
 
 - SePay thật/QR/tài khoản nhận tiền (`PAY-007`).
-- UI admin vận hành hoàn chỉnh (`ADM-003`); API admin phải đủ để lễ tân xác nhận/gán bàn.
+- UI admin vận hành hoàn chỉnh (`ADM-003`); API lễ tân hiện có đủ để xem/xác nhận, còn cách trình bày vận hành thuộc admin UI.
 - Thay đổi menu qua CMS nâng cao; hủy/đổi món chi tiết sau booking, notification provider production.
 
 ## 7. Acceptance criteria và kiểm thử
@@ -53,3 +53,10 @@
 - Backend là nguồn sự thật của guest count/quota/menu/status; không tin table, price hoặc status từ client.
 - Không log PII/payment secret; mọi confirm/cancel/assign phải authorization + audit.
 - Không chạy migration/seed production trong task. SePay thật vẫn fail-closed đến `PAY-007`.
+
+## 9. Evidence triển khai
+
+- Migration `20260902100000_production_bbq_cutover` mở nhóm `DO_UONG` để nhập đúng menu ảnh; Prisma validation xác nhận 30 migration hợp lệ.
+- Local quality gate đạt với Node 24.19.0/pnpm 11.9.0: lint, typecheck, test (API 456/456, Web 52/52, Worker 72/72, scripts 26 pass/1 skip), build và dependency audit high.
+- Visual QA `/bbq` desktop và viewport 390px: giờ 10:30–21:30, nhóm 2–20, quota 120, lễ tân xác nhận; không còn copy QR/cọc/sandbox hoặc tràn ngang.
+- PostgreSQL migration/seed rehearsal chưa thể chạy lại trong turn này vì Docker Desktop engine không hoạt động (`dockerDesktopLinuxEngine` không tồn tại); đây là điều kiện còn lại cùng hosted CI trước merge.

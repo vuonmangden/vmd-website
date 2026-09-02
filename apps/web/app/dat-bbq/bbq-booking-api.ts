@@ -1,10 +1,8 @@
 const apiBase = `${process.env.NEXT_PUBLIC_API_ORIGIN ?? 'http://localhost:3002'}/api/v1`;
 
 export interface BbqCheckoutPayload {
-  tableId: string;
   date: string;
   startTime: string;
-  endTime: string;
   fullName: string;
   phone: string;
   email?: string;
@@ -12,7 +10,7 @@ export interface BbqCheckoutPayload {
   children: number;
   specialRequest?: string;
 }
-export interface BbqCheckoutResponse { reservationCode: string; status: 'PENDING_PAYMENT'; paymentReference: string; }
+export interface BbqCheckoutResponse { reservationCode: string; status: 'PENDING_CONFIRMATION'; confirmationRequired: boolean; }
 
 export async function createBbqReservation(payload: BbqCheckoutPayload, idempotencyKey: string): Promise<BbqCheckoutResponse> {
   const response = await fetch(`${apiBase}/public/bbq-reservations`, {

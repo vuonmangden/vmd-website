@@ -33,7 +33,7 @@ export class AdminBbqReservationController {
   ) {}
 
   @Post()
-  @ApiOperation({ summary: 'Create a BBQ table reservation (hold, deposit snapshot, optional pre-ordered items)' })
+  @ApiOperation({ summary: 'Create a staff BBQ reservation awaiting confirmation (optional table and pre-ordered items)' })
   create(@Body() dto: CreateBbqReservationDto) {
     return this.creation.create({
       customerId: dto.customerId,

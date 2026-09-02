@@ -3,126 +3,63 @@ import type { PrismaClient } from '@prisma/client';
 interface AreaDef {
   code: string;
   name: string;
-  maxCapacity: number;
   sortOrder: number;
-  tables: { code: string; name: string; maxCapacity: number }[];
 }
 
 const AREAS: AreaDef[] = [
-  {
-    code: 'VUON_THONG',
-    name: 'Khu vườn thông trước',
-    maxCapacity: 36,
-    sortOrder: 1,
-    tables: Array.from({ length: 6 }, (_, i) => ({
-      code: `VUON_THONG-${String(i + 1).padStart(2, '0')}`,
-      name: `Bàn ${i + 1}`,
-      maxCapacity: 6,
-    })),
-  },
-  {
-    code: 'SAN_GACH_DO',
-    name: 'Khu sân gạch đỏ',
-    maxCapacity: 24,
-    sortOrder: 2,
-    tables: Array.from({ length: 6 }, (_, i) => ({
-      code: `SAN_GACH_DO-${String(i + 1).padStart(2, '0')}`,
-      name: `Bàn ${i + 1}`,
-      maxCapacity: 4,
-    })),
-  },
-  {
-    code: 'SAN_TRUOC',
-    name: 'Khu sân trước homestay',
-    maxCapacity: 40,
-    sortOrder: 3,
-    tables: Array.from({ length: 10 }, (_, i) => ({
-      code: `SAN_TRUOC-${String(i + 1).padStart(2, '0')}`,
-      name: `Bàn ${i + 1}`,
-      maxCapacity: 4,
-    })),
-  },
-  {
-    code: 'TRONG_NHA',
-    name: 'Khu vực ngồi trong nhà',
-    maxCapacity: 24,
-    sortOrder: 4,
-    tables: Array.from({ length: 6 }, (_, i) => ({
-      code: `TRONG_NHA-${String(i + 1).padStart(2, '0')}`,
-      name: `Bàn ${i + 1}`,
-      maxCapacity: 4,
-    })),
-  },
-  {
-    code: 'PHONG_VIP',
-    name: 'Khu phòng VIP',
-    maxCapacity: 12,
-    sortOrder: 5,
-    tables: [
-      { code: 'PHONG_VIP-01', name: 'Bàn dài VIP', maxCapacity: 12 },
-    ],
-  },
+  { code: 'SAN-DO', name: 'Khu vực sân đỏ', sortOrder: 1 },
+  { code: 'TRONG-NHA', name: 'Khu vực trong nhà', sortOrder: 2 },
+  { code: 'NGOAI-SAN', name: 'Khu vực ngoài sân', sortOrder: 3 },
 ];
 
-const SLOTS = [
-  { name: 'Buổi trưa (11h-14h)', startTime: '11:00', endTime: '14:00' },
-  { name: 'Buổi tối (18h-22h)', startTime: '18:00', endTime: '22:00' },
-];
+const SERVICE_SLOT = {
+  name: 'Phục vụ BBQ (10:30–21:30)',
+  startTime: '10:30',
+  endTime: '21:30',
+  daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
+};
 
+/**
+ * Production catalogue approved on 2026-09-01. Updates intentionally change
+ * prior synthetic rows in place, then deactivate old areas/tables/slots so a
+ * repeatable seed cannot leave public availability on the obsolete catalog.
+ */
 export async function seedBbqAreas(prisma: PrismaClient): Promise<void> {
+  const productionCodes = new Set(AREAS.map((area) => area.code));
   for (const def of AREAS) {
     const area = await prisma.bbqArea.upsert({
       where: { code: def.code },
-      update: {},
-      create: {
-        code: def.code,
-        name: def.name,
-        minCapacity: 1,
-        maxCapacity: def.maxCapacity,
-        status: 'ACTIVE',
-        sortOrder: def.sortOrder,
-      },
+      update: { name: def.name, minCapacity: 2, maxCapacity: 40, status: 'ACTIVE', sortOrder: def.sortOrder, deletedAt: null },
+      create: { code: def.code, name: def.name, minCapacity: 2, maxCapacity: 40, status: 'ACTIVE', sortOrder: def.sortOrder },
     });
-
-    for (const tbl of def.tables) {
+    for (let number = 1; number <= 10; number += 1) {
+      const code = `${def.code}-${String(number).padStart(2, '0')}`;
       await prisma.bbqTable.upsert({
-        where: { code: tbl.code },
-        update: {},
-        create: {
-          areaId: area.id,
-          code: tbl.code,
-          name: tbl.name,
-          minCapacity: 1,
-          maxCapacity: tbl.maxCapacity,
-          status: 'ACTIVE',
-          turnaroundMinutes: 30,
-        },
+        where: { code },
+        update: { areaId: area.id, name: `Bàn ${number}`, minCapacity: 2, maxCapacity: 4, status: 'ACTIVE', turnaroundMinutes: 10, deletedAt: null },
+        create: { areaId: area.id, code, name: `Bàn ${number}`, minCapacity: 2, maxCapacity: 4, status: 'ACTIVE', turnaroundMinutes: 10 },
       });
     }
   }
 
-  const existingSlots = await prisma.bbqServiceSlot.findMany({
-    where: { areaId: null, status: 'ACTIVE' },
+  await prisma.bbqArea.updateMany({
+    where: { code: { notIn: [...productionCodes] }, deletedAt: null },
+    data: { status: 'INACTIVE', deletedAt: new Date() },
+  });
+  await prisma.bbqTable.updateMany({
+    where: { area: { code: { notIn: [...productionCodes] } }, deletedAt: null },
+    data: { status: 'INACTIVE', deletedAt: new Date() },
   });
 
-  if (existingSlots.length === 0) {
-    for (const slot of SLOTS) {
-      await prisma.bbqServiceSlot.create({
-        data: {
-          areaId: null,
-          name: slot.name,
-          startTime: slot.startTime,
-          endTime: slot.endTime,
-          bookingIntervalMinutes: null,
-          maxTotalGuests: null,
-          daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
-          dateFrom: null,
-          dateTo: null,
-          status: 'ACTIVE',
-        },
-      });
-    }
+  await prisma.bbqServiceSlot.updateMany({
+    where: { status: 'ACTIVE' },
+    data: { status: 'INACTIVE' },
+  });
+  const existing = await prisma.bbqServiceSlot.findFirst({ where: { areaId: null, name: SERVICE_SLOT.name } });
+  if (existing) {
+    await prisma.bbqServiceSlot.update({ where: { id: existing.id }, data: { ...SERVICE_SLOT, bookingIntervalMinutes: null, maxTotalGuests: 120, status: 'ACTIVE', dateFrom: null, dateTo: null } });
+  } else {
+    await prisma.bbqServiceSlot.create({ data: { areaId: null, ...SERVICE_SLOT, bookingIntervalMinutes: null, maxTotalGuests: 120, status: 'ACTIVE', dateFrom: null, dateTo: null } });
   }
-
-  console.log(`BBQ areas seeded: ${AREAS.length} areas, ${AREAS.reduce((s, a) => s + a.tables.length, 0)} tables, ${SLOTS.length} service slots.`);
+  console.log('BBQ production catalogue seeded: 3 areas, 30 active tables, one 10:30–21:30 service window, daily quota 120.');
 }
