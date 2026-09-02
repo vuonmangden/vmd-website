@@ -16,5 +16,6 @@ export const NAV_LINKS: readonly NavLink[] = [
   { href: '/content-pages', label: 'Trang nội dung' },
   { href: '/articles', label: 'Tin tức' },
   { href: '/staff', label: 'Nhân sự' },
+  { href: '/reports', label: 'Báo cáo' },
   { href: '/settings', label: 'Cài đặt' },
 ];

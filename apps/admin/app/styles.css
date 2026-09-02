@@ -166,3 +166,12 @@ body { margin: 0; }
 .assign-role-row select { border: 1px solid var(--vmd-line); border-radius: .35rem; padding: .45rem .6rem; font: inherit; }
 .assign-role-row button { border: none; border-radius: .35rem; background: var(--vmd-forest); color: #fff; font: inherit; font-weight: 700; padding: .5rem 1rem; cursor: pointer; }
 .assign-role-row button:disabled { opacity: .6; cursor: wait; }
+
+.reports-page { display: grid; gap: 1.5rem; }
+.reports-toolbar { display: flex; gap: 1.25rem; align-items: end; flex-wrap: wrap; }
+.reports-toolbar label { display: grid; gap: .3rem; font-weight: 700; font-size: .85rem; }
+.reports-toolbar select, .reports-toolbar input { border: 1px solid var(--vmd-line); border-radius: .35rem; padding: .45rem .6rem; font: inherit; }
+.reports-toolbar button { border: none; border-radius: .35rem; background: var(--vmd-forest); color: #fff; font: inherit; font-weight: 700; padding: .55rem 1.1rem; cursor: pointer; height: 2.6rem; }
+.reports-toolbar button:disabled { opacity: .6; cursor: wait; }
+.report-body { display: grid; gap: 1.5rem; }
+.report-total { margin: 0; font-size: 1.3rem; font-weight: 800; color: var(--vmd-ink); }
