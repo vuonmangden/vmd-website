@@ -14,4 +14,16 @@ describe('ResourceHoldsService', () => {
     const updateMany = jest.fn().mockResolvedValue({ count: 2 }); const service = new ResourceHoldsService({ resourceHold: { updateMany } } as never, () => now, 15);
     await service.expireDue(); expect(updateMany).toHaveBeenCalledWith({ where: { status: 'ACTIVE', expiresAt: { lte: now } }, data: { status: 'EXPIRED', releasedAt: now } });
   });
+
+  it('rejects a hold whose end is not after its start', async () => {
+    const create = jest.fn(); const service = new ResourceHoldsService({ resourceHold: { findUnique: jest.fn(), create } } as never, () => now, 15);
+    await expect(service.create({ ...input, endAt: input.startAt })).rejects.toMatchObject({ response: { code: 'INVALID_RESOURCE_HOLD' } });
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it('rejects a blank idempotency key', async () => {
+    const create = jest.fn(); const service = new ResourceHoldsService({ resourceHold: { findUnique: jest.fn(), create } } as never, () => now, 15);
+    await expect(service.create({ ...input, idempotencyKey: '   ' })).rejects.toMatchObject({ response: { code: 'INVALID_RESOURCE_HOLD' } });
+    expect(create).not.toHaveBeenCalled();
+  });
 });
