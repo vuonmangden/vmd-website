@@ -111,3 +111,6 @@ body { margin: 0; }
 .cancel-panel textarea { min-height: 4.5rem; resize: vertical; }
 .button-danger { border: none; border-radius: .35rem; background: #9d2d20; color: #fff; font: inherit; font-weight: 700; padding: .55rem 1rem; cursor: pointer; justify-self: start; }
 .button-danger:disabled { opacity: .6; cursor: wait; }
+.bbq-actions { display: flex; gap: .6rem; flex-wrap: wrap; }
+.bbq-actions button:not(.button-danger) { border: none; border-radius: .35rem; background: var(--vmd-forest); color: #fff; font: inherit; font-weight: 700; padding: .55rem 1rem; cursor: pointer; }
+.bbq-actions button:disabled { opacity: .6; cursor: wait; }
