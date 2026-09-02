@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, Optional } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { createHash, randomUUID } from 'node:crypto';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- Nest needs runtime DI metadata.
@@ -11,12 +11,13 @@ import type { CreatePublicBbqReservationDto } from './dto/create-public-bbq-rese
 const IDEMPOTENCY_SCOPE = 'public.bbq.checkout';
 const DAILY_QUOTA = 120;
 const TERMINAL_STATUSES = ['CANCELLED', 'EXPIRED'] as const;
+const PUBLIC_BBQ_RESERVATIONS_CLOCK = 'PUBLIC_BBQ_RESERVATIONS_CLOCK';
 export interface PublicCheckoutActor { correlationId?: string; ipAddress?: string; userAgent?: string; }
 
 /** Public requests consume daily quota, never a physical table or a deposit. */
 @Injectable()
 export class PublicBbqReservationsService {
-  constructor(private readonly prisma: PrismaService, private readonly bbqMenu: BbqMenuService, private readonly now: () => Date = () => new Date()) {}
+  constructor(private readonly prisma: PrismaService, private readonly bbqMenu: BbqMenuService, @Optional() @Inject(PUBLIC_BBQ_RESERVATIONS_CLOCK) private readonly now: () => Date = () => new Date()) {}
 
   async create(dto: CreatePublicBbqReservationDto, idempotencyKey: string, actor: PublicCheckoutActor) {
     const key = idempotencyKey.trim();

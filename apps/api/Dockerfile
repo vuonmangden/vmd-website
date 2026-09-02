@@ -18,13 +18,21 @@ FROM base AS build
 COPY . .
 RUN pnpm install --frozen-lockfile
 RUN pnpm turbo run build --filter=@vmd/api...
-RUN pnpm prune --prod
+# Root-level `pnpm prune` removes workspace package dependencies. Deploy an
+# isolated production tree instead, retaining the generated Prisma client.
+RUN CI=true pnpm --filter @vmd/api deploy --legacy --prod --ignore-scripts /opt/api
+# `deploy --ignore-scripts` intentionally does not run Prisma generation in
+# the isolated tree. Copy the already-generated client beside its deployed
+# @prisma/client package, without retaining the Prisma CLI in runtime.
+RUN source_dir="$(dirname "$(dirname "$(find /app/node_modules/.pnpm -path '*/node_modules/@prisma/client' -type d -print -quit)")")" \
+ && target_dir="$(dirname "$(dirname "$(find /opt/api/node_modules/.pnpm -path '*/node_modules/@prisma/client' -type d -print -quit)")")" \
+ && cp -a "$source_dir/.prisma" "$target_dir/.prisma"
 
 FROM base AS runtime
 ENV NODE_ENV=production
 ENV API_PORT=3002
-COPY --from=build /app /app
-WORKDIR /app/apps/api
+COPY --from=build /opt/api /app
+WORKDIR /app
 EXPOSE 3002
 USER node
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \

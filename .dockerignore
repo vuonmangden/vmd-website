@@ -9,6 +9,12 @@ coverage/
 
 .git/
 .github/
+.claude/
+.codex/
+.agents/
+plans/
+release-manifest.json
+.repomixignore
 
 .env
 .env.*

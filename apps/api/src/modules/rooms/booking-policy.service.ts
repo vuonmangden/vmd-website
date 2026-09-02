@@ -1,4 +1,4 @@
-import { Injectable, ServiceUnavailableException } from '@nestjs/common';
+import { Inject, Injectable, Optional, ServiceUnavailableException } from '@nestjs/common';
 
 export type DepositPolicy = 'STANDARD_50' | 'LAST_MINUTE_100' | 'HOLIDAY_100';
 
@@ -9,12 +9,14 @@ export interface DepositQuote {
 }
 
 const DAY_MS = 86_400_000;
+const BOOKING_POLICY_CLOCK = 'BOOKING_POLICY_CLOCK';
+const BOOKING_POLICY_HOLD_MINUTES = 'BOOKING_POLICY_HOLD_MINUTES';
 
 @Injectable()
 export class BookingPolicyService {
   constructor(
-    private readonly now: () => Date = () => new Date(),
-    private readonly configuredHoldMinutes = readHoldMinutes(),
+    @Optional() @Inject(BOOKING_POLICY_CLOCK) private readonly now: () => Date = () => new Date(),
+    @Optional() @Inject(BOOKING_POLICY_HOLD_MINUTES) private readonly configuredHoldMinutes = readHoldMinutes(),
   ) {}
 
   holdMinutes(): number { return this.configuredHoldMinutes; }

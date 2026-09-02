@@ -175,7 +175,7 @@
 | PERF-002 | Cache và Capacity | Backlog | PERF-001 | TBD |  | Pool/index/backpressure |
 | OPS-005 | Observability | Backlog | Critical modules | TBD |  | Metrics/alerts |
 | OPS-006 | Backup, Restore và DR | Backlog | Production DB plan | TBD |  | Restore drill |
-| REL-001 | Deployment | In progress (Codex, 2026-09-02) | RMS-008, BKG-010, BBQ-007, PAY-007, ADM-003, NTF-007, QLT/SEC/PERF/OPS | `codex/rel-001-local-build-smoke` | PR #88 / `13da64a`; Dockerfiles 4 app | Claim local Docker build/smoke verification. Migration job, staging, env contract, auth/SePay/email/storage production và rollback evidence chưa hoàn tất. |
+| REL-001 | Deployment | In progress (Codex, 2026-09-02) | RMS-008, BKG-010, BBQ-007, PAY-007, ADM-003, NTF-007, QLT/SEC/PERF/OPS | `codex/rel-001-local-build-smoke` | PR #88 / `13da64a`; Dockerfiles 4 app | API production image build + live-health smoke đạt cục bộ 2026-09-02; sửa Docker production deploy tree/Prisma client và 6 DI runtime defaults lộ ra bởi smoke. Còn Worker/Web/Admin smoke, staging/env contract, auth/SePay/email/storage production, backup/rollback evidence. |
 | REL-002 | Go-live Checklist | Backlog | REL-001 | TBD |  |  |
 
 ## 14. Milestone 11 — Go-live và bàn giao
