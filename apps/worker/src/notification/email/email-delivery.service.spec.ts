@@ -14,6 +14,7 @@ describe('EmailDeliveryService', () => {
     await expect(
       service.send({
         correlationId: 'correlation-123',
+        idempotencyKey: 'notification:correlation-123:email',
         recipient: 'guest@example.test',
         subject: 'Synthetic subject',
         text: 'Synthetic body',

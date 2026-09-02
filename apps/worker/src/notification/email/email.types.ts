@@ -12,6 +12,8 @@ export type EmailFailureCode =
 
 export interface EmailMessage {
   correlationId: string;
+  /** Stable per notification job/channel; never derived from recipient PII. */
+  idempotencyKey: string;
   recipient: string;
   subject: string;
   text: string;

@@ -22,6 +22,7 @@ export class ResendEmailProvider implements EmailProvider {
           headers: {
             Authorization: `Bearer ${this.configuration.apiKey}`,
             'Content-Type': 'application/json',
+            'Idempotency-Key': message.idempotencyKey,
           },
           body: JSON.stringify({
             from: `${this.configuration.fromName} <${this.configuration.fromAddress}>`,
@@ -43,7 +44,7 @@ export class ResendEmailProvider implements EmailProvider {
         };
       }
 
-      throw responseError(response.status);
+      throw await responseError(response);
     } catch (error) {
       if (error instanceof EmailDeliveryError) throw error;
       if (isTimeout(error)) {
@@ -73,7 +74,8 @@ async function readMessageId(response: Response): Promise<string | null> {
   return null;
 }
 
-function responseError(status: number): EmailDeliveryError {
+async function responseError(response: Response): Promise<EmailDeliveryError> {
+  const status = response.status;
   if (status === 401 || status === 403) {
     return new EmailDeliveryError('authentication', false, 'resend');
   }
@@ -82,11 +84,44 @@ function responseError(status: number): EmailDeliveryError {
     return new EmailDeliveryError('rate_limited', true, 'resend');
   }
 
+  // Resend returns this 409 while another request with the same
+  // Idempotency-Key is still in flight. Retrying the exact same request is
+  // explicitly safe; other 409 responses (for a key/payload mismatch) are
+  // terminal and must not be retried with a changed payload.
+  if (status === 409) {
+    const code = await readErrorCode(response);
+    return new EmailDeliveryError(
+      code === 'concurrent_idempotent_requests'
+        ? 'provider_unavailable'
+        : 'rejected',
+      code === 'concurrent_idempotent_requests',
+      'resend',
+    );
+  }
+
   if (status >= 500) {
     return new EmailDeliveryError('provider_unavailable', true, 'resend');
   }
 
   return new EmailDeliveryError('rejected', false, 'resend');
+}
+
+async function readErrorCode(response: Response): Promise<string | null> {
+  try {
+    const payload: unknown = await response.json();
+    if (
+      typeof payload === 'object' &&
+      payload !== null &&
+      'name' in payload &&
+      typeof payload.name === 'string'
+    ) {
+      return payload.name;
+    }
+  } catch {
+    // Provider bodies are intentionally not surfaced in user-facing errors
+    // or logs. Unknown 409 is handled safely as non-retryable.
+  }
+  return null;
 }
 
 function isTimeout(error: unknown): boolean {
