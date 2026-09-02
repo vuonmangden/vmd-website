@@ -94,6 +94,12 @@ export function hasSession(): boolean {
   return currentSession !== undefined;
 }
 
+/** For attaching to business API requests (see lib/api-client.ts). Does not itself verify the token is still valid — a 401 means call refresh() and retry once, the same contract meWithRefresh() already follows. */
+export function currentAccessToken(): string | undefined {
+  currentSession ??= loadPersistedSession();
+  return currentSession?.accessToken;
+}
+
 export async function logout(): Promise<void> {
   const session = requireSession();
   try {

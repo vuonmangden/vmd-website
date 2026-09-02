@@ -1,9 +1,21 @@
 @import "tailwindcss";
 
-:root { color-scheme: light; font-family: system-ui, sans-serif; --vmd-color-surface: #ffffff; --vmd-color-text: #17211b; }
+:root {
+  color-scheme: light;
+  font-family: system-ui, sans-serif;
+  --vmd-color-surface: #ffffff;
+  --vmd-color-text: #17211b;
+  --vmd-ink: #1f3a2e;
+  --vmd-forest: #365442;
+  --vmd-wood: #71553b;
+  --vmd-ember: #d86b2a;
+  --vmd-cream: #f1e6d2;
+  --vmd-line: #dfd6c4;
+  --vmd-warn-bg: #fbecd8;
+  --vmd-warn-text: #8a4b12;
+}
 body { margin: 0; }
-main { margin: 4rem auto; max-width: 48rem; padding: 1.5rem; background: var(--vmd-color-surface); color: var(--vmd-color-text); }
-.auth-page { max-width: 28rem; }
+.auth-page { margin: 4rem auto; max-width: 28rem; padding: 1.5rem; background: var(--vmd-color-surface); color: var(--vmd-color-text); }
 .auth-eyebrow { color: #71553b; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 .auth-form { display: grid; gap: .65rem; margin-top: 1.5rem; }
 .auth-form input, .auth-form button { border: 1px solid #365442; border-radius: .35rem; font: inherit; min-height: 2.75rem; padding: .5rem .75rem; }
@@ -11,3 +23,37 @@ main { margin: 4rem auto; max-width: 48rem; padding: 1.5rem; background: var(--v
 .auth-form button:disabled, .auth-form input:disabled { cursor: wait; opacity: .65; }
 .auth-error { color: #9d2d20; margin: 0; }
 .auth-success { color: #1f3a2e; font-weight: 600; }
+
+.admin-shell { display: grid; grid-template-columns: 15rem 1fr; min-height: 100vh; background: #f7f4ee; color: var(--vmd-color-text); }
+.admin-nav { padding: 1.5rem 1rem; background: var(--vmd-ink); color: #fff; }
+.admin-wordmark { margin: 0 0 1.5rem; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; font-size: .95rem; }
+.admin-nav ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .25rem; }
+.admin-nav a { display: block; padding: .6rem .75rem; border-radius: .35rem; color: #e7ddc8; text-decoration: none; font-weight: 600; }
+.admin-nav a:hover, .admin-nav a:focus-visible { background: var(--vmd-forest); color: #fff; }
+.admin-body { display: flex; flex-direction: column; min-width: 0; }
+.admin-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1.75rem; background: #fff; border-bottom: 1px solid var(--vmd-line); }
+.admin-actor-name { margin: 0; font-weight: 700; }
+.admin-actor-roles { margin: 0; color: var(--vmd-wood); font-size: .82rem; text-transform: uppercase; letter-spacing: .04em; }
+.admin-header button { border: 1px solid var(--vmd-wood); border-radius: .35rem; background: #fff; color: var(--vmd-wood); font: inherit; font-weight: 700; padding: .5rem .9rem; cursor: pointer; }
+.admin-header button:hover { border-color: var(--vmd-ember); color: var(--vmd-ember); }
+.admin-header button:disabled { opacity: .6; cursor: wait; }
+.admin-main { flex: 1; padding: 1.75rem; max-width: 68rem; }
+.admin-main h1 { margin: 0 0 1.25rem; font-size: 1.6rem; }
+
+.dashboard { display: grid; gap: 2rem; }
+.dashboard-date { margin: -.75rem 0 0; color: var(--vmd-wood); font-weight: 600; }
+.dashboard-error { color: #9d2d20; font-weight: 600; }
+.dashboard-section-title { grid-column: 1 / -1; margin: 0; font-size: 1.05rem; color: var(--vmd-ink); }
+.dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .85rem; }
+.stat-card { border: 1px solid var(--vmd-line); border-radius: .5rem; padding: 1rem; background: #fff; }
+.stat-card-warn { border-color: var(--vmd-ember); background: var(--vmd-warn-bg); }
+.stat-value { margin: 0; font-size: 1.6rem; font-weight: 800; color: var(--vmd-ink); }
+.stat-card-warn .stat-value { color: var(--vmd-warn-text); }
+.stat-label { margin: .25rem 0 0; color: var(--vmd-wood); font-size: .85rem; }
+
+.occupancy-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+.occupancy-list li { display: grid; grid-template-columns: 6rem 1fr 8rem; align-items: center; gap: .75rem; }
+.occupancy-date { font-size: .85rem; color: var(--vmd-wood); }
+.occupancy-bar { display: block; height: .6rem; border-radius: 999px; background: var(--vmd-line); overflow: hidden; }
+.occupancy-bar-fill { display: block; height: 100%; background: var(--vmd-forest); }
+.occupancy-rate { font-size: .85rem; text-align: right; font-variant-numeric: tabular-nums; }
