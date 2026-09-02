@@ -44,6 +44,15 @@ describe('RolesService', () => {
       .rejects.toBeInstanceOf(ConflictException);
     expect(tx.staffRoleAssignment.delete).not.toHaveBeenCalled();
   });
+
+  it('only counts ACTIVE staff toward "another Super Admin exists" — a SUSPENDED/INVITED holder cannot be used to justify revoking the last usable one', async () => {
+    tx.role.findUnique.mockResolvedValue({ id: roleId, code: 'SUPER_ADMIN', isSystem: true });
+    tx.staffRoleAssignment.findUnique.mockResolvedValue({ staffId: targetId });
+    tx.staffRoleAssignment.count.mockResolvedValue(0);
+    await expect(service.revokeRole(actor(['SUPER_ADMIN'], ['user.manage']), targetId, 'SUPER_ADMIN', correlationId))
+      .rejects.toBeInstanceOf(ConflictException);
+    expect(tx.staffRoleAssignment.count).toHaveBeenCalledWith({ where: { roleId, staff: { status: 'ACTIVE' } } });
+  });
 });
 
 const targetId = '00000000-0000-4000-8000-000000000010';

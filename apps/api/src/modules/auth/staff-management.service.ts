@@ -3,6 +3,7 @@ import { BadRequestException, ConflictException, ForbiddenException, Injectable,
 import { PrismaService } from '../../prisma/prisma.service';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- Nest needs runtime DI metadata.
 import { SupabaseAdminService } from './supabase-admin.service';
+import { sanitize } from '../audit/audit.service';
 import type { AuthenticatedActor } from './auth.types';
 
 export const STAFF_STATUSES = ['INVITED', 'ACTIVE', 'SUSPENDED'] as const;
@@ -54,7 +55,7 @@ export class StaffManagementService {
           action: 'staff.invited',
           resourceType: 'staff_profile',
           resourceId: profile.id,
-          afterData: { email, fullName, status: 'INVITED' },
+          afterData: sanitize({ email, fullName, status: 'INVITED' }),
           correlationId,
         },
       });
