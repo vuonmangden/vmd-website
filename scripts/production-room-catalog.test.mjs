@@ -64,6 +64,7 @@ test('applies the catalog transactionally with deterministic production-only ups
   assert.equal(calls.roomTypes.find((call) => call.where.code === 'ROOM-TYPE-301')?.create.status, 'INACTIVE');
   assert.deepEqual(calls.rates[0].create.daysOfWeek, [0, 1, 2, 3, 4]);
   assert.deepEqual(calls.rates[1].create.daysOfWeek, [5, 6]);
+  assert.ok(calls.rates.every((call) => call.create.rateType === 'STANDARD'));
   assert.equal(calls.rates[0].create.extraAdultPrice, 200_000n);
 });
 

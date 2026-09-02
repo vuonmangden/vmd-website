@@ -81,6 +81,9 @@ describe('AdminBookingsService.list', () => {
           adults: 2,
           children: 0,
           totalAmount: 2_400_000n,
+          depositRequiredAmount: 1_200_000n,
+          depositPolicy: 'STANDARD_50',
+          dateChangeCount: 0,
           currency: 'VND',
           createdAt: new Date(),
           customer: { id: 'customer-1', fullName: 'Nguyễn Văn A' },
@@ -93,6 +96,7 @@ describe('AdminBookingsService.list', () => {
     const result = await service.list({ page: 1, pageSize: 50 });
 
     expect(result.items[0]?.totalAmount).toBe('2400000');
+    expect(result.items[0]?.depositRequiredAmount).toBe('1200000');
     expect(typeof result.items[0]?.totalAmount).toBe('string');
   });
 });
@@ -111,15 +115,22 @@ describe('AdminBookingsService.detail', () => {
     prisma.booking.findUnique.mockResolvedValue({
       id: 'booking-1',
       totalAmount: 100n,
+      depositRequiredAmount: 50n,
+      rooms: [{ id: 'booking-room-1', amount: 100n }],
       statusHistory: [{ toStatus: 'CONFIRMED' }],
     });
     const service = new AdminBookingsService(prisma as never, stateMock() as never);
 
-    await service.detail('booking-1');
+    const result = await service.detail('booking-1');
 
     expect(prisma.booking.findUnique.mock.calls[0][0].select.statusHistory).toEqual({
       orderBy: { changedAt: 'desc' },
     });
+    expect(result).toEqual(expect.objectContaining({
+      totalAmount: '100',
+      depositRequiredAmount: '50',
+      rooms: [expect.objectContaining({ amount: '100' })],
+    }));
   });
 });
 

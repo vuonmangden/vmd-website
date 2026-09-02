@@ -14,12 +14,12 @@
 | Chỉ số | Giá trị hiện tại |
 |---|---|
 | Phase | Phase 1 — MVP |
-| Trạng thái tổng thể | `origin/main` đã merge tới PR #89 (`4875ae5`) và hosted CI đạt. `RMS-008` đã có implementation/CI xanh trên PR #90; toàn hệ thống chưa production-ready trước khi hoàn tất booking, BBQ, payment, admin, notification và REL gates. |
-| Milestone hiện tại | Production cutover — `RMS-008` đang Review; đường găng tiếp theo là `BKG-010` sau khi PR #90 merge. |
-| Task đang thực hiện | `RMS-008` trên draft PR #90 (`codex/rms-008-production-room-rate-cutover`) đã qua local full gate và hosted CI `33508679811`; chờ review/merge. |
-| Task hoàn thành | `MNT-015` đã merge PR #89 (`4875ae5`) với Quality/Security CI đạt; tracker/readiness đã rebaseline tới code PR #88 và dữ liệu chủ dự án ngày 2026-09-01. |
+| Trạng thái tổng thể | `origin/main` đã merge tới PR #90 (`131732e`) và hosted CI `33510656030` đạt. Room/rate production cutover đã hoàn tất; toàn hệ thống chưa production-ready trước khi hoàn tất booking, BBQ, payment, admin, notification và REL gates. |
+| Milestone hiện tại | Production cutover — `BKG-010` đã local-review; đường găng tiếp theo là `BBQ-007`, rồi `PAY-007`. |
+| Task đang thực hiện | `BKG-010` trên `codex/bkg-010-production-booking-cutover` — local gate đạt, đang chờ hosted CI PR #91 trước merge. |
+| Task hoàn thành | `RMS-008` đã merge PR #90 (`131732e`); local full gate và hosted CI main `33510656030` đạt. |
 | Blocker mở | PRE-007/production secrets và provider configuration; booking/BBQ/payment/admin/notification production cutover; seed rehearsal trên PostgreSQL tách biệt; Google Drive cá nhân chưa đạt storage security review. |
-| Cập nhật gần nhất | 2026-09-01 |
+| Cập nhật gần nhất | 2026-09-02 |
 
 ## 3. Milestone 0 — Chốt đầu vào
 
@@ -85,7 +85,7 @@
 | RMS-005 | Price Engine | Done | RMS-003, MNT-014 | PR #24 / `codex/rms-005-price-engine-sandbox` / merge `2151e10` | API 81/81, full local gate; hosted CI đạt khi merge | Synthetic-only; PRE-003/PRE-005 vẫn Blocked |
 | RMS-006 | Availability Search | Done | RMS-002, RMS-004, MNT-014 | PR #25 / `codex/rms-006-availability-search-sandbox` / merge `0121c36` | Integration test đạt; hosted CI đạt khi merge | Synthetic-only; chưa bao gồm occupancy/hold/booking |
 | RMS-007 | Public room pages | Done | RMS-001, RMS-005, RMS-006, CMS-005 | PR #33 / `codex/rms-007-public-room-pages` / merge `c979f40` | API/web unit tests, typecheck và build đạt; hosted CI đạt khi merge | Synthetic-only safe public API; no room IDs, inventory, holds or booking creation |
-| RMS-008 | Production room/rate cutover | Review | MNT-015, RMS-007, PRE-001–PRE-003 | PR #90 / `codex/rms-008-production-room-rate-cutover` | Local lint/typecheck/test/build 12/12; API 438, web 52, worker 72, admin 11; Prisma 28 migrations; Compose đạt; hosted CI `33508679811` đạt | Catalog seed `2026-09-01.v1`: 201–207 active, 301 inactive, rate 2026-09-01, holiday metadata, đệm 200.000, VAT chưa gồm; availability loại occupancy; rate mutation có audit. Không migration/dependency; DB container rehearsal chuyển REL-001 do Docker engine local không sẵn sàng. |
+| RMS-008 | Production room/rate cutover | Done | MNT-015, RMS-007, PRE-001–PRE-003 | PR #90 / merge `131732e` | Local lint/typecheck/test/build 12/12; API 438, web 52, worker 72, admin 11; Prisma 28 migrations; Compose đạt; hosted CI main `33510656030` đạt | Catalog seed `2026-09-01.v1`: 201–207 active, 301 inactive, rate 2026-09-01, holiday metadata, đệm 200.000, VAT chưa gồm; availability loại occupancy; rate mutation có audit. Không migration/dependency; DB container rehearsal chuyển REL-001 do Docker engine local không sẵn sàng. |
 
 **Gate:** Price Engine unit test và Availability integration test đạt.
 
@@ -102,7 +102,7 @@
 | BKG-007 | Booking Lookup | Done | BKG-004 | PR #37 / `codex/bkg-007-booking-lookup` / merge `cb143ca` | Public lookup/request + internal approval; hosted CI đạt khi merge | Rate limit/IDOR |
 | BKG-008 | Admin Booking | Done | BKG-005, IAM-003 | PR #50 / `claude/bkg-008-admin-booking` | API 174/174; build 12/12 đạt | List/detail/confirm/cancel; đi qua `BookingStateService`, không tự ghi status; hủy bắt buộc lý do; tiền trả dạng chuỗi số nguyên. Vẫn ở lane synthetic |
 | BKG-009 | Change/Cancel | Done | BKG-005, PRE-005 | PR #56 (`71f9251`) + `claude/bkg-009-refund-execution` | API 358/358 (7 test mới) | Policy engine (PR #56) tính tiền hoàn và điều kiện đổi ngày theo bảng giá 2026. **Phần còn thiếu đã hoàn thành**: `BookingLookupService.decide()` (luồng duyệt yêu cầu khách hàng từ `BKG-007`) giờ gọi `CancellationPolicyService.quote()` khi duyệt một yêu cầu `CANCELLATION` — lấy `amountPaid` thật từ `PaymentIntent` đã `PAID`, staff chọn tường minh `policy` (`STANDARD`/`HOLIDAY`, không tự suy luận ngày lễ từ dữ liệu vì rủi ro sai lệch ảnh hưởng tiền), ghi kết quả hoàn tiền vào `booking_guest_requests` (migration `20260822100000_add_booking_guest_request_refund`, 5 cột mới + CHECK). Vẫn không tự chuyển tiền — đúng nguyên tắc Phase 1 (AGENTS.md §9). Vai trò duyệt Quản lý/Super Admin đã có sẵn từ trước (`decide()`), không đổi. **SLA "trong ngày sử dụng dịch vụ"** (§8 dòng 419): hạn chót là ngày check-in của booking, không phải ngày khách gửi yêu cầu — trả về `slaMet` để nhân sự thấy có trễ SLA hay không, không chặn hành động |
-| BKG-010 | Production booking cutover và đổi ngày | Blocked | MNT-015, RMS-008, BKG-009 | TBD |  | Cần task spec; bỏ synthetic boundary, hold 30 phút, thực thi DATE_CHANGE cùng occupancy/giá/history và lưu lượt đổi. Public hiện hard-code hold 15 phút trong khi service khác mặc định 120 phút. |
+| BKG-010 | Production booking cutover và đổi ngày | Review | MNT-015, RMS-008, BKG-009 | PR #91 / `codex/bkg-010-production-booking-cutover` | Migration local deploy; API 456/456, Web 52/52, Worker 72/72, scripts 26 pass/1 skip; full lint/typecheck/build/Prisma và `audit --prod --audit-level high` đạt | Public booking `DIRECT`/VMD-BK, hold/cọc 30 phút/50–100%, idempotency và đệm 0–1; DATE_CHANGE atomic cùng occupancy/history/audit/outbox. Transitive mysql2 đã khóa bản vá 3.22.0; Hosted CI rerun pending; SePay production/supplemental payment thuộc PAY-007. |
 
 **Gate:** E2E booking, concurrency và idempotency replay đạt.
 

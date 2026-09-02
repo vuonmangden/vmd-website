@@ -10,6 +10,8 @@ import { BookingLookupRateLimitService } from './booking-lookup-rate-limit.servi
 import { CancellationPolicyService, type CancellationPolicy } from './cancellation-policy.service';
 import type { AuthenticatedActor } from '../auth/auth.types';
 import type { CreateGuestRequestDto } from './dto/booking-lookup.dto';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports -- Nest needs runtime DI metadata.
+import { BookingDateChangeService, type DateChangeExecution } from './booking-date-change.service';
 
 const NOT_FOUND = () => new NotFoundException({ code: 'BOOKING_NOT_FOUND', message: 'Booking was not found' });
 /** Asia/Ho_Chi_Minh is UTC+7 with no DST; a fixed offset is exact and matches every other operational-date computation in this project. */
@@ -22,6 +24,7 @@ export class BookingLookupService {
     private readonly rateLimit: BookingLookupRateLimitService,
     private readonly bookingState: BookingStateService,
     private readonly cancellationPolicy: CancellationPolicyService,
+    private readonly dateChanges: BookingDateChangeService,
     private readonly now: () => Date = () => new Date(),
   ) {}
 
@@ -38,8 +41,11 @@ export class BookingLookupService {
     const booking = await this.findMatching(code, phoneInput);
     if (!booking) { this.rateLimit.recordFailure(ip); throw NOT_FOUND(); }
     this.rateLimit.reset(ip);
-    if (booking.status !== 'CONFIRMED' || booking.checkInDate <= new Date()) throw new BadRequestException({ code: 'BOOKING_REQUEST_NOT_ALLOWED', message: 'This booking cannot accept a request' });
-    if (dto.requestType === 'DATE_CHANGE' && (!dto.requestedCheckIn || !dto.requestedCheckOut || dto.requestedCheckIn >= dto.requestedCheckOut)) throw new BadRequestException({ code: 'INVALID_DATE_CHANGE_REQUEST', message: 'Requested dates are invalid' });
+    if (booking.status !== 'CONFIRMED' || booking.checkInDate.toISOString().slice(0, 10) <= operationalDay(this.now())) throw new BadRequestException({ code: 'BOOKING_REQUEST_NOT_ALLOWED', message: 'This booking cannot accept a request' });
+    if (dto.requestType === 'DATE_CHANGE') {
+      if (booking.dateChangeCount >= 1) throw manualDateChangeContact();
+      if (!validDateRange(dto.requestedCheckIn, dto.requestedCheckOut)) throw new BadRequestException({ code: 'INVALID_DATE_CHANGE_REQUEST', message: 'Requested dates are invalid' });
+    }
     return this.prisma.$transaction(async (tx) => {
       const existing = await tx.bookingGuestRequest.findFirst({ where: { bookingId: booking.id, status: { in: ['PENDING_REVIEW', 'REVIEWED'] } }, select: { id: true } });
       if (existing) throw new BadRequestException({ code: 'BOOKING_REQUEST_ALREADY_OPEN', message: 'A request is already open' });
@@ -60,7 +66,7 @@ export class BookingLookupService {
     return this.prisma.$transaction(async (tx) => {
       const request = await tx.bookingGuestRequest.findUnique({ where: { id: requestId } });
       if (!request || !['PENDING_REVIEW', 'REVIEWED'].includes(request.status)) throw NOT_FOUND();
-      const updated = await tx.bookingGuestRequest.update({ where: { id: request.id }, data: { status: 'REVIEWED', receptionNote: note?.trim() || request.receptionNote, reviewedBy: actor.staffProfileId, reviewedAt: new Date() } });
+      const updated = await tx.bookingGuestRequest.update({ where: { id: request.id }, data: { status: 'REVIEWED', receptionNote: note?.trim() || request.receptionNote, reviewedBy: actor.staffProfileId, reviewedAt: this.now() } });
       await tx.auditLog.create({ data: audit('booking.guest_request.reviewed', request.id, { bookingId: request.bookingId, status: updated.status }, actor.staffProfileId, correlationId) });
       return { requestId: updated.id, status: updated.status };
     });
@@ -81,32 +87,46 @@ export class BookingLookupService {
       const request = await tx.bookingGuestRequest.findUnique({ where: { id: requestId } });
       if (!request || !['PENDING_REVIEW', 'REVIEWED'].includes(request.status)) throw NOT_FOUND();
 
+      const decidedAt = this.now();
+      const claimed = await tx.bookingGuestRequest.updateMany({
+        where: { id: request.id, status: { in: ['PENDING_REVIEW', 'REVIEWED'] } },
+        data: { status: decision, decidedBy: actor.staffProfileId, decidedAt, decisionNote: note?.trim() || null },
+      });
+      if (claimed.count !== 1) throw NOT_FOUND();
+
       let refund: ReturnType<CancellationPolicyService['quote']> | null = null;
+      let dateChange: DateChangeExecution | null = null;
       let slaMet: boolean | null = null;
       const isCancellationApproval = decision === 'APPROVED' && request.requestType === 'CANCELLATION';
-      const decidedAt = this.now();
+      const isDateChangeApproval = decision === 'APPROVED' && request.requestType === 'DATE_CHANGE';
+      if ((isCancellationApproval || isDateChangeApproval) && !policy) throw new BadRequestException({ code: 'BOOKING_POLICY_REQUIRED', message: 'A STANDARD or HOLIDAY policy is required to approve this request' });
       if (isCancellationApproval) {
-        if (!policy) throw new BadRequestException({ code: 'REFUND_POLICY_REQUIRED', message: 'A cancellation policy (STANDARD or HOLIDAY) is required to approve a cancellation' });
-        const booking = await tx.booking.findUnique({ where: { id: request.bookingId }, select: { checkInDate: true, paymentIntents: { where: { status: 'PAID' }, select: { paidAmount: true } } } });
+        const booking = await tx.booking.findUnique({ where: { id: request.bookingId }, select: { checkInDate: true, dateChangeCount: true, paymentIntents: { where: { status: 'PAID' }, select: { paidAmount: true } } } });
         if (!booking) throw NOT_FOUND();
         const amountPaid = booking.paymentIntents.reduce((sum, intent) => sum + intent.paidAmount, 0n);
-        refund = this.cancellationPolicy.quote({ policy, checkInAt: booking.checkInDate, amountPaid, now: decidedAt });
+        refund = this.cancellationPolicy.quote({ policy: policy!, checkInAt: booking.checkInDate, amountPaid, dateChangeUsed: booking.dateChangeCount > 0, now: decidedAt });
         slaMet = operationalDay(decidedAt) <= operationalDay(booking.checkInDate);
         await this.bookingState.transitionInTransaction(tx, request.bookingId, 'CANCELLED', `guest cancellation request ${request.id}`);
+      }
+      if (isDateChangeApproval) {
+        dateChange = await this.dateChanges.executeInTransaction(tx, request, policy!, actor.staffProfileId, correlationId, decidedAt);
       }
 
       const updated = await tx.bookingGuestRequest.update({
         where: { id: request.id },
         data: {
-          status: decision,
-          decidedBy: actor.staffProfileId,
-          decidedAt,
-          decisionNote: note?.trim() || null,
           ...(refund ? { refundPolicy: policy, refundTierCode: refund.tierCode, refundPercent: refund.refundPercent, refundAmount: refund.refundAmount, forfeitedAmount: refund.forfeitedAmount } : {}),
+          ...(dateChange ? {
+            previousTotalAmount: dateChange.previousTotalAmount,
+            recalculatedTotalAmount: dateChange.recalculatedTotalAmount,
+            chargedTotalAmount: dateChange.chargedTotalAmount,
+            additionalAmountDue: dateChange.additionalAmountDue,
+            requestedData: { ...(request.requestedData as Prisma.JsonObject), execution: dateChangeAmounts(dateChange) },
+          } : {}),
         },
       });
 
-      await tx.auditLog.create({ data: audit(`booking.guest_request.${decision.toLowerCase()}`, request.id, { bookingId: request.bookingId, status: decision, ...(refund ? { slaMet, refundPolicy: policy, refundAmount: refund.refundAmount.toString() } : {}) }, actor.staffProfileId, correlationId) });
+      await tx.auditLog.create({ data: audit(`booking.guest_request.${decision.toLowerCase()}`, request.id, { bookingId: request.bookingId, status: decision, ...(refund ? { slaMet, refundPolicy: policy, refundAmount: refund.refundAmount.toString() } : {}), ...(dateChange ? dateChangeAmounts(dateChange) : {}) }, actor.staffProfileId, correlationId) });
       await tx.outboxEvent.create({ data: { aggregateType: 'BOOKING_GUEST_REQUEST', aggregateId: request.id, eventType: `booking.guest_request.${decision.toLowerCase()}`, payload: { bookingId: request.bookingId, requestId: request.id, status: decision } } });
 
       return {
@@ -114,18 +134,19 @@ export class BookingLookupService {
         status: updated.status,
         slaMet,
         refund: refund ? { policy, tierCode: refund.tierCode, refundPercent: refund.refundPercent, refundAmount: refund.refundAmount.toString(), forfeitedAmount: refund.forfeitedAmount.toString() } : null,
+        dateChange: dateChange ? dateChangeAmounts(dateChange) : null,
       };
     });
   }
 
   private async findMatching(code: string, phoneInput: string) {
     const phone = normalizePhone(phoneInput); if (!phone) return null;
-    return this.prisma.booking.findFirst({ where: { bookingCode: code.trim().toUpperCase(), customer: { phoneNormalized: phone, deletedAt: null } }, select: { id: true, bookingCode: true, status: true, checkInDate: true, checkOutDate: true, adults: true, children: true, totalAmount: true, specialRequest: true, createdAt: true, customer: { select: { phoneNormalized: true, emailNormalized: true } }, rooms: { select: { roomType: { select: { name: true } } } }, paymentIntents: { orderBy: { createdAt: 'desc' }, select: { id: true, status: true, amount: true, paidAmount: true, expiresAt: true } } } });
+    return this.prisma.booking.findFirst({ where: { bookingCode: code.trim().toUpperCase(), customer: { phoneNormalized: phone, deletedAt: null } }, select: { id: true, bookingCode: true, status: true, checkInDate: true, checkOutDate: true, dateChangeCount: true, adults: true, children: true, totalAmount: true, specialRequest: true, createdAt: true, customer: { select: { phoneNormalized: true, emailNormalized: true } }, rooms: { select: { roomType: { select: { name: true } } } }, paymentIntents: { orderBy: { createdAt: 'desc' }, select: { id: true, status: true, amount: true, paidAmount: true, expiresAt: true } } } });
   }
 
   private safe(booking: NonNullable<Awaited<ReturnType<BookingLookupService['findMatching']>>>) {
     const paid = booking.paymentIntents.reduce((sum, intent) => sum + intent.paidAmount, 0n);
-    const pending = booking.paymentIntents.find((intent) => intent.status === 'PENDING' && intent.expiresAt > new Date());
+    const pending = booking.paymentIntents.find((intent) => intent.status === 'PENDING' && intent.expiresAt > this.now());
     const roomTypes = Object.entries(booking.rooms.reduce<Record<string, number>>((result, room) => ({ ...result, [room.roomType.name]: (result[room.roomType.name] ?? 0) + 1 }), {})).map(([name, quantity]) => ({ name, quantity }));
     return { bookingCode: booking.bookingCode, status: booking.status, roomTypes, checkIn: booking.checkInDate.toISOString().slice(0, 10), checkOut: booking.checkOutDate.toISOString().slice(0, 10), nights: Math.round((booking.checkOutDate.getTime() - booking.checkInDate.getTime()) / 86_400_000), guests: { adults: booking.adults, children: booking.children }, totalAmount: booking.totalAmount.toString(), paidAmount: paid.toString(), remainingAmount: (booking.totalAmount - paid).toString(), currency: 'VND', payment: pending ? { reference: pending.id, expiresAt: pending.expiresAt.toISOString() } : null, specialRequest: booking.specialRequest, createdAt: booking.createdAt.toISOString(), phone: maskPhone(booking.customer.phoneNormalized), email: maskEmail(booking.customer.emailNormalized) };
   }
@@ -147,3 +168,6 @@ function normalizePhone(value: string) { const match = value.replace(/[\s.-]/g, 
 function maskPhone(value: string | null) { return value ? `****${value.slice(-4)}` : null; }
 function maskEmail(value: string | null) { if (!value) return null; const [local = '', domain = ''] = value.split('@'); return `${local.slice(0, 3)}***@${domain}`; }
 function audit(action: string, resourceId: string, afterData: Record<string, unknown>, actorId: string | null, correlationId?: string) { return { actorType: actorId ? 'STAFF' : 'PUBLIC', actorId, action, resourceType: 'BOOKING_GUEST_REQUEST', resourceId, afterData: afterData as Prisma.InputJsonValue, correlationId: correlationId ?? null }; }
+function validDateRange(checkIn: string | undefined, checkOut: string | undefined) { if (!checkIn || !checkOut || !/^\d{4}-\d{2}-\d{2}$/.test(checkIn) || !/^\d{4}-\d{2}-\d{2}$/.test(checkOut)) return false; const start = new Date(`${checkIn}T00:00:00.000Z`); const end = new Date(`${checkOut}T00:00:00.000Z`); return !Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime()) && start.toISOString().slice(0, 10) === checkIn && end.toISOString().slice(0, 10) === checkOut && end > start; }
+function manualDateChangeContact() { return new BadRequestException({ code: 'DATE_CHANGE_MANUAL_CONTACT_REQUIRED', message: 'This booking has already used its automatic date change; contact the homestay' }); }
+function dateChangeAmounts(value: DateChangeExecution) { return { previousTotalAmount: value.previousTotalAmount.toString(), recalculatedTotalAmount: value.recalculatedTotalAmount.toString(), chargedTotalAmount: value.chargedTotalAmount.toString(), additionalAmountDue: value.additionalAmountDue.toString(), previousCheckIn: value.previousCheckIn, previousCheckOut: value.previousCheckOut, newCheckIn: value.newCheckIn, newCheckOut: value.newCheckOut }; }

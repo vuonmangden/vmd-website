@@ -12,5 +12,6 @@ export class CreateRoomRateRuleDto {
   @IsOptional() @IsInt() @Min(1) minNights?: number;
   @IsOptional() @IsInt() @Min(1) maxNights?: number;
   @IsOptional() @IsInt() priority?: number;
+  @IsOptional() @IsIn(['STANDARD', 'HOLIDAY']) rateType?: 'STANDARD' | 'HOLIDAY';
   @IsOptional() @IsIn(['DRAFT', 'ACTIVE', 'INACTIVE']) status?: 'DRAFT' | 'ACTIVE' | 'INACTIVE';
 }

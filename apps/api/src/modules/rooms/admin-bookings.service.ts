@@ -47,6 +47,9 @@ export class AdminBookingsService {
           adults: true,
           children: true,
           totalAmount: true,
+          depositRequiredAmount: true,
+          depositPolicy: true,
+          dateChangeCount: true,
           currency: true,
           createdAt: true,
           customer: { select: { id: true, fullName: true } },
@@ -63,6 +66,7 @@ export class AdminBookingsService {
         ...row,
         // BigInt is not JSON-serialisable; money stays an integer string.
         totalAmount: row.totalAmount.toString(),
+        depositRequiredAmount: row.depositRequiredAmount.toString(),
       })),
       page: options.page,
       pageSize: options.pageSize,
@@ -82,13 +86,30 @@ export class AdminBookingsService {
         adults: true,
         children: true,
         totalAmount: true,
+        depositRequiredAmount: true,
+        depositPolicy: true,
+        originalCheckInDate: true,
+        originalCheckOutDate: true,
+        dateChangeCount: true,
         currency: true,
         specialRequest: true,
         expectedArrivalTime: true,
         createdAt: true,
         updatedAt: true,
         customer: { select: { id: true, fullName: true, customerCode: true } },
-        rooms: true,
+        rooms: {
+          select: {
+            id: true,
+            roomId: true,
+            roomTypeId: true,
+            nightlyRateSnapshot: true,
+            amount: true,
+            adults: true,
+            children: true,
+            extraMattressQuantity: true,
+            createdAt: true,
+          },
+        },
         statusHistory: { orderBy: { changedAt: 'desc' } },
       },
     });
@@ -97,7 +118,12 @@ export class AdminBookingsService {
       throw new NotFoundException({ code: 'BOOKING_NOT_FOUND', message: 'Booking not found' });
     }
 
-    return { ...booking, totalAmount: booking.totalAmount.toString() };
+    return {
+      ...booking,
+      totalAmount: booking.totalAmount.toString(),
+      depositRequiredAmount: booking.depositRequiredAmount.toString(),
+      rooms: booking.rooms.map((room) => ({ ...room, amount: room.amount.toString() })),
+    };
   }
 
   /**
