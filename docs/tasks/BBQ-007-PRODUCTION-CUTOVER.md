@@ -59,4 +59,5 @@
 - Migration `20260902100000_production_bbq_cutover` mở nhóm `DO_UONG` để nhập đúng menu ảnh; Prisma validation xác nhận 30 migration hợp lệ.
 - Local quality gate đạt với Node 24.19.0/pnpm 11.9.0: lint, typecheck, test (API 456/456, Web 52/52, Worker 72/72, scripts 26 pass/1 skip), build và dependency audit high.
 - Visual QA `/bbq` desktop và viewport 390px: giờ 10:30–21:30, nhóm 2–20, quota 120, lễ tân xác nhận; không còn copy QR/cọc/sandbox hoặc tràn ngang.
-- PostgreSQL migration/seed rehearsal chưa thể chạy lại trong turn này vì Docker Desktop engine không hoạt động (`dockerDesktopLinuxEngine` không tồn tại); đây là điều kiện còn lại cùng hosted CI trước merge.
+- PostgreSQL Docker verification: `migrate deploy` đã áp dụng `20260902100000_production_bbq_cutover`; seed chạy hai lần đạt idempotent. Truy vấn trực tiếp xác nhận 3 khu ACTIVE × 10 bàn (mỗi bàn 2–4 khách, dọn 10 phút), đúng một service window global 10:30–21:30/quota 120, 76 món và 4 set đều available.
+- Hosted CI PR #92 run `33587662045` đạt đủ Quality/schema/Compose và Secret/dependency gates.
