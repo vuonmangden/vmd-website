@@ -10,4 +10,5 @@ export interface NavLink {
 
 export const NAV_LINKS: readonly NavLink[] = [
   { href: '/', label: 'Tổng quan' },
+  { href: '/calendar', label: 'Lịch phòng' },
 ];

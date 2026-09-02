@@ -57,3 +57,23 @@ body { margin: 0; }
 .occupancy-bar { display: block; height: .6rem; border-radius: 999px; background: var(--vmd-line); overflow: hidden; }
 .occupancy-bar-fill { display: block; height: 100%; background: var(--vmd-forest); }
 .occupancy-rate { font-size: .85rem; text-align: right; font-variant-numeric: tabular-nums; }
+
+.calendar-page { display: grid; gap: 1.25rem; }
+.calendar-toolbar { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+.calendar-toolbar button { border: 1px solid var(--vmd-line); border-radius: .35rem; background: #fff; font: inherit; font-weight: 700; padding: .45rem .8rem; cursor: pointer; }
+.calendar-toolbar button:hover { border-color: var(--vmd-forest); color: var(--vmd-forest); }
+.calendar-range-label { font-weight: 700; color: var(--vmd-wood); font-variant-numeric: tabular-nums; }
+.calendar-grid { display: grid; gap: 1px; background: var(--vmd-line); border: 1px solid var(--vmd-line); overflow-x: auto; }
+.calendar-corner, .calendar-day-head, .calendar-room-head, .calendar-cell { background: #fff; padding: .5rem .4rem; font-size: .8rem; }
+.calendar-day-head { text-align: center; font-weight: 700; color: var(--vmd-wood); }
+.calendar-room-head { font-weight: 700; white-space: nowrap; }
+.calendar-cell { min-height: 2.2rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.calendar-cell-confirmed { background: #e4efe8; color: var(--vmd-forest); }
+.calendar-cell-checked_in { background: #dfe9f5; color: #2a4d78; }
+.calendar-cell-pending_payment { background: var(--vmd-warn-bg); color: var(--vmd-warn-text); }
+.calendar-cell-cancelled { background: #f3f0ea; color: #8a8070; text-decoration: line-through; }
+.calendar-cell-blocked { background: #f6dede; color: #8a2f2f; }
+.bbq-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; }
+.bbq-list li { display: flex; gap: .75rem; align-items: center; padding: .5rem .75rem; border: 1px solid var(--vmd-line); border-radius: .35rem; font-size: .88rem; }
+.bbq-code { font-weight: 700; }
+.bbq-status { margin-left: auto; font-size: .75rem; text-transform: uppercase; letter-spacing: .03em; color: var(--vmd-wood); }
