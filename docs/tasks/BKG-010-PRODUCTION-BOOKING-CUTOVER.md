@@ -101,4 +101,5 @@
 - Migration `20260901100000_production_booking_cutover` đã áp dụng thành công trên PostgreSQL local verification; Prisma validate và `pnpm ci:prisma` đạt.
 - Full gate local với Node 24.19.0/pnpm 11.9.0 đạt: lint, typecheck, test (API 456/456, Web 52/52, Worker 72/72 và scripts 26 pass/1 skip), build.
 - Visual QA checkout desktop và viewport 390px: 3 bước, đệm thêm, hai consent, loading/error state; không tràn ngang và không có console error.
-- Hosted CI cho PR #91 là điều kiện còn lại trước merge. SePay QR/tài khoản production và khoản thanh toán bổ sung vẫn thuộc `PAY-007`, không được ngầm coi là đã production-ready ở task này.
+- `pnpm audit --prod --audit-level high` đạt sau khi khóa transitive `mysql2` ở `3.22.0` để xử lý GHSA-3f6p-5ww8-9rcr; còn 3 cảnh báo mức moderate ngoài ngưỡng release gate.
+- Hosted CI rerun cho PR #91 là điều kiện còn lại trước merge. SePay QR/tài khoản production và khoản thanh toán bổ sung vẫn thuộc `PAY-007`, không được ngầm coi là đã production-ready ở task này.

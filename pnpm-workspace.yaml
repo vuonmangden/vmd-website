@@ -11,6 +11,9 @@ overrides:
   playwright: 1.55.1
   js-yaml: 5.2.2
   deepmerge-ts: ^8.0.1
+  # GHSA-3f6p-5ww8-9rcr: Prisma currently pulls mysql2 transitively even though
+  # VMD uses PostgreSQL. Keep every install on the patched driver.
+  mysql2: 3.22.0
 
 allowBuilds:
   '@prisma/engines': true
