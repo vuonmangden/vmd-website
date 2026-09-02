@@ -13,6 +13,7 @@ async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, { bodyParser: false });
   const securityConfig = new SecurityConfigService().get();
 
+  app.getHttpAdapter().getInstance().disable('x-powered-by');
   app.getHttpAdapter().getInstance().set('trust proxy', (address: string) => securityConfig.trustedProxyIps.has(address));
   app.use(securityHeadersMiddleware(securityConfig));
   app.use(requireJsonForAuth);
