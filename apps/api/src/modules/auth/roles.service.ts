@@ -58,7 +58,11 @@ export class RolesService {
       if (!assignment) throw new NotFoundException({ code: 'ROLE_ASSIGNMENT_NOT_FOUND', message: 'Role assignment not found' });
 
       if (role.code === 'SUPER_ADMIN') {
-        const count = await tx.staffRoleAssignment.count({ where: { roleId: role.id } });
+        // SEC-001: scoped to ACTIVE holders, matching the equivalent guard in
+        // staff-management.service.ts's changeStatus() — an assignment held
+        // by a SUSPENDED/INVITED profile can't actually manage users, so it
+        // must not count toward "there's still another Super Admin".
+        const count = await tx.staffRoleAssignment.count({ where: { roleId: role.id, staff: { status: 'ACTIVE' } } });
         if (count <= 1) {
           throw new ConflictException({ code: 'LAST_SUPER_ADMIN', message: 'The last Super Admin cannot be removed' });
         }

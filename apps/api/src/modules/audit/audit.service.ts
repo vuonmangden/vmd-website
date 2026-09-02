@@ -44,7 +44,8 @@ export class AuditService {
 }
 
 const SENSITIVE_KEY = /password|token|otp|secret|authorization|cookie|email|phone|identity|account/i;
-function sanitize(value: unknown): Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput {
+/** Exported so callers building their own `tx.auditLog.create()` inside an existing transaction (AuditService.record() can't participate in one) still redact consistently — see SEC-001. */
+export function sanitize(value: unknown): Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput {
   if (value === undefined || value === null) return Prisma.JsonNull;
   return redact(value) as Prisma.InputJsonValue;
 }

@@ -30,6 +30,7 @@ export class PublicBbqReservationsService {
     const items = dto.items ?? [];
     if (!phone || totalGuests < 2 || totalGuests > 20 || items.length > 50) throw invalid();
     if (items.some((item) => !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 999)) throw invalid();
+    if (dto.date < operationalToday(this.now())) throw invalid();
 
     return this.prisma.$transaction(async (tx) => {
       const previous = await tx.idempotencyKey.findUnique({ where: { key } });
@@ -98,6 +99,8 @@ async function assertWithinServiceHours(tx: Prisma.TransactionClient, date: stri
   if (!covered) throw new BadRequestException({ code: 'BBQ_TIME_OUTSIDE_SERVICE_HOURS', message: 'Requested arrival time is outside BBQ service hours' });
 }
 function operationalDate(value: string): Date { const result = new Date(`${value}T00:00:00.000Z`); if (Number.isNaN(result.getTime())) throw invalid(); return result; }
+/** SEC-001: mirrors `public-bookings.service.ts`'s equivalent check — `dto.date` had no past-date bound (unlike room check-in), so a caller could create backdated reservations that also pollute that date's quota bucket. */
+function operationalToday(instant: Date): string { return new Date(instant.getTime() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10); }
 function normalizeVietnamesePhone(value: string): string | null { const compact = value.replace(/[\s.-]/g, ''); const match = compact.match(/^(?:\+84|84|0)([35789]\d{8})$/); return match ? `+84${match[1]}` : null; }
 function invalid(): BadRequestException { return new BadRequestException({ code: 'INVALID_PUBLIC_BBQ_RESERVATION', message: 'BBQ reservation details are invalid' }); }
 function quotaExceeded(): ConflictException { return new ConflictException({ code: 'BBQ_DAILY_QUOTA_EXCEEDED', message: 'BBQ daily guest quota has been reached' }); }
