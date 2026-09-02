@@ -49,4 +49,16 @@ describe('PublicBbqReservationsService.create', () => {
     const service = new PublicBbqReservationsService(prisma as never, menu() as never, () => now);
     await expect(service.create({ ...VALID, adults: 21 }, 'too-many', {})).rejects.toBeInstanceOf(BadRequestException);
   });
+
+  it('rejects a reservation date before today (Asia/Ho_Chi_Minh)', async () => {
+    const { prisma } = prismaMock();
+    const service = new PublicBbqReservationsService(prisma as never, menu() as never, () => now);
+    await expect(service.create({ ...VALID, date: '2026-09-01' }, 'backdated', {})).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('accepts a reservation dated today (Asia/Ho_Chi_Minh)', async () => {
+    const { prisma } = prismaMock();
+    const service = new PublicBbqReservationsService(prisma as never, menu() as never, () => now);
+    await expect(service.create({ ...VALID, date: '2026-09-02' }, 'today-key', {})).resolves.toEqual(expect.objectContaining({ status: 'PENDING_CONFIRMATION' }));
+  });
 });
