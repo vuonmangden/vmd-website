@@ -126,3 +126,26 @@ body { margin: 0; }
 .setting-saved { color: var(--vmd-forest); font-size: .82rem; font-weight: 700; }
 .setting-error { color: #9d2d20; font-size: .82rem; grid-column: 1 / -1; }
 .setting-disabled-reason { color: var(--vmd-wood); font-size: .78rem; grid-column: 1 / -1; }
+
+.status-badge { display: inline-block; padding: .2rem .55rem; border-radius: 999px; font-size: .72rem; font-weight: 700; text-transform: uppercase; background: #eee; color: #555; }
+.status-badge-published, .status-badge-active { background: #e4efe8; color: var(--vmd-forest); }
+.status-badge-draft { background: var(--vmd-warn-bg); color: var(--vmd-warn-text); }
+.status-badge-inactive { background: #f3f0ea; color: #8a8070; }
+
+.content-pages-page { display: grid; gap: 1.25rem; }
+.content-pages-toolbar { display: flex; justify-content: flex-end; }
+.link-button { border: none; border-radius: .35rem; background: var(--vmd-forest); color: #fff; font-weight: 700; padding: .55rem 1rem; text-decoration: none; }
+.link-button:hover { background: var(--vmd-ink); }
+
+.content-page-detail { display: grid; gap: 1.25rem; }
+.content-page-detail-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.content-page-slug { margin: 0 0 .3rem; font-size: 1.15rem; font-weight: 800; color: var(--vmd-wood); }
+.content-page-actions { display: flex; gap: .6rem; flex-wrap: wrap; }
+.content-page-actions button:not(.button-danger) { border: none; border-radius: .35rem; background: var(--vmd-forest); color: #fff; font: inherit; font-weight: 700; padding: .55rem 1rem; cursor: pointer; }
+.content-page-actions button:disabled { opacity: .6; cursor: wait; }
+.content-page-form { display: grid; gap: .85rem; max-width: 42rem; }
+.content-page-form label { display: grid; gap: .3rem; font-weight: 700; font-size: .88rem; }
+.content-page-form input, .content-page-form textarea { border: 1px solid var(--vmd-line); border-radius: .35rem; padding: .5rem .65rem; font: inherit; }
+.content-page-form textarea { min-height: 14rem; resize: vertical; }
+.content-page-form button { justify-self: start; border: none; border-radius: .35rem; background: var(--vmd-forest); color: #fff; font: inherit; font-weight: 700; padding: .55rem 1.1rem; cursor: pointer; }
+.content-page-form button:disabled { opacity: .6; cursor: wait; }
