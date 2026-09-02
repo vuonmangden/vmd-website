@@ -8,7 +8,6 @@ import {
   IsInt,
   IsOptional,
   IsString,
-  IsUUID,
   Length,
   Matches,
   Max,
@@ -34,17 +33,11 @@ export class PublicBbqReservationItemDto {
 }
 
 export class CreatePublicBbqReservationDto {
-  @IsUUID()
-  declare tableId: string;
-
   @IsDateString()
   declare date: string;
 
   @Matches(HH_MM)
   declare startTime: string;
-
-  @Matches(HH_MM)
-  declare endTime: string;
 
   @IsString()
   @Length(2, 150)
@@ -60,12 +53,14 @@ export class CreatePublicBbqReservationDto {
   declare email?: string;
 
   @IsInt()
-  @Min(1)
+  @Min(2)
+  @Max(20)
   declare adults: number;
 
   @IsOptional()
   @IsInt()
   @Min(0)
+  @Max(18)
   children?: number;
 
   @IsOptional()

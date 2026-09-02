@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { BbqReservationCreationService } from './bbq-reservation-creation.service';
 
@@ -47,7 +47,7 @@ function fakeReservation(overrides?: Record<string, unknown>) {
   return {
     id: RESERVATION_ID,
     reservationCode: 'BBQ-ABCD1234',
-    status: 'PENDING_PAYMENT',
+    status: 'PENDING_CONFIRMATION',
     currency: 'VND',
     ...overrides,
   };
@@ -58,7 +58,6 @@ function prismaMock() {
     idempotencyKey: { findUnique: jest.fn().mockResolvedValue(null), create: jest.fn() },
     bbqTable: { findFirst: jest.fn().mockResolvedValue(fakeTable()) },
     bbqServiceSlot: { findMany: jest.fn().mockResolvedValue([LUNCH_SLOT]) },
-    appSetting: { findUnique: jest.fn().mockResolvedValue({ value: { amount: 150000 } }) },
     bbqReservation: { create: jest.fn().mockResolvedValue(fakeReservation()) },
     bbqReservationTable: { create: jest.fn() },
     bbqReservationItem: { createMany: jest.fn() },
@@ -92,9 +91,9 @@ describe('BbqReservationCreationService.create', () => {
       expect.objectContaining({
         reservationId: RESERVATION_ID,
         reservationCode: 'BBQ-ABCD1234',
-        status: 'PENDING_PAYMENT',
+        status: 'PENDING_CONFIRMATION',
         tableId: TABLE_ID,
-        depositAmount: '150000',
+        depositAmount: '0',
         itemsAmount: '0',
       }),
     );
@@ -107,7 +106,7 @@ describe('BbqReservationCreationService.create', () => {
       }),
     );
     expect(tx.bbqReservationStatusHistory.create).toHaveBeenCalledWith({
-      data: { reservationId: RESERVATION_ID, toStatus: 'PENDING_PAYMENT', reason: 'reservation created' },
+      data: { reservationId: RESERVATION_ID, toStatus: 'PENDING_CONFIRMATION', reason: 'reservation created awaiting confirmation' },
     });
     expect(tx.idempotencyKey.create).toHaveBeenCalled();
     expect(tx.outboxEvent.create).toHaveBeenCalled();
@@ -181,14 +180,6 @@ describe('BbqReservationCreationService.create', () => {
     await expect(
       service.create({ ...BASE_INPUT, items: [{ type: 'MENU_ITEM', code: 'UNKNOWN', quantity: 1 }] }),
     ).rejects.toThrow(NotFoundException);
-  });
-
-  it('throws ServiceUnavailableException when the deposit setting is missing', async () => {
-    const { tx, prisma } = prismaMock();
-    tx.appSetting.findUnique.mockResolvedValue(null);
-    const service = new BbqReservationCreationService(prisma as never, bbqMenuMock() as never, () => now);
-
-    await expect(service.create(BASE_INPUT)).rejects.toThrow(ServiceUnavailableException);
   });
 
   it('rejects invalid input before touching the database', async () => {

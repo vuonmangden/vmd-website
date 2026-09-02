@@ -5,6 +5,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 
 const transitions: Record<string, readonly string[]> = {
   PENDING_PAYMENT: ['CONFIRMED', 'CANCELLED', 'EXPIRED'],
+  PENDING_CONFIRMATION: ['CONFIRMED', 'CANCELLED', 'EXPIRED'],
   CONFIRMED: ['CANCELLED', 'CHECKED_IN'],
   CHECKED_IN: ['CHECKED_OUT'],
 };

@@ -4,6 +4,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { applySyntheticFixtures, authorizeSyntheticData } from '../scripts/synthetic-fixtures-lib.mjs';
 import { applyProductionRoomCatalog } from '../scripts/production-room-catalog-lib.mjs';
 import { seedBbqAreas } from './bbq-area-seed';
+import { seedBbqMenu } from './bbq-menu-seed';
 import { seedRbac } from './rbac-seed';
 
 const connectionString = process.env['DATABASE_URL'] ?? '';
@@ -34,15 +35,14 @@ async function main(): Promise<void> {
     });
   }
 
-  // Provisional: owner confirmed 100,000-200,000d/table but not an exact
-  // figure or a per-area rule (2026-08-19). 150,000 is the midpoint;
-  // adjustable here without a deploy.
+  // BBQ online requests have no deposit as confirmed on 2026-09-01. Keep the
+  // historical setting explicit so obsolete sandbox code cannot silently use it.
   await prisma.appSetting.upsert({
     where: { key: 'bbq.deposit_amount_per_table' },
-    update: {},
+    update: { value: { amount: 0 } },
     create: {
       key: 'bbq.deposit_amount_per_table',
-      value: { amount: 150000 },
+      value: { amount: 0 },
       category: 'bbq',
       isSecretReference: false,
     },
@@ -51,11 +51,12 @@ async function main(): Promise<void> {
   await seedRbac(prisma);
   const roomCatalog = await applyProductionRoomCatalog(prisma);
   await seedBbqAreas(prisma);
+  await seedBbqMenu(prisma);
 
   console.log(
     `Production room catalog ${roomCatalog.applied ? 'applied' : 'already current'}: version=${roomCatalog.version}, activeRooms=${roomCatalog.activeRoomCount}, rateRules=${roomCatalog.rateRuleCount}.`,
   );
-  console.log('Seed completed: app_settings, RBAC matrix, production rooms/rates, and BBQ areas inserted.');
+  console.log('Seed completed: app_settings, RBAC matrix, production rooms/rates, BBQ areas, and BBQ menu inserted.');
 
   if (!syntheticAuthorization) {
     console.log('Synthetic fixtures skipped: set an explicit non-production environment and ALLOW_SYNTHETIC_DATA=true.');

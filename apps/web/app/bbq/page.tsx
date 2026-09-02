@@ -13,8 +13,8 @@ export default function BbqPage() {
       <main id="noi-dung" tabIndex={-1} className="room-page">
         <section aria-labelledby="bbq-title">
           <p className="eyebrow">Đặt bàn BBQ</p>
-          <h1 id="bbq-title">Chọn khu vực và bàn phù hợp</h1>
-          <p className="room-lead">Danh sách khu vực, bàn và tình trạng trống dưới đây là dữ liệu sandbox phục vụ bản demo; chưa phải thông tin mở bán chính thức.</p>
+          <h1 id="bbq-title">Đặt BBQ tại Vườn</h1>
+          <p className="room-lead">Chọn ngày và giờ đến. Vườn phục vụ từ 10:30 đến 21:30; lễ tân sẽ xác nhận booking, còn nhóm 5–20 khách được sắp xếp bàn khi tới nơi.</p>
           <BbqBrowser />
         </section>
       </main>
