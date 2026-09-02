@@ -15,11 +15,11 @@
 |---|---|
 | Phase | Phase 1 — MVP |
 | Trạng thái tổng thể | `origin/main` đã merge tới PR #90 (`131732e`) và hosted CI `33510656030` đạt. Room/rate production cutover đã hoàn tất; toàn hệ thống chưa production-ready trước khi hoàn tất booking, BBQ, payment, admin, notification và REL gates. |
-| Milestone hiện tại | Production cutover — đường găng hiện tại là `BKG-010` sau khi `RMS-008` đã merge. |
-| Task đang thực hiện | `BKG-010` trên `codex/bkg-010-production-booking-cutover` — claim ngày 2026-09-01; đang chốt task spec và production boundary trước implementation. |
+| Milestone hiện tại | Production cutover — `BKG-010` đã local-review; đường găng tiếp theo là `BBQ-007`, rồi `PAY-007`. |
+| Task đang thực hiện | `BKG-010` trên `codex/bkg-010-production-booking-cutover` — local gate đạt, đang chờ hosted CI PR #91 trước merge. |
 | Task hoàn thành | `RMS-008` đã merge PR #90 (`131732e`); local full gate và hosted CI main `33510656030` đạt. |
 | Blocker mở | PRE-007/production secrets và provider configuration; booking/BBQ/payment/admin/notification production cutover; seed rehearsal trên PostgreSQL tách biệt; Google Drive cá nhân chưa đạt storage security review. |
-| Cập nhật gần nhất | 2026-09-01 |
+| Cập nhật gần nhất | 2026-09-02 |
 
 ## 3. Milestone 0 — Chốt đầu vào
 
@@ -102,7 +102,7 @@
 | BKG-007 | Booking Lookup | Done | BKG-004 | PR #37 / `codex/bkg-007-booking-lookup` / merge `cb143ca` | Public lookup/request + internal approval; hosted CI đạt khi merge | Rate limit/IDOR |
 | BKG-008 | Admin Booking | Done | BKG-005, IAM-003 | PR #50 / `claude/bkg-008-admin-booking` | API 174/174; build 12/12 đạt | List/detail/confirm/cancel; đi qua `BookingStateService`, không tự ghi status; hủy bắt buộc lý do; tiền trả dạng chuỗi số nguyên. Vẫn ở lane synthetic |
 | BKG-009 | Change/Cancel | Done | BKG-005, PRE-005 | PR #56 (`71f9251`) + `claude/bkg-009-refund-execution` | API 358/358 (7 test mới) | Policy engine (PR #56) tính tiền hoàn và điều kiện đổi ngày theo bảng giá 2026. **Phần còn thiếu đã hoàn thành**: `BookingLookupService.decide()` (luồng duyệt yêu cầu khách hàng từ `BKG-007`) giờ gọi `CancellationPolicyService.quote()` khi duyệt một yêu cầu `CANCELLATION` — lấy `amountPaid` thật từ `PaymentIntent` đã `PAID`, staff chọn tường minh `policy` (`STANDARD`/`HOLIDAY`, không tự suy luận ngày lễ từ dữ liệu vì rủi ro sai lệch ảnh hưởng tiền), ghi kết quả hoàn tiền vào `booking_guest_requests` (migration `20260822100000_add_booking_guest_request_refund`, 5 cột mới + CHECK). Vẫn không tự chuyển tiền — đúng nguyên tắc Phase 1 (AGENTS.md §9). Vai trò duyệt Quản lý/Super Admin đã có sẵn từ trước (`decide()`), không đổi. **SLA "trong ngày sử dụng dịch vụ"** (§8 dòng 419): hạn chót là ngày check-in của booking, không phải ngày khách gửi yêu cầu — trả về `slaMet` để nhân sự thấy có trễ SLA hay không, không chặn hành động |
-| BKG-010 | Production booking cutover và đổi ngày | In progress (Codex, 2026-09-01) | MNT-015, RMS-008, BKG-009 | `codex/bkg-010-production-booking-cutover` | Coordination prerequisite đạt; task spec và implementation đang thực hiện | Bỏ synthetic boundary, thống nhất hold 30 phút, thực thi DATE_CHANGE cùng occupancy/giá/history và lưu lượt đổi; lần đổi thứ hai chuyển lễ tân xử lý. |
+| BKG-010 | Production booking cutover và đổi ngày | Review | MNT-015, RMS-008, BKG-009 | PR #91 / `codex/bkg-010-production-booking-cutover` | Migration local deploy; API 456/456, Web 52/52, Worker 72/72, scripts 26 pass/1 skip; full lint/typecheck/build/Prisma đạt | Public booking `DIRECT`/VMD-BK, hold/cọc 30 phút/50–100%, idempotency và đệm 0–1; DATE_CHANGE atomic cùng occupancy/history/audit/outbox. Hosted CI pending; SePay production/supplemental payment thuộc PAY-007. |
 
 **Gate:** E2E booking, concurrency và idempotency replay đạt.
 

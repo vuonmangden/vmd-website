@@ -86,6 +86,11 @@ model Booking {
   status       String       @db.VarChar(40)
   source       String       @db.VarChar(50)
   totalAmount  BigInt       @map("total_amount")
+  depositRequiredAmount BigInt @default(0) @map("deposit_required_amount")
+  depositPolicy String      @default("STANDARD_50") @map("deposit_policy") @db.VarChar(30)
+  originalCheckInDate DateTime? @map("original_check_in_date") @db.Date
+  originalCheckOutDate DateTime? @map("original_check_out_date") @db.Date
+  dateChangeCount Int       @default(0) @map("date_change_count")
   specialRequest String?    @map("special_request") @db.Text
   expectedArrivalTime String? @map("expected_arrival_time") @db.VarChar(50)
   currency     String       @default("VND") @db.Char(3)
@@ -119,6 +124,10 @@ model BookingGuestRequest {
   refundPercent   Int?     @map("refund_percent")
   refundAmount    BigInt?  @map("refund_amount")
   forfeitedAmount BigInt?  @map("forfeited_amount")
+  previousTotalAmount BigInt? @map("previous_total_amount")
+  recalculatedTotalAmount BigInt? @map("recalculated_total_amount")
+  chargedTotalAmount BigInt? @map("charged_total_amount")
+  additionalAmountDue BigInt? @map("additional_amount_due")
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
   booking         Booking  @relation(fields: [bookingId], references: [id], onDelete: Restrict)
 
@@ -209,6 +218,7 @@ model BookingRoom {
   amount              BigInt
   adults              Int
   children            Int      @default(0)
+  extraMattressQuantity Int    @default(0) @map("extra_mattress_quantity")
   createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz()
   booking             Booking  @relation(fields: [bookingId], references: [id], onDelete: Restrict)
   room                Room     @relation(fields: [roomId], references: [id], onDelete: Restrict)
@@ -258,6 +268,7 @@ model RoomRateRule {
   maxNights       Int?     @map("max_nights")
   priority        Int      @default(0)
   status          String   @default("DRAFT") @db.VarChar(30)
+  rateType        String   @default("STANDARD") @map("rate_type") @db.VarChar(20)
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
 

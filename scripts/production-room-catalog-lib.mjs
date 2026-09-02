@@ -182,6 +182,7 @@ async function upsertRateRule(transaction, entry, roomTypeId, kind) {
     minNights: 1,
     maxNights: null,
     priority: 10,
+    rateType: 'STANDARD',
     status: 'ACTIVE',
   };
   const id = rateRuleId(entry.roomNumber, kind);

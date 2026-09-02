@@ -22,7 +22,8 @@ export class RoomRateRulesService {
         roomTypeId: dto.roomTypeId, name: dto.name.trim(), dateFrom: start, dateTo: end,
         daysOfWeek: [...new Set(dto.daysOfWeek ?? [])].sort(), nightlyPrice: BigInt(dto.nightlyPrice),
         extraAdultPrice: BigInt(dto.extraAdultPrice ?? '0'), extraChildPrice: BigInt(dto.extraChildPrice ?? '0'),
-        minNights: dto.minNights ?? 1, maxNights: dto.maxNights, priority: dto.priority ?? 0, status: dto.status ?? 'DRAFT',
+        minNights: dto.minNights ?? 1, maxNights: dto.maxNights, priority: dto.priority ?? 0,
+        rateType: dto.rateType ?? 'STANDARD', status: dto.status ?? 'DRAFT',
       } });
       await tx.auditLog.create({ data: auditData(actorId, correlationId, 'room_rate_rule.created', created.id, null, created, 'Room rate rule created') });
       return created;
@@ -67,6 +68,7 @@ function updateData(dto: UpdateRoomRateRuleDto, start: Date, end: Date) {
     ...(dto.minNights === undefined ? {} : { minNights: dto.minNights }),
     ...(dto.maxNights === undefined ? {} : { maxNights: dto.maxNights }),
     ...(dto.priority === undefined ? {} : { priority: dto.priority }),
+    ...(dto.rateType === undefined ? {} : { rateType: dto.rateType }),
     ...(dto.status === undefined ? {} : { status: dto.status }),
   };
 }

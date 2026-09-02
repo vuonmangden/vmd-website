@@ -18,5 +18,5 @@ export class ResourceHoldsService {
     return this.prisma.resourceHold.updateMany({ where: { status: 'ACTIVE', expiresAt: { lte: now } }, data: { status: 'EXPIRED', releasedAt: now } });
   }
 }
-function configuredHoldMinutes(): number { const parsed = Number.parseInt(process.env['BOOKING_HOLD_MINUTES'] ?? '120', 10); return Number.isInteger(parsed) && parsed > 0 && parsed <= 360 ? parsed : 120; }
+function configuredHoldMinutes(): number { const parsed = Number.parseInt(process.env['BOOKING_HOLD_MINUTES'] ?? '30', 10); return Number.isInteger(parsed) && parsed > 0 && parsed <= 360 ? parsed : 30; }
 function invalidHold(): BadRequestException { return new BadRequestException({ code: 'INVALID_RESOURCE_HOLD', message: 'Resource hold input is invalid' }); }

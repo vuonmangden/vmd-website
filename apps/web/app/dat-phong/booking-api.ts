@@ -2,9 +2,11 @@ const apiBase = `${process.env.NEXT_PUBLIC_API_ORIGIN ?? 'http://localhost:3002'
 
 export interface CheckoutPayload {
   roomSlug: string; checkIn: string; checkOut: string; fullName: string; phone: string;
-  email?: string; adults: number; children: number; specialRequest?: string; expectedArrivalTime?: string;
+  email?: string; adults: number; children: number; extraMattressQuantity: number;
+  bookingPolicyAccepted: boolean; privacyPolicyAccepted: boolean;
+  specialRequest?: string; expectedArrivalTime?: string;
 }
-export interface CheckoutResponse { bookingCode: string; status: 'PENDING_PAYMENT'; paymentReference: string; }
+export interface CheckoutResponse { bookingCode: string; status: 'PENDING_PAYMENT'; paymentReference: string; totalAmount: string; depositRequiredAmount: string; depositPolicy: 'STANDARD_50' | 'LAST_MINUTE_100' | 'HOLIDAY_100'; holdExpiresAt: string; currency: 'VND'; }
 
 export async function createRoomBooking(payload: CheckoutPayload, idempotencyKey: string): Promise<CheckoutResponse> {
   const response = await fetch(`${apiBase}/public/room-bookings`, {

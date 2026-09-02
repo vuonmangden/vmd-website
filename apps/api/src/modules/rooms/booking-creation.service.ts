@@ -30,5 +30,5 @@ export class BookingCreationService {
   }
 }
 function stayDates(checkIn: string, checkOut: string): Date[] { const start = new Date(`${checkIn}T00:00:00.000Z`); const end = new Date(`${checkOut}T00:00:00.000Z`); if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end <= start) throw invalidBooking(); const values: Date[]=[]; for(let current=start; current<end;current=new Date(current.getTime()+86_400_000)) values.push(current); return values; }
-function holdMinutes(): number { const value=Number.parseInt(process.env['BOOKING_HOLD_MINUTES'] ?? '120',10); return Number.isInteger(value)&&value>0&&value<=360?value:120; }
+function holdMinutes(): number { const value=Number.parseInt(process.env['BOOKING_HOLD_MINUTES'] ?? '30',10); return Number.isInteger(value)&&value>0&&value<=360?value:30; }
 function invalidBooking(): BadRequestException { return new BadRequestException({ code: 'INVALID_SANDBOX_BOOKING', message: 'Sandbox booking input is invalid' }); }

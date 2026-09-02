@@ -3,7 +3,7 @@
 ## 1. Thông tin task
 
 - **Task ID:** `BKG-010`
-- **Trạng thái:** In progress (Codex, 2026-09-01)
+- **Trạng thái:** Review (Codex, 2026-09-02)
 - **Branch:** `codex/bkg-010-production-booking-cutover`
 - **Phụ thuộc:** `MNT-015`, `RMS-008`, `BKG-009`.
 - **Mục tiêu:** Chuyển booking phòng public khỏi lane synthetic, áp dụng chính sách cọc/hold/đệm đã duyệt và thực thi đổi ngày một lần bằng transaction an toàn.
@@ -95,3 +95,10 @@
 - Mọi thay đổi booking/date/giá phải có audit cùng transaction; public response không lộ ID vật lý hoặc rate IDs.
 - Unique occupancy vẫn là lớp chống double booking cuối; Redis/hold không thay thế PostgreSQL.
 - Không dùng secret hoặc dữ liệu khách thật trong test; không thao tác production trong BKG-010.
+
+## 10. Evidence triển khai
+
+- Migration `20260901100000_production_booking_cutover` đã áp dụng thành công trên PostgreSQL local verification; Prisma validate và `pnpm ci:prisma` đạt.
+- Full gate local với Node 24.19.0/pnpm 11.9.0 đạt: lint, typecheck, test (API 456/456, Web 52/52, Worker 72/72 và scripts 26 pass/1 skip), build.
+- Visual QA checkout desktop và viewport 390px: 3 bước, đệm thêm, hai consent, loading/error state; không tràn ngang và không có console error.
+- Hosted CI cho PR #91 là điều kiện còn lại trước merge. SePay QR/tài khoản production và khoản thanh toán bổ sung vẫn thuộc `PAY-007`, không được ngầm coi là đã production-ready ở task này.

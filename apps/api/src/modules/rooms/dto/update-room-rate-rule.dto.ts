@@ -11,6 +11,7 @@ export class UpdateRoomRateRuleDto {
   @IsOptional() @IsInt() @Min(1) minNights?: number;
   @IsOptional() @IsInt() @Min(1) maxNights?: number | null;
   @IsOptional() @IsInt() priority?: number;
+  @IsOptional() @IsIn(['STANDARD', 'HOLIDAY']) rateType?: 'STANDARD' | 'HOLIDAY';
   @IsOptional() @IsIn(['DRAFT', 'ACTIVE', 'INACTIVE']) status?: 'DRAFT' | 'ACTIVE' | 'INACTIVE';
   @IsString() @MinLength(3) @MaxLength(500) reason!: string;
 }

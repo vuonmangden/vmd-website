@@ -61,20 +61,18 @@ export class PaymentsService {
     return intent;
   }
 
-  /** Used by the public room checkout while its booking transaction is still open. */
-  async createSandboxIntentForCheckout(
+  /** Used by public room checkout while its booking transaction is open. PAY-007 replaces the provider/QR adapter, not this booking boundary. */
+  async createIntentForRoomCheckout(
     tx: Prisma.TransactionClient,
-    booking: { id: string; totalAmount: bigint; currency: string; createdAt: Date },
-    holdId: string,
+    booking: { id: string; depositRequiredAmount: bigint; currency: string; createdAt: Date },
+    hold: { id: string; expiresAt: Date },
     actor: PaymentActor,
   ): Promise<PaymentIntentResponse> {
     const now = this.now();
-    const expiryHours = await readExpiryHours(tx.appSetting, ROOM_EXPIRY_SETTING);
-    const expiresAt = new Date(now.getTime() + expiryHours * 3_600_000);
-    const response = await this.createWithUniqueTransferContent(tx, { bookingId: booking.id }, booking, expiresAt, now);
-    await tx.resourceHold.update({ where: { id: holdId }, data: { expiresAt } });
-    await tx.outboxEvent.create({ data: { aggregateType: 'PAYMENT_INTENT', aggregateId: response.paymentIntentId, eventType: 'payment.intent.created.sandbox', payload: response } });
-    await tx.auditLog.create({ data: auditData(actor, 'payment.intent.created', response.paymentIntentId, { bookingId: booking.id, status: 'PENDING', transferContent: response.transferContent }) });
+    if (hold.expiresAt <= now || booking.depositRequiredAmount < 0n) throw invalidBooking();
+    const response = await this.createWithUniqueTransferContent(tx, { bookingId: booking.id }, { totalAmount: booking.depositRequiredAmount, currency: booking.currency, createdAt: booking.createdAt }, hold.expiresAt, now);
+    await tx.outboxEvent.create({ data: { aggregateType: 'PAYMENT_INTENT', aggregateId: response.paymentIntentId, eventType: 'payment.intent.created', payload: response } });
+    await tx.auditLog.create({ data: auditData(actor, 'payment.intent.created', response.paymentIntentId, { bookingId: booking.id, holdId: hold.id, status: 'PENDING', transferContent: response.transferContent, expiresAt: hold.expiresAt.toISOString() }) });
     return response;
   }
 

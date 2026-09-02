@@ -20,6 +20,64 @@ function transaction(overrides: Record<string, unknown> = {}) {
 
 describe('PaymentsService', () => {
   const now = new Date('2099-08-13T00:00:00.000Z');
+  it('creates a room checkout intent for exactly the required deposit and does not extend the booking hold', async () => {
+    const expiresAt = new Date('2099-08-13T00:30:00.000Z');
+    const depositBooking = {
+      id: booking.id,
+      depositRequiredAmount: 750000n,
+      currency: 'VND',
+      createdAt: booking.createdAt,
+    };
+    const { tx, prisma } = transaction({
+      paymentIntent: {
+        create: jest.fn().mockResolvedValue({
+          id: 'room-checkout-intent',
+          bookingId: booking.id,
+          bbqReservationId: null,
+          status: 'PENDING',
+          amount: depositBooking.depositRequiredAmount,
+          currency: 'VND',
+          qrPayload: 'VMD-SANDBOX',
+          expiresAt,
+        }),
+        findUnique: jest.fn(),
+        findMany: jest.fn(),
+        updateMany: jest.fn(),
+      },
+    });
+    const service = new PaymentsService(prisma as never, () => now);
+
+    const result = await service.createIntentForRoomCheckout(
+      tx as never,
+      depositBooking,
+      { id: 'hold-1', expiresAt },
+      actor,
+    );
+
+    expect(result).toEqual(expect.objectContaining({
+      paymentIntentId: 'room-checkout-intent',
+      amount: '750000',
+      expiresAt: expiresAt.toISOString(),
+    }));
+    expect(tx.paymentIntent.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        bookingId: booking.id,
+        amount: 750000n,
+        expiresAt,
+      }),
+    });
+    expect(tx.resourceHold.update).not.toHaveBeenCalled();
+    expect(tx.outboxEvent.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ eventType: 'payment.intent.created' }),
+    });
+    expect(tx.auditLog.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        action: 'payment.intent.created',
+        afterData: expect.objectContaining({ holdId: 'hold-1', expiresAt: expiresAt.toISOString() }),
+      }),
+    });
+  });
+
   it('creates an idempotent sandbox intent with an uppercase unique safe transfer reference', async () => {
     const { tx, prisma } = transaction(); const service = new PaymentsService(prisma as never, () => now);
     const result = await service.createSandboxIntent(booking.id, 'pay-key', actor);
