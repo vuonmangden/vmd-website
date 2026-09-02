@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { ApiError } from '../lib/api-client';
-import { formatVnd } from './format';
+import { formatVnd } from '../lib/format';
 import { getOpsDashboard } from './ops-api';
 import type { OpsDashboard } from './ops-api';
 

@@ -77,3 +77,37 @@ body { margin: 0; }
 .bbq-list li { display: flex; gap: .75rem; align-items: center; padding: .5rem .75rem; border: 1px solid var(--vmd-line); border-radius: .35rem; font-size: .88rem; }
 .bbq-code { font-weight: 700; }
 .bbq-status { margin-left: auto; font-size: .75rem; text-transform: uppercase; letter-spacing: .03em; color: var(--vmd-wood); }
+
+.bookings-page, .booking-detail { display: grid; gap: 1.25rem; }
+.bookings-toolbar { display: flex; gap: 1rem; align-items: end; }
+.bookings-toolbar label, .cancel-panel label { display: grid; gap: .3rem; font-weight: 700; font-size: .85rem; }
+.bookings-toolbar select, .cancel-panel textarea { border: 1px solid var(--vmd-line); border-radius: .35rem; padding: .45rem .6rem; font: inherit; }
+.bookings-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+.bookings-table th, .bookings-table td { text-align: left; padding: .55rem .6rem; border-bottom: 1px solid var(--vmd-line); }
+.bookings-table th { color: var(--vmd-wood); font-size: .78rem; text-transform: uppercase; letter-spacing: .03em; }
+.bookings-pagination { display: flex; align-items: center; gap: 1rem; }
+.bookings-pagination button { border: 1px solid var(--vmd-line); border-radius: .35rem; background: #fff; font: inherit; font-weight: 700; padding: .4rem .8rem; cursor: pointer; }
+.bookings-pagination button:disabled { opacity: .5; cursor: default; }
+
+.booking-status { display: inline-block; padding: .2rem .55rem; border-radius: 999px; font-size: .72rem; font-weight: 700; text-transform: uppercase; background: #eee; color: #555; }
+.booking-status-confirmed, .booking-status-checked_in { background: #e4efe8; color: var(--vmd-forest); }
+.booking-status-pending_payment, .booking-status-draft { background: var(--vmd-warn-bg); color: var(--vmd-warn-text); }
+.booking-status-cancelled, .booking-status-expired { background: #f3f0ea; color: #8a8070; }
+.booking-status-checked_out { background: #dfe9f5; color: #2a4d78; }
+
+.booking-detail-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.booking-code { margin: 0 0 .3rem; font-size: 1.3rem; font-weight: 800; }
+.booking-actions button { border: none; border-radius: .35rem; background: var(--vmd-forest); color: #fff; font: inherit; font-weight: 700; padding: .55rem 1rem; cursor: pointer; }
+.booking-actions button:disabled { opacity: .6; cursor: wait; }
+.booking-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: .9rem; margin: 0; }
+.booking-facts div { border-left: .2rem solid var(--vmd-ember); padding: .3rem .75rem; }
+.booking-facts dt { margin: 0; font-size: .78rem; color: var(--vmd-wood); text-transform: uppercase; }
+.booking-facts dd { margin: .1rem 0 0; font-weight: 700; }
+.status-history { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; font-size: .85rem; }
+.status-history li { display: flex; gap: 1rem; padding: .5rem .75rem; border: 1px solid var(--vmd-line); border-radius: .35rem; }
+.status-history-transition { font-weight: 700; }
+.status-history-date { color: var(--vmd-wood); }
+.cancel-panel { border-top: 1px solid var(--vmd-line); padding-top: 1.25rem; display: grid; gap: .75rem; max-width: 32rem; }
+.cancel-panel textarea { min-height: 4.5rem; resize: vertical; }
+.button-danger { border: none; border-radius: .35rem; background: #9d2d20; color: #fff; font: inherit; font-weight: 700; padding: .55rem 1rem; cursor: pointer; justify-self: start; }
+.button-danger:disabled { opacity: .6; cursor: wait; }
