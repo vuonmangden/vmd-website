@@ -14,6 +14,11 @@ overrides:
   # GHSA-3f6p-5ww8-9rcr: Prisma currently pulls mysql2 transitively even though
   # VMD uses PostgreSQL. Keep every install on the patched driver.
   mysql2: 3.22.0
+  # GHSA-5jgf-p345-68v8/GHSA-f65p-4m7j-42xc/GHSA-fph4-wmhf-6fwf/GHSA-jqff-g426-hqxp:
+  # Prisma's own toolchain (prisma > @prisma/dev > @prisma/streams-local > ajv)
+  # pulls a vulnerable fast-uri. Pin to the minimum patched version within
+  # ajv's expected 3.x range rather than jumping to the latest major.
+  fast-uri: 3.1.6
 
 allowBuilds:
   '@prisma/engines': true

@@ -85,7 +85,10 @@ describe('StaffManagementService.invite', () => {
       data: { authUserId: '00000000-0000-4000-8000-000000000099', fullName: 'New Staff', email: 'new.staff@example.com', status: 'INVITED' },
     });
     expect(prisma.auditLog.create).toHaveBeenCalledWith(
-      expect.objectContaining({ data: expect.objectContaining({ action: 'staff.invited', correlationId: CORRELATION_ID }) }),
+      expect.objectContaining({ data: expect.objectContaining({
+        action: 'staff.invited', correlationId: CORRELATION_ID,
+        afterData: { email: '[REDACTED]', fullName: 'New Staff', status: 'INVITED' },
+      }) }),
     );
     expect(result).toEqual({ id: TARGET_ID, email: 'new.staff@example.com', fullName: 'New Staff', status: 'INVITED' });
   });
