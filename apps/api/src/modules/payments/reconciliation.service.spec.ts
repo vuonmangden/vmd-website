@@ -116,3 +116,49 @@ describe('ReconciliationService.resolve', () => {
     expect(prisma.auditLog.create).not.toHaveBeenCalled();
   });
 });
+
+/**
+ * Money columns are BigInt, and `JSON.stringify` throws on BigInt. Express's
+ * `res.json` is exactly `JSON.stringify`, so a response still carrying BigInt
+ * answers 500 instead of the data. Asserting on the returned object alone
+ * never catches that — these serialize it the way the HTTP layer does.
+ */
+describe('ReconciliationService HTTP serialization', () => {
+  const WITH_INTENT = fakeCase({
+    paymentIntent: { id: 'intent-1', bookingId: 'booking-1', bbqReservationId: null, amount: 2500000n, currency: 'VND', status: 'PENDING', expiresAt: new Date('2026-09-01T00:00:00.000Z'), transferContent: 'VMD1' },
+  });
+
+  it('list returns rows that survive JSON.stringify, with money as decimal strings', async () => {
+    const prisma = prismaMock();
+    prisma.reconciliationCase.findMany.mockResolvedValue([WITH_INTENT]);
+    const service = new ReconciliationService(prisma as never);
+
+    const result = await service.list({});
+
+    expect(() => JSON.stringify(result)).not.toThrow();
+    expect(result[0]).toEqual(expect.objectContaining({ expectedAmount: '2500000', receivedAmount: '2000000' }));
+    expect(result[0]?.paymentIntent).toEqual(expect.objectContaining({ amount: '2500000' }));
+  });
+
+  it('findById returns a row that survives JSON.stringify', async () => {
+    const prisma = prismaMock();
+    prisma.reconciliationCase.findUnique.mockResolvedValue(WITH_INTENT);
+    const service = new ReconciliationService(prisma as never);
+
+    const result = await service.findById(CASE_ID);
+
+    expect(() => JSON.stringify(result)).not.toThrow();
+    expect(result).toEqual(expect.objectContaining({ expectedAmount: '2500000', receivedAmount: '2000000' }));
+  });
+
+  it('resolve returns a row that survives JSON.stringify', async () => {
+    const prisma = prismaMock();
+    prisma.reconciliationCase.findUnique.mockResolvedValue(fakeCase({ status: 'RESOLVED' }));
+    const service = new ReconciliationService(prisma as never);
+
+    const result = await service.resolve(ACTOR, CASE_ID, 'REFUNDED', 'Đã hoàn tiền qua chuyển khoản');
+
+    expect(() => JSON.stringify(result)).not.toThrow();
+    expect(result).toEqual(expect.objectContaining({ expectedAmount: '2500000' }));
+  });
+});
