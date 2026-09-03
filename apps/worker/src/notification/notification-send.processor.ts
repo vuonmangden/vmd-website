@@ -32,18 +32,21 @@ export class NotificationSendProcessor extends WorkerHost {
     const { eventType, payload } = job.data;
 
     switch (eventType) {
+      case 'booking.confirmed.payment':
       case 'booking.confirmed.payment.sandbox':
         await this.jobs.enqueueBookingConfirmed(
           requireString(payload, 'bookingId'),
           requireString(payload, 'paymentIntentId'),
         );
         return;
+      case 'bbq_reservation.confirmed.payment':
       case 'bbq_reservation.confirmed.payment.sandbox':
         await this.jobs.enqueueBbqConfirmed(
           requireString(payload, 'reservationId'),
           requireString(payload, 'paymentIntentId'),
         );
         return;
+      case 'payment.reconciliation.required':
       case 'payment.reconciliation.required.sandbox':
         await this.jobs.enqueuePaymentException(payload as unknown as PaymentExceptionPayload);
         return;

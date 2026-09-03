@@ -11,7 +11,7 @@ const payload = {
 function fixture() {
   const prisma = { paymentWebhookEvent: { create: jest.fn().mockResolvedValue({ id: '00000000-0000-4000-8000-000000000001' }), findUnique: jest.fn().mockResolvedValue({ id: '00000000-0000-4000-8000-000000000001', processingStatus: 'RECEIVED' }) } };
   const queue = { add: jest.fn().mockResolvedValue(undefined) };
-  const config = { get: jest.fn().mockReturnValue({ apiKey: 'test-api-key' }) };
+  const config = { get: jest.fn().mockReturnValue({ apiKey: 'test-api-key', provider: 'SEPAY_TEST', mode: 'sandbox' }) };
   return { prisma, queue, config, service: new SePayWebhookService(prisma as never, config as never, queue as never) };
 }
 
