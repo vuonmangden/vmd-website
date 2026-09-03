@@ -1,5 +1,6 @@
 import { UnauthorizedException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { Job } from 'bullmq';
 import { SePayWebhookService } from './sepay-webhook.service';
 
 const payload = {
@@ -19,7 +20,7 @@ describe('SePayWebhookService', () => {
     const { service, prisma, queue } = fixture();
     await expect(service.receive(payload, 'Apikey test-api-key', '00000000-0000-4000-8000-000000000002')).resolves.toEqual({ received: true, duplicate: false });
     expect(prisma.paymentWebhookEvent.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ provider: 'SEPAY_TEST', providerEventId: payload.id, providerTransactionId: 'ref-1', signatureValid: true, processingStatus: 'RECEIVED', headers: { correlationId: '00000000-0000-4000-8000-000000000002' } }) }));
-    expect(queue.add).toHaveBeenCalledWith('process-sepay-transaction', { eventId: '00000000-0000-4000-8000-000000000001' }, expect.objectContaining({ jobId: 'sepay:sepay-event-1' }));
+    expect(queue.add).toHaveBeenCalledWith('process-sepay-transaction', { eventId: '00000000-0000-4000-8000-000000000001' }, expect.objectContaining({ jobId: 'sepay-sepay-event-1' }));
     expect(prisma.paymentWebhookEvent.create.mock.invocationCallOrder[0]!).toBeLessThan(queue.add.mock.invocationCallOrder[0]!);
   });
 
@@ -34,7 +35,7 @@ describe('SePayWebhookService', () => {
     const { service, prisma, queue } = fixture();
     prisma.paymentWebhookEvent.create.mockRejectedValue(new Prisma.PrismaClientKnownRequestError('duplicate', { code: 'P2002', clientVersion: 'test' }));
     await expect(service.receive(payload, 'Apikey test-api-key')).resolves.toEqual({ received: true, duplicate: true });
-    expect(queue.add).toHaveBeenCalledWith('process-sepay-transaction', { eventId: '00000000-0000-4000-8000-000000000001' }, expect.objectContaining({ jobId: 'sepay:sepay-event-1' }));
+    expect(queue.add).toHaveBeenCalledWith('process-sepay-transaction', { eventId: '00000000-0000-4000-8000-000000000001' }, expect.objectContaining({ jobId: 'sepay-sepay-event-1' }));
   });
 
   it('deduplicates a repeated provider transaction identity even when the event id differs', async () => {
@@ -43,5 +44,23 @@ describe('SePayWebhookService', () => {
     prisma.paymentWebhookEvent.findUnique.mockResolvedValueOnce(null).mockResolvedValueOnce({ id: '00000000-0000-4000-8000-000000000001', processingStatus: 'PROCESSED' });
     await expect(service.receive({ ...payload, id: 'sepay-event-2' }, 'Apikey test-api-key')).resolves.toEqual({ received: true, duplicate: true });
     expect(queue.add).not.toHaveBeenCalled();
+  });
+
+  it('builds a jobId that real BullMQ actually accepts, and sanitizes a colon inside payload.id', async () => {
+    const { service, prisma, queue } = fixture();
+
+    await service.receive({ ...payload, id: 'weird:id' }, 'Apikey test-api-key');
+    const jobId = (queue.add.mock.calls[0]?.[2] as { jobId: string }).jobId;
+
+    expect(jobId).toBe('sepay-weird_id');
+    // SEC-002: this is what the previous `sepay:${payload.id}` form got wrong — the mocked
+    // `queue.add` above never exercises BullMQ's real validation, so assert against the
+    // actual library directly. A custom jobId may contain ':' only if it splits into exactly
+    // 3 parts (BullMQ's repeatable-job compatibility rule); a plain "prefix:id" has 2 and
+    // throws "Custom Id cannot contain :" the moment a real, unmocked queue is used.
+    const fakeQueue = { toKey: (key: string) => key, qualifiedName: 'test', backend: {} } as never;
+    const job = new Job(fakeQueue, 'process-sepay-transaction', { eventId: 'x' }, { jobId }) as unknown as { validateOptions: (jobData: { data: string }) => void };
+    expect(() => job.validateOptions({ data: '{}' })).not.toThrow();
+    expect(prisma.paymentWebhookEvent.create).toHaveBeenCalled();
   });
 });

@@ -19,6 +19,7 @@ import { BbqReservationStateService } from './bbq-reservation-state.service';
 import { AdminBbqReservationsService } from './admin-bbq-reservations.service';
 import { PublicBbqReservationsController } from './public-bbq-reservations.controller';
 import { PublicBbqReservationsService } from './public-bbq-reservations.service';
+import { PublicBbqRateLimitService } from './public-bbq-rate-limit.service';
 
 @Module({
   imports: [PrismaModule, AuthModule, PaymentsModule],
@@ -41,6 +42,7 @@ import { PublicBbqReservationsService } from './public-bbq-reservations.service'
     BbqReservationStateService,
     AdminBbqReservationsService,
     PublicBbqReservationsService,
+    PublicBbqRateLimitService,
   ],
   exports: [
     BbqMenuService,

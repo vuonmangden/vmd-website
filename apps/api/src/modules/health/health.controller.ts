@@ -2,11 +2,16 @@ import { Controller, Get } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { PrismaService } from '../../prisma/prisma.service';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import { RedisHealthService } from './redis-health.service';
 
 @ApiTags('Health')
 @Controller('health')
 export class HealthController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly redisHealth: RedisHealthService,
+  ) {}
 
   @Get('live')
   @ApiOperation({ summary: 'Liveness probe' })
@@ -33,11 +38,13 @@ export class HealthController {
       dbStatus = 'unhealthy';
     }
 
+    const redisStatus = (await this.redisHealth.isHealthy()) ? 'healthy' : 'unhealthy';
+
     return {
-      status: dbStatus === 'healthy' ? 'ok' : 'degraded',
+      status: dbStatus === 'healthy' && redisStatus === 'healthy' ? 'ok' : 'degraded',
       dependencies: {
         database: dbStatus,
-        redis: 'not_configured',
+        redis: redisStatus,
       },
     };
   }

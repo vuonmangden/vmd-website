@@ -28,6 +28,66 @@ describe('BookingLookupService', () => {
   });
 });
 
+describe('BookingLookupService.createGuestRequest', () => {
+  const confirmedBooking = { ...booking, status: 'CONFIRMED', dateChangeCount: 0 };
+  const NOW = new Date('2099-01-01T00:00:00.000Z'); // well before the fixture's 2099-01-10 check-in
+
+  function fixture(bookingOverrides?: Record<string, unknown>, existingRequest: unknown = null) {
+    const bookingGuestRequest = { findFirst: jest.fn().mockResolvedValue(existingRequest), create: jest.fn().mockResolvedValue({ id: 'req-1', status: 'PENDING_REVIEW', requestType: 'CANCELLATION' }) };
+    const tx = { bookingGuestRequest, auditLog: { create: jest.fn() }, outboxEvent: { create: jest.fn() } };
+    const prisma = { booking: { findFirst: jest.fn().mockResolvedValue({ ...confirmedBooking, ...bookingOverrides }) }, $transaction: jest.fn((op: (t: typeof tx) => unknown) => op(tx)) };
+    const rate = { assertAllowed: jest.fn(), reset: jest.fn(), recordFailure: jest.fn() };
+    const service = new BookingLookupService(prisma as never, rate as never, {} as never, {} as never, {} as never, () => NOW);
+    return { tx, service };
+  }
+
+  it('creates a CANCELLATION request for an eligible confirmed booking', async () => {
+    const { tx, service } = fixture();
+    const result = await service.createGuestRequest('SYN-TEST', '0912345678', { requestType: 'CANCELLATION' }, '198.51.100.10', {});
+    expect(result).toEqual({ requestId: 'req-1', status: 'PENDING_REVIEW' });
+    expect(tx.bookingGuestRequest.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ bookingId: booking.id, requestType: 'CANCELLATION' }) }));
+  });
+
+  it('rejects when the booking is not CONFIRMED', async () => {
+    const { service } = fixture({ status: 'PENDING_PAYMENT' });
+    await expect(service.createGuestRequest('SYN-TEST', '0912345678', { requestType: 'CANCELLATION' }, '198.51.100.10', {}))
+      .rejects.toMatchObject({ response: expect.objectContaining({ code: 'BOOKING_REQUEST_NOT_ALLOWED' }) });
+  });
+
+  it('rejects when the check-in date has already passed', async () => {
+    const { service } = fixture({ checkInDate: new Date('2098-01-01T00:00:00.000Z') });
+    await expect(service.createGuestRequest('SYN-TEST', '0912345678', { requestType: 'CANCELLATION' }, '198.51.100.10', {}))
+      .rejects.toMatchObject({ response: expect.objectContaining({ code: 'BOOKING_REQUEST_NOT_ALLOWED' }) });
+  });
+
+  it('rejects a DATE_CHANGE request once the automatic change has already been used', async () => {
+    const { service } = fixture({ dateChangeCount: 1 });
+    await expect(service.createGuestRequest('SYN-TEST', '0912345678', { requestType: 'DATE_CHANGE', requestedCheckIn: '2099-02-01', requestedCheckOut: '2099-02-02' }, '198.51.100.10', {}))
+      .rejects.toMatchObject({ response: expect.objectContaining({ code: 'DATE_CHANGE_MANUAL_CONTACT_REQUIRED' }) });
+  });
+
+  it('rejects a DATE_CHANGE request with an invalid date range', async () => {
+    const { service } = fixture();
+    await expect(service.createGuestRequest('SYN-TEST', '0912345678', { requestType: 'DATE_CHANGE', requestedCheckIn: '2099-02-05', requestedCheckOut: '2099-02-01' }, '198.51.100.10', {}))
+      .rejects.toMatchObject({ response: expect.objectContaining({ code: 'INVALID_DATE_CHANGE_REQUEST' }) });
+  });
+
+  it('rejects when a request is already open for this booking', async () => {
+    const { tx, service } = fixture(undefined, { id: 'existing-req' });
+    await expect(service.createGuestRequest('SYN-TEST', '0912345678', { requestType: 'CANCELLATION' }, '198.51.100.10', {}))
+      .rejects.toMatchObject({ response: expect.objectContaining({ code: 'BOOKING_REQUEST_ALREADY_OPEN' }) });
+    expect(tx.bookingGuestRequest.create).not.toHaveBeenCalled();
+  });
+
+  it('records an IP failure and throws not-found for a wrong code or phone, same as lookup', async () => {
+    const prisma = { booking: { findFirst: jest.fn().mockResolvedValue(null) } };
+    const rate = { assertAllowed: jest.fn(), reset: jest.fn(), recordFailure: jest.fn() };
+    const service = new BookingLookupService(prisma as never, rate as never, {} as never, {} as never, {} as never);
+    await expect(service.createGuestRequest('SYN-UNKNOWN', '0912345678', { requestType: 'CANCELLATION' }, '198.51.100.10', {})).rejects.toBeInstanceOf(NotFoundException);
+    expect(rate.recordFailure).toHaveBeenCalledWith('198.51.100.10');
+  });
+});
+
 describe('BookingLookupService.decide', () => {
   const REQUEST_ID = '00000000-0000-4000-8000-000000000010';
   const BOOKING_ID = '00000000-0000-4000-8000-000000000011';

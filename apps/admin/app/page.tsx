@@ -1,5 +1,14 @@
 import { AdminRoute } from './admin-route';
+import { DashboardView } from './dashboard/dashboard-view';
+import { AdminShell } from './shell/admin-shell';
 
 export default function Page() {
-  return <AdminRoute><main><h1>VMD Admin</h1><p>Trang quản trị được bảo vệ bằng phiên đăng nhập và quyền từ máy chủ.</p></main></AdminRoute>;
+  return (
+    <AdminRoute>
+      <AdminShell>
+        <h1>Tổng quan vận hành</h1>
+        <DashboardView />
+      </AdminShell>
+    </AdminRoute>
+  );
 }

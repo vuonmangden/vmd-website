@@ -39,7 +39,7 @@ export class SePayWebhookService {
         },
       });
       await this.queue.add('process-sepay-transaction', { eventId: event.id }, {
-        jobId: `sepay:${payload.id}`,
+        jobId: sepayJobId(payload.id),
         ...RETRY_DEFAULTS.PAYMENT_WEBHOOK,
       });
       return { received: true, duplicate: false };
@@ -55,7 +55,7 @@ export class SePayWebhookService {
         });
         if (existing?.processingStatus === 'RECEIVED') {
           await this.queue.add('process-sepay-transaction', { eventId: existing.id }, {
-            jobId: `sepay:${payload.id}`,
+            jobId: sepayJobId(payload.id),
             ...RETRY_DEFAULTS.PAYMENT_WEBHOOK,
           });
         }
@@ -78,4 +78,19 @@ function sanitizedHeaders(correlationId: string | undefined): Prisma.InputJsonVa
 
 function providerTransactionId(payload: SePayWebhookDto): string {
   return (payload.referenceCode.trim() || payload.id).slice(0, 150);
+}
+
+/**
+ * SEC-002: `sepay:${payload.id}` (the previous form) crashes BullMQ's
+ * `Job.validateOptions()` — a custom `jobId` may only contain a colon if
+ * splitting on `:` yields exactly 3 parts (a legacy compatibility rule for
+ * BullMQ's own repeatable-job IDs), and a plain `prefix:id` yields 2. This
+ * was never caught by unit tests because they mock the queue, so the real
+ * BullMQ validation never ran — every live webhook call threw before a
+ * processing job was ever queued. Avoids `:` entirely, and strips any colon
+ * `payload.id` might itself contain (external provider data, not otherwise
+ * format-constrained) so this can't regress by coincidence of input shape.
+ */
+function sepayJobId(payloadId: string): string {
+  return `sepay-${payloadId.replaceAll(':', '_')}`;
 }
