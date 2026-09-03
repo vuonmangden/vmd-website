@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
 import type { Observable } from 'rxjs';
-import { tap } from 'rxjs';
 import type { Request, Response } from 'express';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- Nest needs runtime DI metadata.
 import { MetricsService } from './metrics.service';
@@ -16,13 +15,24 @@ export class MetricsInterceptor implements NestInterceptor {
     const request = context.switchToHttp().getRequest<Request>();
     const response = context.switchToHttp().getResponse<Response>();
     const start = process.hrtime.bigint();
+    const method = request.method;
+    const route = routeLabel(request);
 
-    const record = (): void => {
+    /**
+     * `response.statusCode` is not yet the final code at the moment an
+     * interceptor's RxJS pipe observes an error — Nest's exception filter
+     * (which actually sets it, e.g. 404/401) runs after this interceptor's
+     * chain unwinds, so a `tap({ error })` here would record whatever
+     * Express's default (200) still is. The Node `finish` event fires only
+     * once the response has actually been sent, so it reflects the true
+     * status code for both success and exception-filter paths alike.
+     */
+    response.on('finish', () => {
       const durationMs = Number(process.hrtime.bigint() - start) / 1_000_000;
-      this.metrics.recordRequest(request.method, routeLabel(request), response.statusCode, durationMs);
-    };
+      this.metrics.recordRequest(method, route, response.statusCode, durationMs);
+    });
 
-    return next.handle().pipe(tap({ next: record, error: record }));
+    return next.handle();
   }
 }
 
