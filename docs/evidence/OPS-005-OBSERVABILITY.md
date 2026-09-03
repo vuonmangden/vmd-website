@@ -37,6 +37,19 @@ Lần thử đầu, `HealthModule` import `QueueModule` để lấy một BullMQ
 - `pnpm --filter @vmd/api run test`: **496/496 đạt** (71→75 test suite, +14 test mới), chạy trong ~19s — xác nhận sự cố treo suite đã được giải quyết triệt để, không phải né tránh tạm thời.
 - **Không live-test được** `/metrics` qua HTTP thật lần này — Docker Desktop dừng hoạt động giữa phiên làm việc (đã dùng ở `SEC-002`/`PERF-001`/`002` trước đó, khác biệt với các task đó là không kịp khởi động lại trước khi phiên này kết thúc). Bù lại: `metrics.controller.spec.ts` assert trực tiếp đúng `response.setHeader`/`response.send` được gọi với Content-Type và nội dung Prometheus đúng — xác nhận logic đúng, nhưng chưa xác nhận qua một request HTTP thật đi qua toàn bộ pipeline Express/Nest thật. **Khuyến nghị**: xác minh sống việc này (`curl http://.../metrics` trên server thật) ở lần làm việc tiếp theo có Docker, trước khi coi `@Res()` là mẫu hình đã kiểm chứng đầy đủ cho các task sau.
 
+## Cập nhật 2026-09-03 — live-test phát hiện bug thật, đã sửa
+
+Docker hoạt động lại; chạy `node dist/main.js` thật (mượn tạm 7 file DI-fix từ nhánh Codex `codex/rel-001-local-build-smoke` để qua được lỗi boot chưa liên quan — xem `SEC-002`/`PERF-001,002`, revert lại ngay sau khi test xong) trỏ vào stack Docker đang chạy sẵn (`vmd-mnt001-verification-*`), rồi `curl` thật vào `/api/v1/metrics`:
+
+- Format Prometheus, headers, `Content-Type: text/plain; charset=utf-8; version=0.0.4` đúng như thiết kế.
+- Route-pattern cardinality control **xác nhận đúng qua traffic thật**: gọi `GET /api/v1/public/articles/some-test-slug` và `GET /api/v1/public/articles/another-slug` (hai slug khác nhau) → cả hai gộp vào **một** label `route="/api/v1/public/articles/:slug"` count=2, không tạo hai time series riêng.
+- **Phát hiện bug thật**: request 404 (`GET /api/v1/public/articles/fix-verification-slug`) bị ghi nhận trong `/metrics` với `status="200"` thay vì `status="404"`. Nguyên nhân: `MetricsInterceptor` cũ dùng `tap({ next: record, error: record })`, đọc `response.statusCode` ngay tại thời điểm RxJS observable báo lỗi — nhưng exception filter của Nest (nơi thực sự set status code, ví dụ 404) chạy **sau** khi chuỗi interceptor đã unwind xong; tại thời điểm `tap`'s `error` chạy, `response.statusCode` vẫn là giá trị mặc định của Express (200), chưa được exception filter cập nhật.
+- Đây đúng dạng lỗi mà unit test có sẵn (`metrics.interceptor.spec.ts`) **không thể bắt được**: test cũ tự set `res.statusCode = 401` trong mock rồi mới throw lỗi — enshrine đúng giả định sai, y hệt lớp lỗi tìm thấy ở `sepay-webhook.service.spec.ts` (`SEC-002`).
+- **Sửa**: bỏ `tap`, chuyển sang lắng nghe sự kiện `response.on('finish', ...)` của Node — sự kiện này chỉ bắn ra khi response đã thực sự được gửi xong (sau khi exception filter, nếu có, đã set status code cuối cùng), đúng cho cả đường thành công lẫn đường lỗi, không cần đoán loại exception.
+- Viết lại `metrics.interceptor.spec.ts` dùng `EventEmitter` thật thay cho object giả tĩnh, mô phỏng đúng thứ tự sự kiện thật (status code đổi sau khi interceptor đã xử lý xong lỗi, `finish` bắn sau đó) — test mới thất bại với code cũ, đạt với code mới. Thêm test case "không có `finish` thì không ghi nhận gì" (client abort).
+- **Xác minh lại sau khi sửa**: cùng kịch bản 404 thật qua `curl` → `/metrics` trả đúng `status="404"`.
+- `pnpm test`: 497/497 đạt (thêm 1 test case); `pnpm lint`, `pnpm typecheck`, `pnpm build`: đạt trên cả 12 package.
+
 ## Việc còn lại — cần chủ dự án
 
 - **Chọn công cụ giám sát** (Prometheus tự host, Grafana Cloud, Datadog, hay khác) để scrape `/metrics` định kỳ và lưu trữ lịch sử — hiện tại `/metrics` chỉ có dữ liệu tức thời (reset khi restart process), không tự lưu.
