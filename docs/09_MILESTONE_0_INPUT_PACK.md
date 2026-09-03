@@ -556,14 +556,14 @@ Chỉ ghi identifier/reference; không ghi secret.
 | Hạng mục | Giá trị không nhạy cảm cần cung cấp | Secret/reference cần tạo | Trạng thái |
 |---|---|---|---|
 | Public domain | **`vuonmangden.com`** — chủ dự án xác nhận 2026-09-03, đăng ký tại tenten.vn | DNS credential lưu ngoài repo | **Đã nhận** |
-| Admin domain | Development: `http://localhost:3001`; production `https://admin.vuonmangden.vn` đã chốt | DNS credential lưu ngoài repo | Đã nhận |
-| Supabase/PostgreSQL | Staging: project ref `atefkvykvwgtuaiscxnm`, URL `https://atefkvykvwgtuaiscxnm.supabase.co`, Singapore (`ap-southeast-1`); production chưa tạo và phải dùng project riêng trong `REL-001` trước go-live | `DATABASE_URL`, service credentials trong secret manager | Đủ staging-only |
-| SePay | Chủ dự án xác nhận **đã có tài khoản/API production** (2026-08-19); merchant/account identifier cụ thể chưa cung cấp vào tài liệu này | API/webhook secret trong secret manager | Có tài khoản, chờ identifier |
-| Tài khoản ngân hàng | Tên ngân hàng, tên chủ tài khoản, số tài khoản chỉ chia sẻ qua kênh an toàn | Reference secret/config | Chờ dữ liệu |
+| Admin domain | Development: `http://localhost:3001`; production `https://admin.vuonmangden.com` | DNS credential lưu ngoài repo | **Đã nhận** |
+| Supabase/PostgreSQL | Staging: project ref `atefkvykvwgtuaiscxnm`, Singapore (`ap-southeast-1`). Chủ dự án xác nhận **đã có khóa production** (2026-09-03). ⚠️ **Cần xác nhận ở `REL-002`:** khóa đó thuộc **project Supabase riêng cho production** hay vẫn là project staging dùng chung — tài liệu này (§10, 2026-08-10) yêu cầu production phải là project riêng. Dùng chung project nghĩa là dữ liệu khách thật và dữ liệu thử nằm cùng một database. | `DATABASE_URL`, service credential trong secret manager | **Đã nhận, cần xác nhận project riêng** |
+| SePay | Chủ dự án xác nhận **đã có tài khoản/API production** (2026-08-19) và **đã có sẵn API key + định danh** (2026-09-03); giá trị cụ thể không ghi vào tài liệu này, nhập trực tiếp vào secret store khi triển khai | API/webhook secret trong secret manager | **Đã nhận** |
+| Tài khoản ngân hàng | Chủ dự án xác nhận **đã có sẵn** số tài khoản/tên chủ TK/mã ngân hàng (2026-09-03); chỉ chia sẻ qua kênh an toàn, không ghi vào repo | Reference secret/config | **Đã nhận** |
 | Email | **Domain `vuonmangden.com` đã Verified trong Resend lúc 2026-09-03 23:18** (region Tokyo `ap-northeast-1`; DNS verified 23:13, domain verified 23:18). SPF/DKIM/DMARC đã qua. From `Vườn Măng Đen <noreply@vuonmangden.com>`; reply-to `info@vuonmangden.com`. Production mở bằng `EMAIL_ENV=production` + `EMAIL_PROVIDER=resend` + `RESEND_API_KEY` (fail-closed nếu thiếu) | `RESEND_API_KEY` trong secret manager | **Đã nhận** |
-| Zalo | Chủ dự án xác nhận **chưa đăng ký Zalo Official Account** (2026-08-19) | App secret/token trong secret manager | Chờ dữ liệu |
+| Zalo | Chủ dự án xác nhận **chưa đăng ký Zalo Official Account** (2026-08-19) và quyết định **đưa Zalo ra khỏi đường găng go-live** (2026-09-03) — bật sau khi có OA. `NTF-009` đã chặn việc tạo job Zalo khi `ZALO_ENABLED` chưa bật, nên thiếu OA không còn sinh job hỏng | App secret/token trong secret manager | **Hoãn có chủ đích — không chặn go-live** |
 | Object storage | Provider, region, bucket naming | Access key trong secret manager | Chờ dữ liệu |
-| Hosting | Staging: Railway Variables; production secret store: Railway Variables đã chốt | Deploy credential trong secret manager | Đã nhận |
+| Hosting | Staging: Railway Variables; production secret store: Railway Variables đã chốt. **Lưu ý 2026-09-03:** `www.vuonmangden.com` hiện đang chạy trên **Vercel** (một trang đơn khác, không phải app này) — cần chốt lại phương án domain/hosting trong `REL-002` | Deploy credential trong secret manager | Đã nhận, cần đối chiếu ở REL-002 |
 
 ### ✅ Tên miền chính thức — đã chốt 2026-09-03
 

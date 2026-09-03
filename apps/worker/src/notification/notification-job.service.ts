@@ -20,6 +20,7 @@ import {
   type ReminderOffset,
 } from './templates/booking-reminder.template';
 import { paymentExceptionEmail, type PaymentExceptionVars } from './templates/payment-exception.template';
+import { isZaloDeliveryEnabled } from './zalo/zalo.configuration';
 import { dateLabel } from './date-label';
 
 export interface PaymentExceptionPayload {
@@ -291,6 +292,13 @@ export class NotificationJobService {
     scheduledAt?: Date;
     extraPayload?: Record<string, unknown>;
   }): Promise<void> {
+    if (!isZaloDeliveryEnabled()) {
+      // No Zalo Official Account yet (PRE-007). Creating the job anyway would
+      // guarantee a failure per confirmed booking and bury the staff failure
+      // inbox; the guest still gets the independent email job.
+      this.logger.debug(`Zalo delivery disabled — skipping ${input.templateCode}`);
+      return;
+    }
     if (!input.phone) {
       this.logger.debug(`No phone on file — skipping ${input.templateCode}`);
       return;

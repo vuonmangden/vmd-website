@@ -32,6 +32,50 @@ const BBQ = {
   tables: [{ area: { name: 'Khu vườn thông trước' } }],
 };
 
+/**
+ * Zalo job creation is gated on ZALO_ENABLED (NTF-009) so that, with no Zalo
+ * Official Account registered, no unsendable job is created. Most cases below
+ * assert the enabled behaviour, so enable it by default and let the dedicated
+ * cases turn it off.
+ */
+let savedZaloEnabled: string | undefined;
+
+beforeEach(() => {
+  savedZaloEnabled = process.env['ZALO_ENABLED'];
+  process.env['ZALO_ENABLED'] = 'true';
+});
+
+afterEach(() => {
+  if (savedZaloEnabled === undefined) delete process.env['ZALO_ENABLED'];
+  else process.env['ZALO_ENABLED'] = savedZaloEnabled;
+});
+
+describe('NotificationJobService Zalo gating', () => {
+  it('creates no Zalo job when Zalo delivery is not enabled, while still sending the email', async () => {
+    delete process.env['ZALO_ENABLED'];
+    const prisma = prismaMock();
+    prisma.booking.findUnique.mockResolvedValue(BOOKING);
+    const service = new NotificationJobService(prisma as never);
+
+    await service.enqueueBookingConfirmed('booking-1', 'intent-1');
+
+    const templateCodes = prisma.notificationJob.create.mock.calls.map((call) => call[0].data.templateCode);
+    expect(templateCodes).toEqual(['BOOKING_CONFIRMED_EMAIL']);
+  });
+
+  it('creates no Zalo job for a BBQ confirmation either when disabled', async () => {
+    process.env['ZALO_ENABLED'] = 'false';
+    const prisma = prismaMock();
+    prisma.bbqReservation.findUnique.mockResolvedValue(BBQ);
+    const service = new NotificationJobService(prisma as never);
+
+    await service.enqueueBbqConfirmed('bbq-1', 'intent-1');
+
+    const templateCodes = prisma.notificationJob.create.mock.calls.map((call) => call[0].data.templateCode);
+    expect(templateCodes).toEqual(['BBQ_CONFIRMED_EMAIL']);
+  });
+});
+
 describe('NotificationJobService.enqueueBookingConfirmed', () => {
   it('creates one email job and one Zalo job with the documented deduplication keys', async () => {
     const prisma = prismaMock();
