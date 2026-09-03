@@ -185,4 +185,34 @@ describe('OutboxProcessor', () => {
       });
     });
   });
+
+  describe('lifecycle', () => {
+    beforeEach(() => { jest.useFakeTimers(); });
+    afterEach(() => { jest.useRealTimers(); });
+
+    /**
+     * The per-event `try` does not cover the opening `findMany`, so a leaked
+     * rejection there terminates the worker instead of retrying next tick.
+     */
+    it('survives a failing poll without leaking an unhandled rejection, and keeps polling', async () => {
+      const unhandled: unknown[] = [];
+      const onUnhandled = (reason: unknown): void => { unhandled.push(reason); };
+      process.on('unhandledRejection', onUnhandled);
+
+      prisma.outboxEvent.findMany.mockRejectedValue(new Error('database is unavailable'));
+      const logged = jest.spyOn(processor['logger'], 'error').mockImplementation(() => undefined);
+
+      processor.onModuleInit();
+      jest.advanceTimersByTime(5_000);
+      await Promise.resolve();
+      await Promise.resolve();
+
+      process.off('unhandledRejection', onUnhandled);
+      expect(unhandled).toEqual([]);
+      expect(logged).toHaveBeenCalledWith(expect.stringContaining('database is unavailable'));
+
+      processor.onModuleDestroy();
+      logged.mockRestore();
+    });
+  });
 });

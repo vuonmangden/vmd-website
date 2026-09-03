@@ -51,4 +51,38 @@ describe('HoldExpirySweepService lifecycle', () => {
 
     expect(payments.expireDue).toHaveBeenCalledTimes(3);
   });
+
+  /**
+   * A bare `void this.sweep()` leaks a rejected promise, which Node responds
+   * to by terminating the process — so a transient database error would take
+   * the whole API down instead of retrying on the next tick.
+   */
+  it('survives a failing sweep, logs it, and keeps sweeping on later ticks', async () => {
+    const unhandled: unknown[] = [];
+    const onUnhandled = (reason: unknown): void => { unhandled.push(reason); };
+    process.on('unhandledRejection', onUnhandled);
+
+    const payments = { expireDue: jest.fn().mockRejectedValue(new Error('database is unavailable')) };
+    const resourceHolds = resourceHoldsMock();
+    const service = new HoldExpirySweepService(payments as never, resourceHolds as never);
+    const logged = jest.spyOn(service['logger'], 'error').mockImplementation(() => undefined);
+
+    service.onModuleInit();
+    jest.advanceTimersByTime(5 * 60_000);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    // The failure must not have escaped as an unhandled rejection...
+    process.off('unhandledRejection', onUnhandled);
+    expect(unhandled).toEqual([]);
+    expect(logged).toHaveBeenCalledWith(expect.stringContaining('database is unavailable'));
+
+    // ...and the loop must still be alive for the next interval.
+    payments.expireDue.mockResolvedValue({ expired: 1 });
+    jest.advanceTimersByTime(5 * 60_000);
+    expect(payments.expireDue).toHaveBeenCalledTimes(2);
+
+    service.onModuleDestroy();
+    logged.mockRestore();
+  });
 });

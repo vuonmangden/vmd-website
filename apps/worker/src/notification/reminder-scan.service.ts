@@ -37,7 +37,15 @@ export class ReminderScanService implements OnModuleInit, OnModuleDestroy {
 
   onModuleInit(): void {
     this.timer = setInterval(() => {
-      void this.scan();
+      /**
+       * `scan` awaits both a `findMany` and every `enqueueBookingReminder`
+       * with no internal guard, so any transient database error would escape
+       * as an unhandled rejection and terminate the worker instead of
+       * retrying on the next tick.
+       */
+      this.scan().catch((error: unknown) => {
+        this.logger.error(`Reminder scan failed; retrying next interval: ${error instanceof Error ? error.message : String(error)}`);
+      });
     }, SCAN_INTERVAL_MS);
     this.logger.log('Reminder scan started');
   }

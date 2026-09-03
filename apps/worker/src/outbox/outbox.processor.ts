@@ -49,7 +49,15 @@ export class OutboxProcessor implements OnModuleInit {
 
   onModuleInit(): void {
     this.timer = setInterval(() => {
-      void this.pollAndPublish();
+      /**
+       * The per-event `try` inside `pollAndPublish` does not cover its
+       * opening `findMany`, so a transient database error would escape as an
+       * unhandled rejection and terminate the worker. Log and retry on the
+       * next tick instead — that is the whole point of a polling loop.
+       */
+      this.pollAndPublish().catch((error: unknown) => {
+        this.logger.error(`Outbox poll failed; retrying next interval: ${error instanceof Error ? error.message : String(error)}`);
+      });
     }, POLL_INTERVAL_MS);
     this.logger.log('Outbox processor started');
   }

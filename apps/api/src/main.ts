@@ -45,14 +45,24 @@ async function bootstrap(): Promise<void> {
 
   app.useGlobalFilters(new AllExceptionsFilter());
 
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('VMD API')
-    .setDescription('Villa Mộc Đà Lạt API')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api/docs', app, document);
+  /**
+   * Swagger mounts on the raw Express instance, so no controller guard
+   * applies to it — served unconditionally it hands anonymous callers the
+   * full API map (92 admin endpoints, every DTO and validation rule).
+   * Reuses the already-resolved (and already-validated) environment from
+   * SecurityConfigService rather than re-reading APP_ENV, so there is one
+   * source of truth. Development and staging keep the docs they rely on.
+   */
+  if (securityConfig.environment !== 'production') {
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle('VMD API')
+      .setDescription('Villa Mộc Đà Lạt API')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
+    SwaggerModule.setup('api/docs', app, document);
+  }
 
   const port = Number.parseInt(process.env.API_PORT ?? '3002', 10);
   await app.listen(port);

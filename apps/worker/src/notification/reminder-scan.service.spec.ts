@@ -51,3 +51,32 @@ describe('ReminderScanService.scan', () => {
     expect(jobs.enqueueBookingReminder).toHaveBeenCalledWith('booking-1', 7, new Date('2026-08-25T03:00:00.000Z'));
   });
 });
+
+describe('ReminderScanService lifecycle', () => {
+  beforeEach(() => { jest.useFakeTimers(); });
+  afterEach(() => { jest.useRealTimers(); });
+
+  /** A leaked rejection here terminates the worker instead of retrying next tick. */
+  it('survives a failing scan without leaking an unhandled rejection, and keeps scanning', async () => {
+    const unhandled: unknown[] = [];
+    const onUnhandled = (reason: unknown): void => { unhandled.push(reason); };
+    process.on('unhandledRejection', onUnhandled);
+
+    const prisma = prismaMock();
+    prisma.booking.findMany.mockRejectedValue(new Error('database is unavailable'));
+    const service = new ReminderScanService(prisma as never, jobsMock() as never);
+    const logged = jest.spyOn(service['logger'], 'error').mockImplementation(() => undefined);
+
+    service.onModuleInit();
+    jest.advanceTimersByTime(60 * 60_000);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    process.off('unhandledRejection', onUnhandled);
+    expect(unhandled).toEqual([]);
+    expect(logged).toHaveBeenCalledWith(expect.stringContaining('database is unavailable'));
+
+    service.onModuleDestroy();
+    logged.mockRestore();
+  });
+});
