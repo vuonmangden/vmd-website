@@ -48,7 +48,7 @@ describe('OutboxProcessor', () => {
         id: 'event-1',
         aggregateType: 'customer',
         aggregateId: 'cust-1',
-        eventType: 'booking.confirmed.payment.sandbox',
+        eventType: 'booking.confirmed.payment',
         payload: { customerId: 'cust-1' },
         status: 'pending',
         attemptCount: 0,
@@ -63,12 +63,12 @@ describe('OutboxProcessor', () => {
 
       expect(result).toBe(1);
       expect(mockQueue.add).toHaveBeenCalledWith(
-        'booking.confirmed.payment.sandbox',
+        'booking.confirmed.payment',
         {
           eventId: 'event-1',
           aggregateType: 'customer',
           aggregateId: 'cust-1',
-          eventType: 'booking.confirmed.payment.sandbox',
+          eventType: 'booking.confirmed.payment',
           payload: { customerId: 'cust-1' },
         },
         { jobId: 'event-1' },

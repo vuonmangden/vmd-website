@@ -18,7 +18,7 @@ describe('NotificationSendProcessor', () => {
     const jobs = jobsMock();
     const processor = new NotificationSendProcessor(jobs as never);
 
-    await processor.process(job({ eventType: 'booking.confirmed.payment.sandbox', payload: { bookingId: 'booking-1', paymentIntentId: 'intent-1' } }));
+    await processor.process(job({ eventType: 'booking.confirmed.payment', payload: { bookingId: 'booking-1', paymentIntentId: 'intent-1' } }));
 
     expect(jobs.enqueueBookingConfirmed).toHaveBeenCalledWith('booking-1', 'intent-1');
   });
@@ -27,7 +27,7 @@ describe('NotificationSendProcessor', () => {
     const jobs = jobsMock();
     const processor = new NotificationSendProcessor(jobs as never);
 
-    await processor.process(job({ eventType: 'bbq_reservation.confirmed.payment.sandbox', payload: { reservationId: 'reservation-1', paymentIntentId: 'intent-1' } }));
+    await processor.process(job({ eventType: 'bbq_reservation.confirmed.payment', payload: { reservationId: 'reservation-1', paymentIntentId: 'intent-1' } }));
 
     expect(jobs.enqueueBbqConfirmed).toHaveBeenCalledWith('reservation-1', 'intent-1');
   });
@@ -37,7 +37,7 @@ describe('NotificationSendProcessor', () => {
     const processor = new NotificationSendProcessor(jobs as never);
     const payload = { paymentIntentId: 'intent-1', bookingId: 'booking-1', bbqReservationId: null, reason: 'UNDERPAYMENT', expectedAmount: '1200000', receivedAmount: '1000000' };
 
-    await processor.process(job({ eventType: 'payment.reconciliation.required.sandbox', payload }));
+    await processor.process(job({ eventType: 'payment.reconciliation.required', payload }));
 
     expect(jobs.enqueuePaymentException).toHaveBeenCalledWith(payload);
   });

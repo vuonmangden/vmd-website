@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { createHash, randomBytes } from 'node:crypto';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- Nest needs runtime DI metadata.
 import { PrismaService } from '../../prisma/prisma.service';
+import { SePayWebhookConfigService, type SePayPaymentConfig } from './sepay-webhook.config';
 
 const ROOM_EXPIRY_SETTING = 'payment.expiry_hours.room';
 const BBQ_EXPIRY_SETTING = 'payment.expiry_hours.bbq';
@@ -21,7 +22,27 @@ interface PaymentReference { totalAmount: bigint; currency: string; createdAt: D
 
 @Injectable()
 export class PaymentsService {
-  constructor(private readonly prisma: PrismaService, @Optional() @Inject(PAYMENTS_CLOCK) private readonly now: () => Date = () => new Date()) {}
+  private readonly config: SePayWebhookConfigService;
+  private readonly now: () => Date;
+
+  constructor(
+    private readonly prisma: PrismaService,
+    @Optional() @Inject(SePayWebhookConfigService) configOrClock?: SePayWebhookConfigService | (() => Date),
+    @Optional() @Inject(PAYMENTS_CLOCK)
+    now: () => Date = () => new Date(),
+  ) {
+    // Preserve deterministic legacy unit fixtures; Nest always injects config.
+    if (typeof configOrClock === 'function' || !configOrClock) {
+      this.config = {
+        get: () => ({ apiKey: '', mode: 'sandbox', provider: 'SEPAY_TEST' }),
+        getPayment: () => ({ apiKey: '', mode: 'sandbox', provider: 'SEPAY_TEST', bankAccountNumber: '', bankCode: '', bankAccountName: '', qrBaseUrl: '' }),
+      } as SePayWebhookConfigService;
+      this.now = typeof configOrClock === 'function' ? configOrClock : now;
+    } else {
+      this.config = configOrClock;
+      this.now = now;
+    }
+  }
 
   async createSandboxIntent(bookingId: string, idempotencyKey: string, actor: PaymentActor): Promise<PaymentIntentResponse> {
     const normalizedKey = idempotencyKey.trim();
@@ -135,10 +156,11 @@ export class PaymentsService {
 
   private async createWithUniqueTransferContent(tx: Prisma.TransactionClient, link: PaymentLink, reference: PaymentReference, expiresAt: Date, now: Date) {
     const typePrefix = 'bookingId' in link ? 'BK' : 'BBQ';
+    const paymentConfig = this.config.getPayment();
     for (let attempt = 0; attempt < 5; attempt += 1) {
       const transferContent = makeTransferContent(reference.createdAt, typePrefix);
       try {
-        const intent = await tx.paymentIntent.create({ data: { ...link, amount: reference.totalAmount, currency: reference.currency, transferContent, qrPayload: makeSandboxQrPayload(transferContent, reference.totalAmount), expiresAt } });
+        const intent = await tx.paymentIntent.create({ data: { ...link, provider: paymentConfig.provider, amount: reference.totalAmount, currency: reference.currency, transferContent, qrPayload: makeQrPayload(paymentConfig, transferContent, reference.totalAmount), expiresAt } });
         return { paymentIntentId: intent.id, bookingId: intent.bookingId, bbqReservationId: intent.bbqReservationId, status: intent.status, amount: intent.amount.toString(), currency: intent.currency, transferContent, qrPayload: intent.qrPayload, expiresAt: intent.expiresAt.toISOString(), createdAt: now.toISOString() };
       } catch (error) {
         if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== 'P2002' || attempt === 4) throw error;
@@ -153,7 +175,16 @@ function makeTransferContent(createdAt: Date, type: 'BK' | 'BBQ'): string {
   const suffix = randomBytes(3).toString('hex').toUpperCase().slice(0, 4);
   return `VMD ${type}${yymmdd}${suffix}`;
 }
-function makeSandboxQrPayload(transferContent: string, amount: bigint): string { return `VMD-SANDBOX|REF=${transferContent}|AMOUNT=${amount.toString()}|CURRENCY=VND`; }
+function makeQrPayload(config: SePayPaymentConfig, transferContent: string, amount: bigint): string {
+  if (config.mode === 'sandbox') return `VMD-SANDBOX|REF=${transferContent}|AMOUNT=${amount.toString()}|CURRENCY=VND`;
+  const url = new URL(config.qrBaseUrl);
+  url.searchParams.set('acc', config.bankAccountNumber);
+  url.searchParams.set('bank', config.bankCode);
+  url.searchParams.set('amount', amount.toString());
+  url.searchParams.set('des', transferContent);
+  url.searchParams.set('template', 'qronly');
+  return url.toString();
+}
 async function readExpiryHours(settings: { findUnique(args: unknown): Promise<{ value: unknown } | null> }, key: string): Promise<number> {
   const setting = await settings.findUnique({ where: { key } });
   const value = typeof setting?.value === 'number' ? setting.value : (typeof setting?.value === 'object' && setting?.value !== null && typeof (setting.value as { hours?: unknown }).hours === 'number' ? (setting.value as { hours: number }).hours : NaN);

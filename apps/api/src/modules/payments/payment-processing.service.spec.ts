@@ -139,7 +139,7 @@ describe('PaymentProcessingService', () => {
       const { tx, prisma } = bbqFixture();
       await expect(new PaymentProcessingService(prisma as never, () => now).processWebhookEvent(bbqEvent.id)).resolves.toEqual({ outcome: 'confirmed', paymentIntentId: bbqIntent.id });
       expect(tx.bbqReservation.updateMany).toHaveBeenCalledWith({ where: { id: bbqReservationId, status: 'PENDING_PAYMENT' }, data: { status: 'CONFIRMED' } });
-      expect(tx.bbqReservationStatusHistory.create).toHaveBeenCalledWith({ data: { reservationId: bbqReservationId, fromStatus: 'PENDING_PAYMENT', toStatus: 'CONFIRMED', reason: 'SePay Test Mode payment confirmed' } });
+      expect(tx.bbqReservationStatusHistory.create).toHaveBeenCalledWith({ data: { reservationId: bbqReservationId, fromStatus: 'PENDING_PAYMENT', toStatus: 'CONFIRMED', reason: 'SePay payment confirmed' } });
       expect(tx.resourceHold.updateMany).toHaveBeenCalledWith({ where: { referenceType: 'BBQ_RESERVATION', referenceId: bbqReservationId, status: 'ACTIVE' }, data: { status: 'CONFIRMED', confirmedAt: now } });
       expect(tx.booking.updateMany).not.toHaveBeenCalled();
       expect(tx.outboxEvent.create).toHaveBeenCalledTimes(2);
