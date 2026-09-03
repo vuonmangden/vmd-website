@@ -435,12 +435,16 @@ model NotificationJob {
   deduplicationKey     String    @unique @map("deduplication_key") @db.VarChar(180)
   attemptCount         Int       @default(0) @map("attempt_count")
   lastError            String?   @map("last_error") @db.Text
+  claimToken           String?   @map("claim_token") @db.Uuid
+  processingStartedAt  DateTime? @map("processing_started_at") @db.Timestamptz()
+  leaseExpiresAt       DateTime? @map("lease_expires_at") @db.Timestamptz()
   createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz()
   completedAt          DateTime? @map("completed_at") @db.Timestamptz()
 
   deliveries NotificationDelivery[]
 
   @@index([status, scheduledAt])
+  @@index([status, leaseExpiresAt])
   @@map("notification_jobs")
 }
 

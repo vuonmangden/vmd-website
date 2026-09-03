@@ -23,6 +23,7 @@ const configuration: EmailConfiguration = {
 
 const message: EmailMessage = {
   correlationId: 'mailpit-correlation-123',
+  idempotencyKey: 'notification:mailpit-correlation-123:email',
   recipient: 'guest@example.test',
   subject: 'Synthetic subject',
   text: 'Synthetic body',

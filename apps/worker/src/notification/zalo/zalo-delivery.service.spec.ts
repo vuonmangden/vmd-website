@@ -14,6 +14,7 @@ describe('ZaloDeliveryService', () => {
     await expect(
       service.send({
         correlationId: 'correlation-123',
+        idempotencyKey: 'notification:correlation-123:zalo',
         recipientPhone: '0987654321',
         templateCode: 'BOOKING_CONFIRMED_ZALO',
         templateParams: {},
@@ -35,6 +36,7 @@ describe('ZaloDeliveryService', () => {
     await expect(
       service.send({
         correlationId: 'correlation-456',
+        idempotencyKey: 'notification:correlation-456:zalo',
         recipientPhone: '0987654321',
         templateCode: 'BOOKING_CONFIRMED_ZALO',
         templateParams: {},

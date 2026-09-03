@@ -12,6 +12,8 @@ export type ZaloFailureCode =
 
 export interface ZaloMessage {
   correlationId: string;
+  /** Passed to a provider only when its production adapter supports it. */
+  idempotencyKey: string;
   recipientPhone: string;
   templateCode: string;
   templateParams: Record<string, string>;
