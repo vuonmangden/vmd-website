@@ -14,6 +14,23 @@ export interface ZaloConfiguration {
 const DEFAULT_API_BASE_URL = 'http://127.0.0.1:4011';
 const DEFAULT_TIMEOUT_MS = 10_000;
 
+/**
+ * Whether Zalo delivery should be attempted at all. Deliberately separate
+ * from `loadZaloConfiguration()`, which throws in production while no Zalo
+ * Official Account exists — callers that only need to decide "is it worth
+ * creating a Zalo job" must be able to ask without that throw.
+ *
+ * With no OA registered (PRE-007, still open), every confirmed booking would
+ * otherwise enqueue a Zalo job that can never send, burying the staff failure
+ * inbox in known-impossible failures and making it useless for spotting real
+ * ones. Guests are unaffected either way — the email job is independent.
+ */
+export function isZaloDeliveryEnabled(
+  environment: NodeJS.ProcessEnv = process.env,
+): boolean {
+  return environment['ZALO_ENABLED'] === 'true';
+}
+
 export function loadZaloConfiguration(
   environment: NodeJS.ProcessEnv = process.env,
 ): ZaloConfiguration {
