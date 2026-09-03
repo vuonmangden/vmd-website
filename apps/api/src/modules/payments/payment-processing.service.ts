@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, Optional } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- Nest needs runtime DI metadata.
 import { PrismaService } from '../../prisma/prisma.service';
@@ -6,6 +6,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 const PROVIDER = 'SEPAY_TEST';
 const RECEIVED = 'RECEIVED';
 const PROCESSED = 'PROCESSED';
+const PAYMENT_PROCESSING_CLOCK = 'PAYMENT_PROCESSING_CLOCK';
 
 /**
  * A shortfall at or below this is treated as paid in full (bank-fee offset).
@@ -26,7 +27,7 @@ interface SePayPayload {
 
 @Injectable()
 export class PaymentProcessingService {
-  constructor(private readonly prisma: PrismaService, private readonly now: () => Date = () => new Date()) {}
+  constructor(private readonly prisma: PrismaService, @Optional() @Inject(PAYMENT_PROCESSING_CLOCK) private readonly now: () => Date = () => new Date()) {}
 
   async processWebhookEvent(eventId: string): Promise<PaymentProcessingResult> {
     return this.prisma.$transaction(async (tx) => {

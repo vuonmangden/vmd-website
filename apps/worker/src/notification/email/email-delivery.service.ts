@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { EmailProviderFactory } from './email-provider.factory';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports -- Nest needs runtime DI metadata.
+import { EmailProviderFactory } from './email-provider.factory';
 import {
   EmailDeliveryError,
   type EmailDeliveryResult,

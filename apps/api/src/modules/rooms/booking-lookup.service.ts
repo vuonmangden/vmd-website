@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Inject, Injectable, NotFoundException, Optional } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- Nest needs runtime DI metadata.
 import { PrismaService } from '../../prisma/prisma.service';
@@ -16,6 +16,7 @@ import { BookingDateChangeService, type DateChangeExecution } from './booking-da
 const NOT_FOUND = () => new NotFoundException({ code: 'BOOKING_NOT_FOUND', message: 'Booking was not found' });
 /** Asia/Ho_Chi_Minh is UTC+7 with no DST; a fixed offset is exact and matches every other operational-date computation in this project. */
 const HO_CHI_MINH_OFFSET_MS = 7 * 60 * 60 * 1000;
+const BOOKING_LOOKUP_CLOCK = 'BOOKING_LOOKUP_CLOCK';
 
 @Injectable()
 export class BookingLookupService {
@@ -25,7 +26,7 @@ export class BookingLookupService {
     private readonly bookingState: BookingStateService,
     private readonly cancellationPolicy: CancellationPolicyService,
     private readonly dateChanges: BookingDateChangeService,
-    private readonly now: () => Date = () => new Date(),
+    @Optional() @Inject(BOOKING_LOOKUP_CLOCK) private readonly now: () => Date = () => new Date(),
   ) {}
 
   async lookup(code: string, phoneInput: string, ip: string) {

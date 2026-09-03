@@ -1,12 +1,19 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, Optional } from '@nestjs/common';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- Nest needs runtime DI metadata.
 import { PrismaService } from '../../prisma/prisma.service';
 
 export interface CreateResourceHold { resourceType: string; resourceId: string; referenceType: string; referenceId: string; startAt: Date; endAt: Date; idempotencyKey: string; }
 
+const RESOURCE_HOLD_CLOCK = 'RESOURCE_HOLD_CLOCK';
+const RESOURCE_HOLD_MINUTES = 'RESOURCE_HOLD_MINUTES';
+
 @Injectable()
 export class ResourceHoldsService {
-  constructor(private readonly prisma: PrismaService, private readonly now: () => Date = () => new Date(), private readonly holdMinutes = configuredHoldMinutes()) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Optional() @Inject(RESOURCE_HOLD_CLOCK) private readonly now: () => Date = () => new Date(),
+    @Optional() @Inject(RESOURCE_HOLD_MINUTES) private readonly holdMinutes = configuredHoldMinutes(),
+  ) {}
   async create(input: CreateResourceHold) {
     if (input.endAt <= input.startAt || !input.idempotencyKey.trim()) throw invalidHold();
     const existing = await this.prisma.resourceHold.findUnique({ where: { idempotencyKey: input.idempotencyKey } });

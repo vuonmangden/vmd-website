@@ -1,8 +1,10 @@
 import {
   BadRequestException,
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { createHash, randomUUID } from 'node:crypto';
@@ -13,6 +15,7 @@ import { BbqMenuService } from './bbq-menu.service';
 
 const IDEMPOTENCY_KEY_PREFIX = 'bbq-reservation:';
 const IDEMPOTENCY_SCOPE = 'bbq.reservation.create';
+const BBQ_RESERVATION_CREATION_CLOCK = 'BBQ_RESERVATION_CREATION_CLOCK';
 
 export interface CreateBbqReservationItemInput {
   type: 'MENU_ITEM' | 'COMBO';
@@ -38,7 +41,7 @@ export class BbqReservationCreationService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly bbqMenu: BbqMenuService,
-    private readonly now: () => Date = () => new Date(),
+    @Optional() @Inject(BBQ_RESERVATION_CREATION_CLOCK) private readonly now: () => Date = () => new Date(),
   ) {}
 
   async create(input: CreateBbqReservationInput) {
