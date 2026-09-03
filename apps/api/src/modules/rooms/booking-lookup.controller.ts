@@ -8,7 +8,8 @@ import { PermissionsGuard } from '../auth/permissions.guard';
 import { RequirePermissions } from '../auth/permissions.decorator';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- Nest needs runtime DI metadata.
 import { BookingLookupService } from './booking-lookup.service';
-import type { BookingLookupDto, PublicGuestRequestDto, DecideGuestRequestDto, ReviewGuestRequestDto } from './dto/booking-lookup.dto';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports -- Nest needs runtime DTO metadata for validation.
+import { BookingLookupDto, PublicGuestRequestDto, DecideGuestRequestDto, ReviewGuestRequestDto } from './dto/booking-lookup.dto';
 
 @ApiTags('Public booking lookup') @Controller('public/booking-lookup')
 export class BookingLookupController {

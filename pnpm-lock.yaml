@@ -8,9 +8,9 @@ overrides:
   '@playwright/test': 1.55.1
   playwright: 1.55.1
   js-yaml: 5.2.2
-  fast-uri: 3.1.6
   deepmerge-ts: ^8.0.1
   mysql2: 3.22.0
+  fast-uri: 3.1.6
 
 importers:
 

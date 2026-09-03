@@ -14,8 +14,9 @@ import { BbqModule } from './modules/bbq/bbq.module';
 import { CmsModule } from './modules/cms/cms.module';
 import { OpsModule } from './modules/ops/ops.module';
 import { ReportsModule } from './modules/reports/reports.module';
+import { MetricsModule } from './common/metrics/metrics.module';
 
 @Module({
-  imports: [PrismaModule, QueueModule, HealthModule, CustomersModule, AuthModule, RoomsModule, AuditModule, PaymentsModule, SettingsModule, ContactModule, NotificationsModule, BbqModule, CmsModule, OpsModule, ReportsModule],
+  imports: [PrismaModule, QueueModule, HealthModule, CustomersModule, AuthModule, RoomsModule, AuditModule, PaymentsModule, SettingsModule, ContactModule, NotificationsModule, BbqModule, CmsModule, OpsModule, ReportsModule, MetricsModule],
 })
 export class AppModule {}
