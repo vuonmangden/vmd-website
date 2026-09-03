@@ -16,6 +16,7 @@ const configuration: ZaloConfiguration = {
 
 const message: ZaloMessage = {
   correlationId: 'zalo-correlation-123',
+  idempotencyKey: 'notification:zalo-correlation-123:zalo',
   recipientPhone: '0987654321',
   templateCode: 'BOOKING_CONFIRMED_ZALO',
   templateParams: { guestName: 'Nguyen Van A' },
@@ -57,7 +58,10 @@ describe('MockZaloProvider', () => {
     });
     expect(fetchImplementation).toHaveBeenCalledWith(
       'http://127.0.0.1:4011/success',
-      expect.objectContaining({ method: 'POST' }),
+      expect.objectContaining({
+        method: 'POST',
+        body: expect.stringContaining('notification:zalo-correlation-123:zalo'),
+      }),
     );
   });
 

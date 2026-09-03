@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- Nest needs runtime DI metadata.
 import { PrismaService } from '../prisma/prisma.service';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- Nest needs runtime DI metadata.
@@ -12,7 +13,10 @@ import { dateLabel } from './date-label';
 
 const POLL_INTERVAL_MS = 5_000;
 const BATCH_SIZE = 20;
-const MAX_ATTEMPTS = 4;
+const MAX_ATTEMPTS = 5;
+const LEASE_MS = 5 * 60_000;
+const RETRY_BASE_DELAY_MS = 30_000;
+const RETRY_MAX_DELAY_MS = 15 * 60_000;
 
 interface EmailPayload {
   subject: string;
@@ -54,8 +58,14 @@ export class NotificationDispatchService implements OnModuleInit, OnModuleDestro
   }
 
   async pollAndDispatch(): Promise<number> {
+    const now = new Date();
     const jobs = await this.prisma.notificationJob.findMany({
-      where: { status: 'pending', scheduledAt: { lte: new Date() } },
+      where: {
+        OR: [
+          { status: 'pending', scheduledAt: { lte: now } },
+          { status: 'processing', leaseExpiresAt: { lte: now } },
+        ],
+      },
       orderBy: { scheduledAt: 'asc' },
       take: BATCH_SIZE,
     });
@@ -64,7 +74,9 @@ export class NotificationDispatchService implements OnModuleInit, OnModuleDestro
 
     let dispatched = 0;
     for (const job of jobs) {
-      const ok = await this.dispatchOne(job);
+      const claimToken = await this.claim(job.id, now);
+      if (!claimToken) continue;
+      const ok = await this.dispatchOne({ ...job, claimToken });
       if (ok) dispatched++;
     }
 
@@ -83,14 +95,12 @@ export class NotificationDispatchService implements OnModuleInit, OnModuleDestro
     phone: string | null;
     payload: unknown;
     attemptCount: number;
+    claimToken: string;
   }): Promise<boolean> {
     const channel = job.templateCode.endsWith('_ZALO') ? 'zalo' : 'email';
 
     if (job.templateCode.includes('_REMINDER_') && !(await this.reminderStillDue(job.recipientReferenceId, job.payload))) {
-      await this.prisma.notificationJob.update({
-        where: { id: job.id },
-        data: { status: 'skipped', completedAt: new Date(), lastError: 'Booking no longer confirmed for this date — reminder skipped' },
-      });
+      await this.settleSkipped(job);
       return false;
     }
 
@@ -98,47 +108,20 @@ export class NotificationDispatchService implements OnModuleInit, OnModuleDestro
       const result =
         channel === 'email' ? await this.sendEmail(job) : await this.sendZalo(job);
 
-      await this.prisma.$transaction([
-        this.prisma.notificationDelivery.create({
-          data: {
-            jobId: job.id,
-            channel,
-            provider: result.provider,
-            providerMessageId: result.providerMessageId,
-            status: 'sent',
-            sentAt: new Date(),
-          },
-        }),
-        this.prisma.notificationJob.update({
-          where: { id: job.id },
-          data: { status: 'completed', completedAt: new Date(), attemptCount: { increment: 1 } },
-        }),
-      ]);
-      return true;
+      return this.settleSuccess(job, channel, result);
     } catch (error) {
       const { code, retryable, provider, message } = normalizeError(error, channel);
       const nextAttempt = job.attemptCount + 1;
 
-      await this.prisma.$transaction([
-        this.prisma.notificationDelivery.create({
-          data: {
-            jobId: job.id,
-            channel,
-            provider,
-            status: 'failed',
-            failedAt: new Date(),
-            responseData: { code, retryable },
-          },
-        }),
-        this.prisma.notificationJob.update({
-          where: { id: job.id },
-          data: {
-            status: retryable && nextAttempt < MAX_ATTEMPTS ? 'pending' : 'failed',
-            attemptCount: { increment: 1 },
-            lastError: message,
-          },
-        }),
-      ]);
+      await this.settleFailure(job, channel, {
+        code,
+        // A timeout or lost connection may have reached a provider. Retrying
+        // is safe only when that provider deduplicates the stable job key.
+        retryable: retryable && canSafelyRetry(code, provider),
+        provider,
+        message,
+        nextAttempt,
+      });
 
       this.logger.warn(`Notification job ${job.id} (${job.templateCode}) failed: ${message}`);
       return false;
@@ -150,6 +133,7 @@ export class NotificationDispatchService implements OnModuleInit, OnModuleDestro
     const payload = job.payload as EmailPayload;
     return this.emailDelivery.send({
       correlationId: job.id,
+      idempotencyKey: `notification:${job.id}:email`,
       recipient: job.email,
       subject: payload.subject,
       text: payload.body,
@@ -161,6 +145,7 @@ export class NotificationDispatchService implements OnModuleInit, OnModuleDestro
     const payload = job.payload as ZaloPayload;
     return this.zaloDelivery.send({
       correlationId: job.id,
+      idempotencyKey: `notification:${job.id}:zalo`,
       recipientPhone: job.phone,
       templateCode: job.templateCode,
       templateParams: payload.templateParams,
@@ -186,6 +171,85 @@ export class NotificationDispatchService implements OnModuleInit, OnModuleDestro
     if (!booking || booking.status !== 'CONFIRMED') return false;
     return dateLabel(booking.checkInDate) === targetCheckInDate;
   }
+
+  private async claim(jobId: string, now: Date): Promise<string | null> {
+    const claimToken = randomUUID();
+    const result = await this.prisma.notificationJob.updateMany({
+      where: {
+        id: jobId,
+        OR: [
+          { status: 'pending', scheduledAt: { lte: now } },
+          { status: 'processing', leaseExpiresAt: { lte: now } },
+        ],
+      },
+      data: {
+        status: 'processing',
+        claimToken,
+        processingStartedAt: now,
+        leaseExpiresAt: new Date(now.getTime() + LEASE_MS),
+      },
+    });
+    return result.count === 1 ? claimToken : null;
+  }
+
+  private async settleSkipped(job: { id: string; claimToken: string }): Promise<void> {
+    await this.prisma.notificationJob.updateMany({
+      where: { id: job.id, status: 'processing', claimToken: job.claimToken },
+      data: { status: 'skipped', completedAt: new Date(), lastError: 'Booking no longer confirmed for this date — reminder skipped', claimToken: null, leaseExpiresAt: null },
+    });
+  }
+
+  private async settleSuccess(
+    job: { id: string; claimToken: string },
+    channel: 'email' | 'zalo',
+    result: { provider: string; providerMessageId: string | null },
+  ): Promise<boolean> {
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.notificationJob.updateMany({
+        where: { id: job.id, status: 'processing', claimToken: job.claimToken },
+        data: { status: 'completed', completedAt: new Date(), attemptCount: { increment: 1 }, claimToken: null, leaseExpiresAt: null },
+      });
+      if (updated.count !== 1) return false;
+      await tx.notificationDelivery.create({
+        data: { jobId: job.id, channel, provider: result.provider, providerMessageId: result.providerMessageId, status: 'sent', sentAt: new Date() },
+      });
+      return true;
+    });
+  }
+
+  private async settleFailure(
+    job: { id: string; claimToken: string },
+    channel: 'email' | 'zalo',
+    failure: { code: string; retryable: boolean; provider: string; message: string; nextAttempt: number },
+  ): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      const updated = await tx.notificationJob.updateMany({
+        where: { id: job.id, status: 'processing', claimToken: job.claimToken },
+        data: {
+          status: failure.retryable && failure.nextAttempt < MAX_ATTEMPTS ? 'pending' : 'failed',
+          attemptCount: { increment: 1 },
+          lastError: failure.message,
+          claimToken: null,
+          leaseExpiresAt: null,
+          ...(failure.retryable && failure.nextAttempt < MAX_ATTEMPTS
+            ? { scheduledAt: retryAt(failure.nextAttempt) }
+            : {}),
+        },
+      });
+      if (updated.count !== 1) return;
+      await tx.notificationDelivery.create({
+        data: { jobId: job.id, channel, provider: failure.provider, status: 'failed', failedAt: new Date(), responseData: { code: failure.code, retryable: failure.retryable } },
+      });
+    });
+  }
+}
+
+function retryAt(nextAttempt: number): Date {
+  const delay = Math.min(
+    RETRY_BASE_DELAY_MS * 2 ** Math.max(0, nextAttempt - 1),
+    RETRY_MAX_DELAY_MS,
+  );
+  return new Date(Date.now() + delay);
 }
 
 function normalizeError(
@@ -204,4 +268,13 @@ function normalizeError(
     provider: channel,
     message: error instanceof Error ? error.message : String(error),
   };
+}
+
+function canSafelyRetry(code: string, provider: string): boolean {
+  if (code !== 'timeout' && code !== 'provider_unavailable') return true;
+
+  // Resend documents idempotency for the email endpoint. The development
+  // Mailpit adapter and the pre-production Zalo mock do not make that
+  // guarantee, so an uncertain outcome is terminal for operator review.
+  return provider === 'resend';
 }
