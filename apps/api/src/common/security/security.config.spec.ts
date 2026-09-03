@@ -24,11 +24,11 @@ describe('SecurityConfigService', () => {
     process.env = {
       ...original,
       APP_ENV: 'production',
-      CORS_ALLOWED_ORIGINS: 'https://vuonmangden.vn,https://www.vuonmangden.vn,https://admin.vuonmangden.vn',
+      CORS_ALLOWED_ORIGINS: 'https://vuonmangden.com,https://www.vuonmangden.com,https://admin.vuonmangden.com',
       TRUSTED_PROXY_IPS: '10.0.0.10',
     };
     const config = new SecurityConfigService().get();
-    expect(config.corsOrigins.has('https://admin.vuonmangden.vn')).toBe(true);
+    expect(config.corsOrigins.has('https://admin.vuonmangden.com')).toBe(true);
     expect(config.trustedProxyIps.has('10.0.0.10')).toBe(true);
   });
 });
