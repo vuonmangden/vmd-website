@@ -44,7 +44,14 @@ export class NotificationDispatchService implements OnModuleInit, OnModuleDestro
 
   onModuleInit(): void {
     this.timer = setInterval(() => {
-      void this.pollAndDispatch();
+      /**
+       * `dispatchOne` catches its own delivery failures, but the `findMany`
+       * that feeds it does not — an unhandled rejection there would terminate
+       * the worker rather than simply retrying on the next tick.
+       */
+      this.pollAndDispatch().catch((error: unknown) => {
+        this.logger.error(`Notification poll failed; retrying next interval: ${error instanceof Error ? error.message : String(error)}`);
+      });
     }, POLL_INTERVAL_MS);
     this.logger.log('Notification dispatch started');
   }

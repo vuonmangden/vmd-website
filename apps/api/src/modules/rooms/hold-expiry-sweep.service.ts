@@ -33,7 +33,16 @@ export class HoldExpirySweepService implements OnModuleInit, OnModuleDestroy {
 
   onModuleInit(): void {
     this.timer = setInterval(() => {
-      void this.sweep();
+      /**
+       * A bare `void this.sweep()` would turn any transient database error
+       * into an unhandled rejection, which Node terminates the process for —
+       * taking the whole HTTP server down with it, since this sweep shares
+       * the API process. A polling loop exists precisely to tolerate a blip
+       * and retry on the next tick, so failures are logged, not fatal.
+       */
+      this.sweep().catch((error: unknown) => {
+        this.logger.error(`Expiry sweep failed; retrying next interval: ${error instanceof Error ? error.message : String(error)}`);
+      });
     }, SWEEP_INTERVAL_MS);
     this.logger.log('Hold/payment-intent expiry sweep started');
   }

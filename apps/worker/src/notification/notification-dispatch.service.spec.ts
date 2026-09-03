@@ -171,3 +171,35 @@ describe('NotificationDispatchService.pollAndDispatch', () => {
     expect(prisma.notificationJob.update).toHaveBeenCalledWith({ where: { id: 'job-3' }, data: expect.objectContaining({ status: 'skipped' }) });
   });
 });
+
+describe('NotificationDispatchService lifecycle', () => {
+  beforeEach(() => { jest.useFakeTimers(); });
+  afterEach(() => { jest.useRealTimers(); });
+
+  /**
+   * `dispatchOne` catches its own delivery errors, but the `findMany` feeding
+   * it does not — a leaked rejection there terminates the worker.
+   */
+  it('survives a failing poll without leaking an unhandled rejection, and keeps polling', async () => {
+    const unhandled: unknown[] = [];
+    const onUnhandled = (reason: unknown): void => { unhandled.push(reason); };
+    process.on('unhandledRejection', onUnhandled);
+
+    const prisma = prismaMock();
+    prisma.notificationJob.findMany.mockRejectedValue(new Error('database is unavailable'));
+    const service = new NotificationDispatchService(prisma as never, emailMock() as never, zaloMock() as never);
+    const logged = jest.spyOn(service['logger'], 'error').mockImplementation(() => undefined);
+
+    service.onModuleInit();
+    jest.advanceTimersByTime(5_000);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    process.off('unhandledRejection', onUnhandled);
+    expect(unhandled).toEqual([]);
+    expect(logged).toHaveBeenCalledWith(expect.stringContaining('database is unavailable'));
+
+    service.onModuleDestroy();
+    logged.mockRestore();
+  });
+});
