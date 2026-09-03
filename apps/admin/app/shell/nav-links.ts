@@ -13,6 +13,7 @@ export const NAV_LINKS: readonly NavLink[] = [
   { href: '/calendar', label: 'Lịch phòng' },
   { href: '/bookings', label: 'Đặt phòng' },
   { href: '/bbq', label: 'BBQ' },
+  { href: '/payments', label: 'Thanh toán' },
   { href: '/content-pages', label: 'Trang nội dung' },
   { href: '/articles', label: 'Tin tức' },
   { href: '/staff', label: 'Nhân sự' },

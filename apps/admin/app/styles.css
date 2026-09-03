@@ -175,3 +175,25 @@ body { margin: 0; }
 .reports-toolbar button:disabled { opacity: .6; cursor: wait; }
 .report-body { display: grid; gap: 1.5rem; }
 .report-total { margin: 0; font-size: 1.3rem; font-weight: 800; color: var(--vmd-ink); }
+
+.payment-reference-kind { display: block; font-size: .72rem; color: var(--vmd-wood); font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
+.payment-difference { display: inline-block; margin-left: .4rem; font-size: .75rem; font-weight: 700; color: var(--vmd-warn-text); background: var(--vmd-warn-bg); border-radius: .3rem; padding: .1rem .4rem; }
+.payment-case-flag { font-size: .78rem; font-weight: 700; color: #9d2d20; }
+.booking-status-paid { background: #e4efe8; color: var(--vmd-forest); }
+.booking-status-partially_paid, .booking-status-pending { background: var(--vmd-warn-bg); color: var(--vmd-warn-text); }
+
+.reconciliation-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .9rem; }
+.reconciliation-card { border: 1px solid var(--vmd-line); border-radius: .5rem; padding: .9rem 1rem; display: grid; gap: .7rem; background: #fff; }
+.reconciliation-head { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+.reconciliation-reason { font-weight: 800; color: var(--vmd-ink); }
+.reconciliation-facts { display: flex; gap: 1.6rem; margin: 0; flex-wrap: wrap; }
+.reconciliation-facts div { display: grid; gap: .15rem; }
+.reconciliation-facts dt { font-size: .74rem; text-transform: uppercase; letter-spacing: .03em; color: var(--vmd-wood); font-weight: 700; }
+.reconciliation-facts dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
+.reconciliation-hint { margin: 0; font-size: .82rem; color: var(--vmd-wood); }
+.reconciliation-resolved { margin: 0; font-size: .88rem; color: var(--vmd-forest); font-weight: 700; }
+.reconciliation-form { display: grid; gap: .6rem; border-top: 1px solid var(--vmd-line); padding-top: .7rem; }
+.reconciliation-form label { display: grid; gap: .3rem; font-weight: 700; font-size: .85rem; }
+.reconciliation-form select, .reconciliation-form textarea { border: 1px solid var(--vmd-line); border-radius: .35rem; padding: .45rem .6rem; font: inherit; }
+.reconciliation-form button { justify-self: start; border: none; border-radius: .35rem; background: var(--vmd-forest); color: #fff; font: inherit; font-weight: 700; padding: .5rem 1.1rem; cursor: pointer; }
+.reconciliation-form button:disabled { opacity: .6; cursor: wait; }

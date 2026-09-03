@@ -13,8 +13,8 @@ export interface ListCasesFilter {
 export class ReconciliationService {
   constructor(private readonly prisma: PrismaService) {}
 
-  list(filter: ListCasesFilter) {
-    return this.prisma.reconciliationCase.findMany({
+  async list(filter: ListCasesFilter) {
+    const rows = await this.prisma.reconciliationCase.findMany({
       where: {
         status: filter.status ?? 'OPEN',
         ...(filter.reason ? { reason: filter.reason } : {}),
@@ -26,6 +26,7 @@ export class ReconciliationService {
       },
       orderBy: { createdAt: 'desc' },
     });
+    return rows.map(serializeCase);
   }
 
   async findById(id: string) {
@@ -38,7 +39,7 @@ export class ReconciliationService {
       },
     });
     if (!item) throw new NotFoundException({ code: 'RECONCILIATION_CASE_NOT_FOUND', message: 'Reconciliation case not found' });
-    return item;
+    return serializeCase(item);
   }
 
   /**
@@ -74,7 +75,25 @@ export class ReconciliationService {
           correlationId: correlationId ?? null,
         },
       });
-      return tx.reconciliationCase.findUnique({ where: { id } });
+      const resolved = await tx.reconciliationCase.findUnique({ where: { id } });
+      return resolved ? serializeCase(resolved) : null;
     });
   }
+}
+
+/**
+ * Money is stored as BigInt, which `JSON.stringify` refuses to serialize —
+ * and Express's `res.json` is exactly `JSON.stringify`, so returning a raw
+ * row here makes the endpoint answer 500 rather than the row. Mirrors what
+ * `AdminPaymentsService` already does for the same columns. Unit tests that
+ * only inspect the returned object never exercise this, so the companion
+ * spec serializes the result the way the HTTP layer does.
+ */
+function serializeCase<T extends { expectedAmount: bigint; receivedAmount: bigint; paymentIntent?: { amount: bigint } | null }>(row: T) {
+  return {
+    ...row,
+    expectedAmount: row.expectedAmount.toString(),
+    receivedAmount: row.receivedAmount.toString(),
+    ...(row.paymentIntent ? { paymentIntent: { ...row.paymentIntent, amount: row.paymentIntent.amount.toString() } } : {}),
+  };
 }
