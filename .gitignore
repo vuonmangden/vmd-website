@@ -18,6 +18,10 @@ logs/
 tmp/
 .cache/
 
+# Local database backups (scripts/db-backup.mjs) — real customer/booking data, never committed
+backups/
+*.dump
+
 # Keys and certificates
 *.key
 *.pem
