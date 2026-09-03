@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException, Optional, ServiceUnavailableException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { createHash, randomBytes } from 'node:crypto';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- Nest needs runtime DI metadata.
@@ -7,6 +7,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 const ROOM_EXPIRY_SETTING = 'payment.expiry_hours.room';
 const BBQ_EXPIRY_SETTING = 'payment.expiry_hours.bbq';
 const PAYMENT_IDEMPOTENCY_SCOPE = 'payment.intent.sandbox';
+const PAYMENTS_CLOCK = 'PAYMENTS_CLOCK';
 
 export interface PaymentActor {
   staffProfileId: string;
@@ -20,7 +21,7 @@ interface PaymentReference { totalAmount: bigint; currency: string; createdAt: D
 
 @Injectable()
 export class PaymentsService {
-  constructor(private readonly prisma: PrismaService, private readonly now: () => Date = () => new Date()) {}
+  constructor(private readonly prisma: PrismaService, @Optional() @Inject(PAYMENTS_CLOCK) private readonly now: () => Date = () => new Date()) {}
 
   async createSandboxIntent(bookingId: string, idempotencyKey: string, actor: PaymentActor): Promise<PaymentIntentResponse> {
     const normalizedKey = idempotencyKey.trim();
