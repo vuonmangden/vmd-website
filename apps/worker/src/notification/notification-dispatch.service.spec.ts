@@ -3,11 +3,17 @@ import { EmailDeliveryError } from './email/email.types';
 import { ZaloDeliveryError } from './zalo/zalo.types';
 
 function prismaMock() {
+  const notificationJob = {
+    findMany: jest.fn().mockResolvedValue([]),
+    update: jest.fn(),
+    updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+  };
+  const notificationDelivery = { create: jest.fn() };
   return {
-    notificationJob: { findMany: jest.fn().mockResolvedValue([]), update: jest.fn() },
-    notificationDelivery: { create: jest.fn() },
+    notificationJob,
+    notificationDelivery,
     booking: { findUnique: jest.fn() },
-    $transaction: jest.fn((ops: unknown[]) => Promise.all(ops as Promise<unknown>[])),
+    $transaction: jest.fn((callback: (tx: { notificationJob: typeof notificationJob; notificationDelivery: typeof notificationDelivery }) => unknown) => Promise.resolve(callback({ notificationJob, notificationDelivery }))),
   };
 }
 
@@ -64,9 +70,35 @@ describe('NotificationDispatchService.pollAndDispatch', () => {
     const dispatched = await service.pollAndDispatch();
 
     expect(dispatched).toBe(1);
-    expect(email.send).toHaveBeenCalledWith({ correlationId: 'job-1', recipient: 'guest@example.test', subject: 'Xác nhận', text: 'Nội dung' });
+    expect(email.send).toHaveBeenCalledWith({ correlationId: 'job-1', idempotencyKey: 'notification:job-1:email', recipient: 'guest@example.test', subject: 'Xác nhận', text: 'Nội dung' });
     expect(prisma.notificationDelivery.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ jobId: 'job-1', channel: 'email', status: 'sent' }) }));
-    expect(prisma.notificationJob.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'job-1' }, data: expect.objectContaining({ status: 'completed' }) }));
+    expect(prisma.notificationJob.updateMany).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: 'completed' }) }));
+  });
+
+  it('does not call the provider when another worker won the atomic claim', async () => {
+    const prisma = prismaMock();
+    prisma.notificationJob.findMany.mockResolvedValue([EMAIL_JOB]);
+    prisma.notificationJob.updateMany.mockResolvedValueOnce({ count: 0 });
+    const email = emailMock();
+    const service = new NotificationDispatchService(prisma as never, email as never, zaloMock() as never);
+
+    expect(await service.pollAndDispatch()).toBe(0);
+    expect(email.send).not.toHaveBeenCalled();
+  });
+
+  it('recovers a job only after its processing lease has expired', async () => {
+    const prisma = prismaMock();
+    prisma.notificationJob.findMany.mockResolvedValue([{ ...EMAIL_JOB, status: 'processing', leaseExpiresAt: new Date('2026-01-01T00:00:00.000Z') }]);
+    const email = emailMock();
+    email.send.mockResolvedValue({ provider: 'mailpit', providerMessageId: 'job-1', status: 'sent' });
+    const service = new NotificationDispatchService(prisma as never, email as never, zaloMock() as never);
+
+    expect(await service.pollAndDispatch()).toBe(1);
+    expect(prisma.notificationJob.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        OR: expect.arrayContaining([expect.objectContaining({ status: 'processing' })]),
+      }),
+    }));
   });
 
   it('sends a Zalo job through templateCode/templateParams, not rendered text', async () => {
@@ -78,31 +110,31 @@ describe('NotificationDispatchService.pollAndDispatch', () => {
 
     await service.pollAndDispatch();
 
-    expect(zalo.send).toHaveBeenCalledWith({ correlationId: 'job-2', recipientPhone: '0987654321', templateCode: 'BOOKING_CONFIRMED_ZALO', templateParams: { bookingCode: 'VMD-1' } });
+    expect(zalo.send).toHaveBeenCalledWith({ correlationId: 'job-2', idempotencyKey: 'notification:job-2:zalo', recipientPhone: '0987654321', templateCode: 'BOOKING_CONFIRMED_ZALO', templateParams: { bookingCode: 'VMD-1' } });
   });
 
   it('keeps a job pending for a retryable failure under the attempt ceiling', async () => {
     const prisma = prismaMock();
     prisma.notificationJob.findMany.mockResolvedValue([{ ...EMAIL_JOB, attemptCount: 1 }]);
     const email = emailMock();
-    email.send.mockRejectedValue(new EmailDeliveryError('provider_unavailable', true, 'mailpit'));
+    email.send.mockRejectedValue(new EmailDeliveryError('provider_unavailable', true, 'resend'));
     const service = new NotificationDispatchService(prisma as never, email as never, zaloMock() as never);
 
     await service.pollAndDispatch();
 
-    expect(prisma.notificationJob.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: 'pending', lastError: expect.stringContaining('provider_unavailable') }) }));
+    expect(prisma.notificationJob.updateMany).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: 'pending', scheduledAt: expect.any(Date), lastError: expect.stringContaining('provider_unavailable') }) }));
   });
 
   it('marks a job failed once the retry ceiling is reached, even for a retryable error', async () => {
     const prisma = prismaMock();
-    prisma.notificationJob.findMany.mockResolvedValue([{ ...EMAIL_JOB, attemptCount: 3 }]);
+    prisma.notificationJob.findMany.mockResolvedValue([{ ...EMAIL_JOB, attemptCount: 4 }]);
     const email = emailMock();
-    email.send.mockRejectedValue(new EmailDeliveryError('provider_unavailable', true, 'mailpit'));
+    email.send.mockRejectedValue(new EmailDeliveryError('provider_unavailable', true, 'resend'));
     const service = new NotificationDispatchService(prisma as never, email as never, zaloMock() as never);
 
     await service.pollAndDispatch();
 
-    expect(prisma.notificationJob.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: 'failed' }) }));
+    expect(prisma.notificationJob.updateMany).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: 'failed' }) }));
   });
 
   it('marks a job failed immediately for a non-retryable error, regardless of attempt count', async () => {
@@ -114,7 +146,21 @@ describe('NotificationDispatchService.pollAndDispatch', () => {
 
     await service.pollAndDispatch();
 
-    expect(prisma.notificationJob.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: 'failed' }) }));
+    expect(prisma.notificationJob.updateMany).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: 'failed' }) }));
+  });
+
+  it('does not blindly retry an uncertain timeout from a provider without idempotency', async () => {
+    const prisma = prismaMock();
+    prisma.notificationJob.findMany.mockResolvedValue([EMAIL_JOB]);
+    const email = emailMock();
+    email.send.mockRejectedValue(new EmailDeliveryError('timeout', true, 'mailpit'));
+    const service = new NotificationDispatchService(prisma as never, email as never, zaloMock() as never);
+
+    await service.pollAndDispatch();
+
+    expect(prisma.notificationJob.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ status: 'failed' }),
+    }));
   });
 
   it('records a disabled Zalo channel as a normal non-retryable failure, per §22.3 (email still stands alone)', async () => {
@@ -127,7 +173,7 @@ describe('NotificationDispatchService.pollAndDispatch', () => {
     await service.pollAndDispatch();
 
     expect(prisma.notificationDelivery.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: 'failed', channel: 'zalo' }) }));
-    expect(prisma.notificationJob.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: 'failed' }) }));
+    expect(prisma.notificationJob.updateMany).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: 'failed' }) }));
   });
 
   it('sends a reminder normally when the booking is still confirmed for the same check-in date', async () => {
@@ -154,7 +200,7 @@ describe('NotificationDispatchService.pollAndDispatch', () => {
     await service.pollAndDispatch();
 
     expect(email.send).not.toHaveBeenCalled();
-    expect(prisma.notificationJob.update).toHaveBeenCalledWith({ where: { id: 'job-3' }, data: expect.objectContaining({ status: 'skipped' }) });
+    expect(prisma.notificationJob.updateMany).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: 'skipped' }) }));
     expect(prisma.notificationDelivery.create).not.toHaveBeenCalled();
   });
 
@@ -168,6 +214,6 @@ describe('NotificationDispatchService.pollAndDispatch', () => {
     await service.pollAndDispatch();
 
     expect(email.send).not.toHaveBeenCalled();
-    expect(prisma.notificationJob.update).toHaveBeenCalledWith({ where: { id: 'job-3' }, data: expect.objectContaining({ status: 'skipped' }) });
+    expect(prisma.notificationJob.updateMany).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: 'skipped' }) }));
   });
 });

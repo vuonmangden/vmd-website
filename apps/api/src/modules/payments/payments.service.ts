@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException, Optional, ServiceUnavailableException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { createHash, randomBytes } from 'node:crypto';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- Nest needs runtime DI metadata.
@@ -8,6 +8,7 @@ import { SePayWebhookConfigService, type SePayPaymentConfig } from './sepay-webh
 const ROOM_EXPIRY_SETTING = 'payment.expiry_hours.room';
 const BBQ_EXPIRY_SETTING = 'payment.expiry_hours.bbq';
 const PAYMENT_IDEMPOTENCY_SCOPE = 'payment.intent.sandbox';
+const PAYMENTS_CLOCK = 'PAYMENTS_CLOCK';
 
 export interface PaymentActor {
   staffProfileId: string;
@@ -26,16 +27,17 @@ export class PaymentsService {
 
   constructor(
     private readonly prisma: PrismaService,
-    @Inject(SePayWebhookConfigService) configOrClock: SePayWebhookConfigService | (() => Date),
+    @Optional() @Inject(SePayWebhookConfigService) configOrClock?: SePayWebhookConfigService | (() => Date),
+    @Optional() @Inject(PAYMENTS_CLOCK)
     now: () => Date = () => new Date(),
   ) {
     // Preserve deterministic legacy unit fixtures; Nest always injects config.
-    if (typeof configOrClock === 'function') {
+    if (typeof configOrClock === 'function' || !configOrClock) {
       this.config = {
         get: () => ({ apiKey: '', mode: 'sandbox', provider: 'SEPAY_TEST' }),
         getPayment: () => ({ apiKey: '', mode: 'sandbox', provider: 'SEPAY_TEST', bankAccountNumber: '', bankCode: '', bankAccountName: '', qrBaseUrl: '' }),
       } as SePayWebhookConfigService;
-      this.now = configOrClock;
+      this.now = typeof configOrClock === 'function' ? configOrClock : now;
     } else {
       this.config = configOrClock;
       this.now = now;

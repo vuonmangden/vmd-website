@@ -29,6 +29,7 @@ export class MockZaloProvider implements ZaloProvider {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             phone: message.recipientPhone,
+            idempotencyKey: message.idempotencyKey,
             templateCode: message.templateCode,
             templateParams: message.templateParams,
           }),

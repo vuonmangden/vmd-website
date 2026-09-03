@@ -21,6 +21,7 @@ const configuration: EmailConfiguration = {
 
 const message: EmailMessage = {
   correlationId: 'correlation-123',
+  idempotencyKey: 'notification:correlation-123:email',
   recipient: 'guest@example.test',
   subject: 'Synthetic subject',
   text: 'Synthetic body',
@@ -57,7 +58,12 @@ describe('ResendEmailProvider', () => {
     });
     expect(fetchImplementation).toHaveBeenCalledWith(
       'https://api.resend.com/emails',
-      expect.objectContaining({ method: 'POST' }),
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({
+          'Idempotency-Key': 'notification:correlation-123:email',
+        }),
+      }),
     );
   });
 
@@ -91,5 +97,23 @@ describe('ResendEmailProvider', () => {
       provider: 'resend',
       retryable: true,
     } satisfies Partial<EmailDeliveryError>);
+  });
+
+  it('retries only Resend\'s in-flight idempotency conflict', async () => {
+    const concurrent = new ResendEmailProvider(
+      configuration,
+      (jest.fn().mockResolvedValue(
+        new Response(JSON.stringify({ name: 'concurrent_idempotent_requests' }), { status: 409 }),
+      ) as unknown as typeof fetch),
+    );
+    const mismatched = new ResendEmailProvider(
+      configuration,
+      (jest.fn().mockResolvedValue(
+        new Response(JSON.stringify({ name: 'invalid_idempotent_request' }), { status: 409 }),
+      ) as unknown as typeof fetch),
+    );
+
+    await expect(concurrent.send(message)).rejects.toMatchObject({ retryable: true });
+    await expect(mismatched.send(message)).rejects.toMatchObject({ retryable: false });
   });
 });

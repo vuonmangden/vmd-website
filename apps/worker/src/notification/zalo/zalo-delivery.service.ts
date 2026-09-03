@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { ZaloProviderFactory } from './zalo-provider.factory';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports -- Nest needs runtime DI metadata.
+import { ZaloProviderFactory } from './zalo-provider.factory';
 import {
   ZaloDeliveryError,
   type ZaloDeliveryResult,

@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, Optional } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- Nest needs runtime DI metadata.
 import { PrismaService } from '../../prisma/prisma.service';
@@ -6,6 +6,7 @@ import { SePayWebhookConfigService } from './sepay-webhook.config';
 
 const RECEIVED = 'RECEIVED';
 const PROCESSED = 'PROCESSED';
+const PAYMENT_PROCESSING_CLOCK = 'PAYMENT_PROCESSING_CLOCK';
 
 /**
  * A shortfall at or below this is treated as paid in full (bank-fee offset).
@@ -31,14 +32,15 @@ export class PaymentProcessingService {
 
   constructor(
     private readonly prisma: PrismaService,
-    @Inject(SePayWebhookConfigService) configOrClock: SePayWebhookConfigService | (() => Date),
+    @Optional() @Inject(SePayWebhookConfigService) configOrClock?: SePayWebhookConfigService | (() => Date),
+    @Optional() @Inject(PAYMENT_PROCESSING_CLOCK)
     now: () => Date = () => new Date(),
   ) {
     // The clock-only overload keeps pre-cutover unit fixtures deterministic.
     // Nest always injects the config service in the running application.
-    if (typeof configOrClock === 'function') {
+    if (typeof configOrClock === 'function' || !configOrClock) {
       this.config = { get: () => ({ apiKey: '', mode: 'sandbox', provider: 'SEPAY_TEST' }) } as SePayWebhookConfigService;
-      this.now = configOrClock;
+      this.now = typeof configOrClock === 'function' ? configOrClock : now;
     } else {
       this.config = configOrClock;
       this.now = now;
