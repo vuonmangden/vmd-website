@@ -37,14 +37,14 @@ describe('generateMetadata', () => {
       ...ARTICLE,
       seoTitle: 'Tiêu đề SEO riêng',
       seoDescription: 'Mô tả SEO riêng.',
-      canonicalUrl: 'https://vuonmangden.vn/khai-truong-2026',
+      canonicalUrl: 'https://vuonmangden.com/khai-truong-2026',
     });
 
     const metadata = await generateMetadata(params('khai-truong'));
 
     expect(metadata.title).toBe('Tiêu đề SEO riêng');
     expect(metadata.description).toBe('Mô tả SEO riêng.');
-    expect(metadata.alternates?.canonical).toBe('https://vuonmangden.vn/khai-truong-2026');
+    expect(metadata.alternates?.canonical).toBe('https://vuonmangden.com/khai-truong-2026');
   });
 
   it('returns a not-found title without throwing when the slug does not exist', async () => {

@@ -8,13 +8,13 @@ import type {
 
 const configuration: EmailConfiguration = {
   apiKey: 'test-key',
-  fromAddress: 'noreply@vuonmangden.vn',
+  fromAddress: 'noreply@vuonmangden.com',
   fromName: 'Vườn Măng Đen',
   isProduction: false,
   mailpitHost: '127.0.0.1',
   mailpitPort: 1025,
   provider: 'resend',
-  replyTo: 'info@vuonmangden.vn',
+  replyTo: 'info@vuonmangden.com',
   resendApiUrl: 'https://api.resend.com',
   timeoutMs: 50,
 };

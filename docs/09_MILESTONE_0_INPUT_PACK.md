@@ -555,7 +555,7 @@ Chỉ ghi identifier/reference; không ghi secret.
 
 | Hạng mục | Giá trị không nhạy cảm cần cung cấp | Secret/reference cần tạo | Trạng thái |
 |---|---|---|---|
-| Public domain | Chưa cung cấp | DNS credential lưu ngoài repo | Chờ dữ liệu |
+| Public domain | **`vuonmangden.com`** — chủ dự án xác nhận 2026-09-03, đăng ký tại tenten.vn | DNS credential lưu ngoài repo | **Đã nhận** |
 | Admin domain | Development: `http://localhost:3001`; production `https://admin.vuonmangden.vn` đã chốt | DNS credential lưu ngoài repo | Đã nhận |
 | Supabase/PostgreSQL | Staging: project ref `atefkvykvwgtuaiscxnm`, URL `https://atefkvykvwgtuaiscxnm.supabase.co`, Singapore (`ap-southeast-1`); production chưa tạo và phải dùng project riêng trong `REL-001` trước go-live | `DATABASE_URL`, service credentials trong secret manager | Đủ staging-only |
 | SePay | Chủ dự án xác nhận **đã có tài khoản/API production** (2026-08-19); merchant/account identifier cụ thể chưa cung cấp vào tài liệu này | API/webhook secret trong secret manager | Có tài khoản, chờ identifier |
@@ -564,6 +564,25 @@ Chỉ ghi identifier/reference; không ghi secret.
 | Zalo | Chủ dự án xác nhận **chưa đăng ký Zalo Official Account** (2026-08-19) | App secret/token trong secret manager | Chờ dữ liệu |
 | Object storage | Provider, region, bucket naming | Access key trong secret manager | Chờ dữ liệu |
 | Hosting | Staging: Railway Variables; production secret store: Railway Variables đã chốt | Deploy credential trong secret manager | Đã nhận |
+
+### ✅ Tên miền chính thức — đã chốt 2026-09-03
+
+Chủ dự án xác nhận tên miền thật là **`vuonmangden.com`** (đăng ký tại tenten.vn).
+
+Trước thời điểm này tài liệu và code dùng lẫn lộn ba cách viết — `vuonmangden.vn`,
+`vuonmangden.com` và `vuongmangden.com` (thừa chữ `g`). Đã đồng bộ toàn bộ code,
+test fixture và `.env.example` về `vuonmangden.com`. Các mục ghi `.vn` ở những phần
+lịch sử bên dưới **giữ nguyên** làm bản ghi thời điểm, không sửa ngược.
+
+**Không đổi** (đã chốt riêng ngày 2026-08-22, không liên quan tên miền):
+- Email liên hệ công khai `vuonmangden.com@gmail.com` — đây là địa chỉ Gmail, phần
+  trước dấu `@` tình cờ trông giống tên miền.
+- Social handle `@vuonmangden`.
+
+**Ảnh hưởng còn lại:** bản ghi SPF/DKIM của Resend phải tạo lại cho đúng
+`vuonmangden.com`. Domain `vuongmangden.com` đăng ký nhầm trong Resend ngày
+2026-08-11 đứng ở trạng thái Pending 23 ngày vì Resend đọc DNS của một tên miền
+chủ dự án không sở hữu — cần xoá và thêm lại, khóa DKIM sẽ được sinh mới.
 
 ### Đầu vào identity đã nhận ngày 2026-08-10
 

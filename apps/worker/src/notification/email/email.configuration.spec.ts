@@ -5,8 +5,8 @@ const approvedStagingConfiguration: NodeJS.ProcessEnv = {
   APP_ENV: 'staging',
   EMAIL_PROVIDER: 'resend',
   EMAIL_FROM_NAME: 'Vườn Măng Đen',
-  EMAIL_FROM_ADDRESS: 'noreply@vuonmangden.vn',
-  EMAIL_REPLY_TO: 'info@vuonmangden.vn',
+  EMAIL_FROM_ADDRESS: 'noreply@vuonmangden.com',
+  EMAIL_REPLY_TO: 'info@vuonmangden.com',
   RESEND_API_KEY: 'test-key',
 };
 

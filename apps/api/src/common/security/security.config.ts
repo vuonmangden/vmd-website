@@ -5,7 +5,7 @@ const LOCAL_CORS_ORIGINS = [
   'http://localhost:3000',
   'http://localhost:3001',
   'http://localhost:3002',
-  'https://staging.vuonmangden.vn',
+  'https://staging.vuonmangden.com',
 ];
 
 export interface SecurityConfig {
