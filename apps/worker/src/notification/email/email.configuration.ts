@@ -36,8 +36,22 @@ export function loadEmailConfiguration(
     DEFAULT_TIMEOUT_MS,
   );
 
+  /**
+   * Production email was hard-disabled from NTF-002 onward while PRE-007's
+   * domain and SPF/DKIM were outstanding. The owner verified vuonmangden.com
+   * in Resend on 2026-09-03, so it opens now — but on the same fail-closed
+   * contract as SePay and storage: APP_ENV=production alone is not enough,
+   * EMAIL_ENV=production must opt in as well, and the provider must be a real
+   * one. A half-configured production deploy refuses to send rather than
+   * quietly dropping guest confirmations into a local mail catcher.
+   */
   if (isProduction) {
-    throw configurationError();
+    if (environment['EMAIL_ENV']?.trim().toLowerCase() !== 'production') {
+      throw configurationError();
+    }
+    if (provider !== 'resend') {
+      throw configurationError();
+    }
   }
 
   const resendApiUrl = readResendApiUrl(
